@@ -14,10 +14,22 @@ def main():
         # verificação de cada argumento de sys.argv
         print(sys.argv[i])
 
-    for i in range(int(sys.argv[i])):
         # geração de n valores aleatórios no intervalo [0-999]
-        print(randint(0,1000))   
+        # print(randint(0,1000))   
+    abb = None
+    for i in range(int(sys.argv[i])):
+        if abb is None:
+            abb = ABB(randint(0,1000))
+        else:
+            insereElementoABB(abb,randint(0,1000))
 
+
+    print("resultado ImprimeABBinOrder: ")
+    ImprimeABBinOrder(abb)
+    print("resultado ImprimeABBinLevel: ")
+    ImprimeABBinLevel(abb)
+    print("resultado ImprimeABBpostOrder: ")
+    ImprimeABBpostOrder(abb)
     # árvore deve ser gerada/populada
 
 main()    

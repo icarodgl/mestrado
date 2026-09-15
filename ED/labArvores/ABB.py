@@ -1,6 +1,6 @@
 from filaListaEncadeada import FilaListaEncadeada
 class ABB:
-    
+
     def __init__ (self, raiz):
         # cria uma nova ABB com o info raiz e sem filhos
         self._info = raiz
@@ -33,13 +33,13 @@ def push_interativo(raiz,e):
         #A insercao de uma chave que ja existe na ABB termina silenciosamente sem modificar a estrutura
         if no._info == e:
             return
-        
+
         if no._info > e:
             if no._dprox is None:
                 no._dprox = ABB(e)
                 continua = False
             else:
-                no = no._dprox    
+                no = no._dprox
         else:
             if no._eprox is None:
                 no._eprox = ABB(e)
@@ -54,10 +54,10 @@ def push_interativo(raiz,e):
 def busca(h:ABB, v:int):
     if h is None:
         return None
-    
+
     if h._info == v:
         return h
-    
+
     if h._info > v:
         return busca(h._dprox,v)
     else:
@@ -67,7 +67,7 @@ def busca(h:ABB, v:int):
 def conta(h:ABB, v:int):
     if h is None:
         return 0
-    
+
     if h._info == v:
         count = 1
     else:
@@ -93,34 +93,50 @@ def ImprimeABBinOrder(h:ABB):
 
     if h is None:
         return
-    
 
-    ImprimeABBinOrder(h._dprox)
-    print(h._info)
+
     ImprimeABBinOrder(h._eprox)
+    print(h._info)
+    ImprimeABBinOrder(h._dprox)
 
-    
+
 
 def ImprimeABBpreOrder(h:ABB):
     if h is None:
         return
-    
+
     print(h._info)
-    ImprimeABBpreOrder(h._dprox)
     ImprimeABBpreOrder(h._eprox)
+    ImprimeABBpreOrder(h._dprox)
 
 def ImprimeABBpostOrder(h:ABB):
     if h is None:
             return
-    ImprimeABBpostOrder(h)
-    ImprimeABBpostOrder(h)
+    ImprimeABBpostOrder(h._eprox)
+    ImprimeABBpostOrder(h._dprox)
     print(h._info)
-    
-def ImprimeABBinLevel(h):
+
+def ImprimeABBinLevel(h:ABB):
     if h is None:
         return
 
-    fila = 
+    fila = FilaListaEncadeada()
+    fila.enqueue(h)
+    while not fila.is_empty():
+        no_atual = fila.dequeue()
+        print('nivel',nivel)
+        print(no_atual._info,sep='|',end='')
+
+        if no_atual._eprox is not None:
+            fila.enqueue(no_atual._eprox)
+        if no_atual._dprox is not None:
+            fila.enqueue(no_atual._dprox)
+
+        
+        nivel += 1
+        
+
+
 
 def insereElementoABB(h:ABB, elemento:int):# aceita repeticao
     if h._info >= elemento:
@@ -136,7 +152,7 @@ def insereElementoABB(h:ABB, elemento:int):# aceita repeticao
         else:
             push(h._eprox, elemento)
 
-# Monta uma ABB a partir de uma lista 
+# Monta uma ABB a partir de uma lista
 # Elementos repetidos devem ficar a direita
 def montaABB(a):
     raiz = None
@@ -155,7 +171,7 @@ mabb = montaABB(lista)
 a = altura(mabb)
 print(a)
 
-'''       
+'''
 Testes
 
 outralista = [10, 4, 2, 30, 7, 15, 40, 27, 60, 6]
