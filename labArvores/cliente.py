@@ -1,0 +1,23 @@
+import sys
+
+from ABB import ABB, busca, conta, insereElementoABB 
+from ABB import ImprimeABBinLevel, ImprimeABBinOrder, ImprimeABBpreOrder, ImprimeABBpostOrder, altura
+from filaListaEncadeada import FilaListaEncadeada
+from pilhaListaEncadeada import PilhaListaEncadeada
+from random import randint
+
+n_args = len(sys.argv)
+
+def main():
+    print("Total arguments passed:", n_args)
+    for i in range(n_args):
+        # verificação de cada argumento de sys.argv
+        print(sys.argv[i])
+
+    for i in range(int(sys.argv[i])):
+        # geração de n valores aleatórios no intervalo [0-999]
+        print(randint(0,1000))   
+
+    # árvore deve ser gerada/populada
+
+main()    
