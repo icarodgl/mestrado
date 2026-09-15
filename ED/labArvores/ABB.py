@@ -90,11 +90,8 @@ def altura(h:ABB):
 
 
 def ImprimeABBinOrder(h:ABB):
-
     if h is None:
         return
-
-
     ImprimeABBinOrder(h._eprox)
     print(h._info)
     ImprimeABBinOrder(h._dprox)
@@ -104,7 +101,6 @@ def ImprimeABBinOrder(h:ABB):
 def ImprimeABBpreOrder(h:ABB):
     if h is None:
         return
-
     print(h._info)
     ImprimeABBpreOrder(h._eprox)
     ImprimeABBpreOrder(h._dprox)
@@ -116,24 +112,28 @@ def ImprimeABBpostOrder(h:ABB):
     ImprimeABBpostOrder(h._dprox)
     print(h._info)
 
-def ImprimeABBinLevel(h:ABB):
+
+def ImprimeABBinLevel(h):
     if h is None:
         return
 
     fila = FilaListaEncadeada()
     fila.enqueue(h)
+    nivel = 0
     while not fila.is_empty():
-        no_atual = fila.dequeue()
-        print('nivel',nivel)
-        print(no_atual._info,sep='|',end='')
+        print('Nivel',nivel)
+        nivel +=1
+        tamanho_nivel = len(fila)
 
-        if no_atual._eprox is not None:
-            fila.enqueue(no_atual._eprox)
-        if no_atual._dprox is not None:
-            fila.enqueue(no_atual._dprox)
+        for _ in range(tamanho_nivel):
+            no_atual = fila.dequeue()
+            print(no_atual._info, end=' ')
 
-        
-        nivel += 1
+            if no_atual._eprox is not None:
+                fila.enqueue(no_atual._eprox)
+            if no_atual._dprox is not None:
+                fila.enqueue(no_atual._dprox)
+        print()  
         
 
 

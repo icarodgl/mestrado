@@ -30,6 +30,8 @@ def main():
     ImprimeABBinLevel(abb)
     print("resultado ImprimeABBpostOrder: ")
     ImprimeABBpostOrder(abb)
+    print('resultado ImprimeABBinLevel')
+    ImprimeABBinLevel(abb)
     # árvore deve ser gerada/populada
 
 main()    
