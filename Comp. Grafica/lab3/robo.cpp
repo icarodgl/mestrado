@@ -87,17 +87,17 @@ void Robo::DesenhaRobo(GLfloat x, GLfloat y, GLfloat thetaWheel, GLfloat theta1,
 
 void Robo::RodaBraco1(GLfloat inc)
 {
-
+    gTheta1 += inc;
 }
 
 void Robo::RodaBraco2(GLfloat inc)
 {
-
+    gTheta2 += inc;
 }
 
 void Robo::RodaBraco3(GLfloat inc)
 {
-
+    gTheta3+= inc;
 }
 
 void Robo::MoveEmX(GLfloat dx)
