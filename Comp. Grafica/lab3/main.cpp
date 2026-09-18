@@ -52,15 +52,17 @@ void keyPress(unsigned char key, int x, int y)
         case 'a':
         case 'A':
              keyStatus[(int)('a')] = 1; //Using keyStatus trick
-             Robo().MoveEmX(1);
+             robo.MoveEmX(-5);
              break;
         case 'd':
         case 'D':
              keyStatus[(int)('d')] = 1; //Using keyStatus trick
+             robo.MoveEmX(5);
              break;
         case 'f':
         case 'F':
              robo.RodaBraco1(-INC_KEY);   //Without keyStatus trick
+             
              break;
         case 'r':
         case 'R':

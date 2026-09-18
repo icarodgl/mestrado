@@ -11,7 +11,7 @@ void Robo::DesenhaRect(GLint height, GLint width, GLfloat R, GLfloat G, GLfloat 
     //     glVertex2i(0,         width/2);
     // glEnd();
 
-    glRecti(-width,-height,width,height);
+    glRecti(0,0,width,height);
     
 }
 
@@ -45,17 +45,17 @@ void Robo::DesenhaBraco(GLfloat x, GLfloat y, GLfloat theta1, GLfloat theta2, GL
 {
     int h = 20;
     int l = 5; 
-
+    
     glPushMatrix();
-        glTranslatef(x, y+h+1, 0);
+        glTranslatef(x, y, 0);
         glRotated(theta1,0,0,1);
         DesenhaRect(h,l,0.9,0.9,0.0); // amaelo
 
-            glTranslatef(x, 2*h+1, 0);
+            glTranslatef(0,h, 0);
             glRotated(theta2,0,0,1);
             DesenhaRect(h,l,0.0,0.9,0.9); // ciano
 
-            glTranslatef(x, 2*h+1, 0);
+            glTranslatef(0,h, 0);
             glRotated(theta3,0,0,1);
             DesenhaRect(h,l,0.9,0.0,0.9); // magenta
 
@@ -64,26 +64,23 @@ void Robo::DesenhaBraco(GLfloat x, GLfloat y, GLfloat theta1, GLfloat theta2, GL
 
 void Robo::DesenhaRobo(GLfloat x, GLfloat y, GLfloat thetaWheel, GLfloat theta1, GLfloat theta2, GLfloat theta3)
 {   
-    int hCorpo = 50;
-    int lCorpo = 100;
-
     // corpo
     glPushMatrix();
-        glTranslatef(x, y+hCorpo, 0.0f);
-        DesenhaRect(hCorpo,lCorpo,0.4,0.0,0.0);
+        glTranslatef(x, y+baseHeight, 0.0f);
+        DesenhaRect(baseHeight,baseWidth,0.4,0.0,0.0);
     glPopMatrix();
     // braços
-    DesenhaBraco(x,y+lCorpo,theta1,theta2,theta3);
+    DesenhaBraco(x+(baseWidth/2),y+baseWidth,theta1,theta2,theta3);
     //rodas
     glPushMatrix();
-        glTranslatef(x+lCorpo, y, 0.0f);
+        glTranslatef(x, y+baseHeight, 0.0f);
         glRotated(thetaWheel,0,0,1);
-        DesenhaCirc(40,0.6,0.2,0.8);
+        DesenhaCirc(radiusWheel,0.6,0.0,0.1);
     glPopMatrix();
     glPushMatrix();
-        glTranslatef(x-lCorpo, y, 0.0f);
+        glTranslatef(x+baseWidth, y+baseHeight, 0.0f);
         glRotated(thetaWheel,0,0,1);
-        DesenhaCirc(40,0.6,0.2,0.8);
+        DesenhaCirc(radiusWheel,0.6,0.2,0.8);
     glPopMatrix();
 
 }
@@ -104,7 +101,11 @@ void Robo::RodaBraco3(GLfloat inc)
 }
 
 void Robo::MoveEmX(GLfloat dx)
-{
+{   
+    
+    gX = gX + dx;
+    gThetaWheel = gThetaWheel - dx;
+    
 }
 
 //Funcao auxiliar de rotacao
