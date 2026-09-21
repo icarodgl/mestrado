@@ -87,6 +87,10 @@ void keyPress(unsigned char key, int x, int y)
         case ' ':
              if (!tiro)
                 tiro = robo.Atira();
+            else{
+                delete tiro;
+                tiro = robo.Atira();
+            }
              break;
         case 27 :
              exit(0);
@@ -144,15 +148,20 @@ void idle(void)
     if(tiro){
         tiro->Move();
 
-        //Trata colisao
-        if (alvo.Atingido(tiro)){
-            alvo.Recria(rand()%500 - 250, 200);
-        }
 
         if (!tiro->Valido()){ 
             delete tiro;
             tiro = NULL;
+            return;
         }
+        //Trata colisao
+        if (alvo.Atingido(tiro)){
+            delete tiro;
+            tiro = NULL;
+            alvo.Recria(rand()%500 - 250, 200);
+        }
+
+
     }
     
     
