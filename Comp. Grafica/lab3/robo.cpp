@@ -111,34 +111,41 @@ void RotatePoint(GLfloat x, GLfloat y, GLfloat angle, GLfloat &xOut, GLfloat &yO
 Tiro* Robo::Atira()
 {
     int h = paddleHeight / 2;
-    GLfloat x0, y0, xh,yl = 0.0;
-    yl = paddleHeight;
 
-    RotatePoint(x0,y0, gTheta3, x0,y0);
-    RotatePoint(xh,yl, gTheta3, xh,yl);
+    
+    // GLfloat x,y = 0.0;
+    // y = h;
+    // x = gX;
 
+    // RotatePoint(x,y, gTheta3, x,y);
+    // y += h;
+    // RotatePoint(x,y, gTheta2, x,y);
+    // y += h;
+    // RotatePoint(x,y, gTheta1, x,y);
+    // y += h;
+    // y += baseHeight;
 
+    // Tiro* t = new Tiro(x,y,direction);
 
-    // glPushMatrix();
-    //     glTranslatef(gX+(baseWidth/2),gY+2*baseHeight, 0);
-    //     glRotated(this->gTheta1, 0, 0, 1);
-    //     glTranslatef(0, h, 0);
-    //     glRotated(this->gTheta2, 0, 0, 1);
-    //     glTranslatef(0, h, 0);
-    //     glRotated(this->gTheta3, 0, 0, 1);
-    //     glTranslatef(0, h, 0);
+    glPushMatrix();
+        glTranslatef(gX+(baseWidth/2),gY+2*baseHeight, 0);
+        glRotated(this->gTheta1, 0, 0, 1);
+        glTranslatef(0, h, 0);
+        glRotated(this->gTheta2, 0, 0, 1);
+        glTranslatef(0, h, 0);
+        glRotated(this->gTheta3, 0, 0, 1);
+        glTranslatef(0, h, 0);
         
-    //     GLfloat m[16];
-    //     glGetFloatv(GL_MODELVIEW_MATRIX, m);
-    //     GLfloat pontaX = m[12];
-    //     GLfloat pontaY = m[13];
-    // glPopMatrix();
-    // GLfloat angTotal = this->gTheta1 + this->gTheta2 + this->gTheta3;
-    // Tiro* t = new Tiro(pontaX, pontaY, angTotal);
+        GLfloat m[16];
+        glGetFloatv(GL_MODELVIEW_MATRIX, m);
+        GLfloat pontaX = m[12];
+        GLfloat pontaY = m[13];
+    glPopMatrix();
+    GLfloat angTotal = this->gTheta1 + this->gTheta2 + this->gTheta3;
+    Tiro* t = new Tiro(pontaX, pontaY, angTotal);
 
 
 
-    Tiro* t = new Tiro(x,y,direction);
         
     return t;
 }
