@@ -56,5 +56,5 @@ public:
     };
 };
 
-#endif	/* ROBO_H */
+#endif
 
