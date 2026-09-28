@@ -3,8 +3,9 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include "tiro.h"
+#include "colidivel.h"
 
-class Barril {
+class Barril : public Colidivel  {
     int vida;
     GLfloat gX; 
     GLfloat gY;

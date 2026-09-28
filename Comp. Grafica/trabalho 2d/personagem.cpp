@@ -6,7 +6,11 @@
     void Personagem::Girar(int dir){
 
     }
-    
+
     void Personagem::Mover(int dir){
 
     }
+
+    Tiro* Personagem::Atirar(){}
+
+    bool Personagem::Atingido(Colidivel* obj){}

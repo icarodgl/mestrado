@@ -4,8 +4,8 @@
 #include <GL/glu.h>
 #include "barril.h"
 #include "tiro.h"
-
-class Personagem {
+#include "colidivel.h"
+class Personagem  : public Colidivel  {
     int vida;
     GLfloat gX; 
     GLfloat gY;
@@ -13,15 +13,15 @@ class Personagem {
 private:
     void DesenhaPersonagem(GLfloat x, GLfloat y);
 public:
-    Personagem(GLfloat x, GLfloat y){
-        gX = x; 
-        gY = y;
+    Personagem(){
+        gX = 0; 
+        gY = -200; 
         gColor = 0;
     };
     void Desenha(){ 
         DesenhaPersonagem(gX, gY);
     };
-    bool Atingido(Barril *tiro);
+    bool Atingido(Colidivel* obj);
     void Girar(int dir);
     void Mover(int dir);
     Tiro* Atirar();

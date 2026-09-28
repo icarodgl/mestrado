@@ -2,10 +2,11 @@
 #define	TIRO_H
 #include <GL/gl.h>
 #include <GL/glu.h>
+#include "colidivel.h"
 
 #define radiusTiro 5
 
-class Tiro {
+class Tiro : public Colidivel {
     GLfloat gXInit; 
     GLfloat gYInit; 
     GLfloat gX; 

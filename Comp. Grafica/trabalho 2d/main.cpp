@@ -171,16 +171,16 @@ void idle(void)
 
 
 
-    double inc = INC_KEYIDLE;
-    //Treat keyPress
-    if(keyStatus[(int)('a')])
-    {
-        // robo.MoveEmX(-inc);
-    }
-    if(keyStatus[(int)('d')])
-    {
-        // robo.MoveEmX(inc);
-    }
+    // double inc = INC_KEYIDLE;
+    // //Treat keyPress
+    // if(keyStatus[(int)('a')])
+    // {
+    //     // robo.MoveEmX(-inc);
+    // }
+    // if(keyStatus[(int)('d')])
+    // {
+    //     // robo.MoveEmX(inc);
+    // }
     
     controlaTiros();
     controlaBarris();
