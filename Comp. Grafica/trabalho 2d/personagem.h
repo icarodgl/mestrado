@@ -25,6 +25,9 @@ public:
     void Girar(int dir);
     void Mover(int dir);
     Tiro* Atirar();
+
+    void GetPos(GLfloat& x, GLfloat& y) const override;
+    GLfloat GetRaio() const override;
 };
 
 #endif

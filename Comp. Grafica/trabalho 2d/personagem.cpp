@@ -13,4 +13,17 @@
 
     Tiro* Personagem::Atirar(){}
 
-    bool Personagem::Atingido(Colidivel* obj){}
+    bool Personagem::Atingido(Colidivel* obj){
+
+        if (!obj) return false;
+        return ColideCom(*obj);
+
+    }
+    void Personagem::GetPos(GLfloat& x, GLfloat& y)const{
+        x = this->gX;
+        y = this->gY;
+    }
+
+    GLfloat Personagem::GetRaio()const{
+
+    }

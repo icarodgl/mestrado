@@ -7,8 +7,6 @@
 #define radiusTiro 5
 
 class Tiro : public Colidivel {
-    GLfloat gXInit; 
-    GLfloat gYInit; 
     GLfloat gX; 
     GLfloat gY; 
     GLfloat gDirectionAng;
@@ -17,9 +15,7 @@ private:
     void DesenhaCirc(GLint radius, GLfloat R, GLfloat G, GLfloat B);
     void DesenhaTiro(GLfloat x, GLfloat y);
 public:
-    Tiro(GLfloat x, GLfloat y, GLfloat directionAng){
-        gXInit = x; 
-        gYInit = y; 
+    Tiro(GLfloat x, GLfloat y, GLfloat directionAng){ 
         gX = x; 
         gY = y; 
         gDirectionAng = directionAng; 
