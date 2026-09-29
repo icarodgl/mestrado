@@ -18,11 +18,11 @@ def main():
     #         input_data.append(x)
 
 
-    input_data = [8,7,6,5,4,3,2]
+    input_data = [8,7,6,5,4,4,3,2,8]
     print(len(input_data))
 
 
-    selection_sort(input_data)
+    bubble_sort(input_data)
     
     # stop the timer
     end = time.time()

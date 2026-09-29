@@ -9,10 +9,19 @@ def selection_sort(input_data):
             item = input_data[j]
             anterior = input_data[j-1]
             input_data[j],input_data[j-1] = compexch(item, anterior)
+            if item == anterior:
+                break
         
 
 def bubble_sort(input_data):
-    pass
+    desordenado = True
+    while desordenado:
+        desordenado = False
+        for i in range(len(input_data)-1):
+            if less(input_data[i+1], input_data[i]):
+                input_data[i+1] , input_data[i]  = exch(input_data[i+1], input_data[i])
+                desordenado = True
+        
 
 def shaker_sort(input_data):
     pass
