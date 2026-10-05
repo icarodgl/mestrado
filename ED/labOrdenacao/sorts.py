@@ -1,7 +1,14 @@
 from item import less, exch, compexch
 
 def insertion_sort(input_data):
-    pass
+    for i in range(input_data-1):
+        j = i+1
+
+        while j < 0:
+             j-=1
+         
+                   
+
 
 def selection_sort(input_data):
     for i in range(len(input_data)):
@@ -24,9 +31,15 @@ def bubble_sort(input_data):
         
 
 def shaker_sort(input_data):
-    pass
+    desordenado = True
 
-A = 2
-B = 3
-A,B = compexch(A,B)
-print(A,B)
+    while desordenado:
+        desordenado = False
+        for i in range(len(input_data)-1):
+                    if less(input_data[i+1], input_data[i]):
+                        input_data[i+1] , input_data[i]  = exch(input_data[i+1], input_data[i])
+                        desordenado = True
+        for i in range(len(input_data)-1,1,-1):
+                    if less(input_data[i], input_data[i-1]):
+                        input_data[i] , input_data[i-1]  = exch(input_data[i], input_data[i-1])
+                        desordenado = True
