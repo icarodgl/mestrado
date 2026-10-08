@@ -1,36 +1,45 @@
 #ifndef TIRO_H
-#define	TIRO_H
+#define TIRO_H
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include "colidivel.h"
 
 #define radiusTiro 5
 
-class Tiro : public Colidivel {
-    GLfloat gX; 
-    GLfloat gY; 
+class Tiro : public Colidivel
+{
+    GLfloat gX;
+    GLfloat gY;
     GLfloat gDirectionAng;
     GLfloat gVel;
+
 private:
     void DesenhaCirc(GLint radius, GLfloat R, GLfloat G, GLfloat B);
     void DesenhaTiro(GLfloat x, GLfloat y);
+
 public:
-    Tiro(GLfloat x, GLfloat y, GLfloat directionAng){ 
-        gX = x; 
-        gY = y; 
-        gDirectionAng = directionAng; 
+    Tiro(GLfloat x, GLfloat y, GLfloat directionAng)
+    {
+        gX = x;
+        gY = y;
+        gDirectionAng = directionAng;
         gVel = 0.1;
     };
-    void Desenha(){ 
+    void Desenha()
+    {
         DesenhaTiro(gX, gY);
     };
     void Move(GLfloat deltaTime);
     bool Valido();
-    void GetPos(GLfloat &xOut, GLfloat &yOut){
+
+    void GetPos(GLfloat &xOut, GLfloat &yOut) const override
+    {
         xOut = gX;
         yOut = gY;
     };
+    virtual GLfloat GetTamanho() const override
+    {
+        return 10.0;
+    }
 };
-
-#endif	/* TIRO_H */
-
+#endif /* TIRO_H */

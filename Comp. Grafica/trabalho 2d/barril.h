@@ -26,6 +26,9 @@ public:
     void Move(GLfloat deltaTime){}
 
     bool Valido();
+
+    void GetPos(GLfloat& x, GLfloat& y) const override;
+
 };
 
 #endif
