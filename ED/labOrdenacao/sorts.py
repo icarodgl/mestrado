@@ -1,10 +1,10 @@
 from item import less, exch, compexch
 
 def insertion_sort(input_data):
-    for i in range(input_data-1):
+    for i in range(len(input_data)-1):
         j = i+1
-
-        while j < 0:
+        while j > 0:
+             compexch(input_data[j],input_data[j-1])
              j-=1
          
                    
