@@ -11,6 +11,7 @@ class Personagem : public Colidivel
     int vida;
     GLfloat gX;
     GLfloat gY;
+    GLfloat theta;
 
 private:
     void DesenhaPersonagem(GLfloat x, GLfloat y);
@@ -24,6 +25,7 @@ public:
     {
         gX = 0;
         gY = 0;
+        theta = 0;
     };
     void Desenha()
     {
@@ -32,6 +34,7 @@ public:
     bool Atingido(Colidivel *obj);
     void Girar(int dir);
     void Mover(int dir);
+    void MoverLado(int dir);
     Tiro *Atirar();
     void GetPos(GLfloat &xOut, GLfloat &yOut) const override
     {

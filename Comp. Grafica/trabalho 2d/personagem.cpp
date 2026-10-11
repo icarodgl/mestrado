@@ -26,39 +26,60 @@ void Personagem::DesenhaPersonagem(GLfloat x, GLfloat y)
 {
 
     vector<GLfloat> CorCorpo = {0.75, 0.156, 0.09};
-    vector<GLfloat> CorPernas = {0.46, 0.92, 0.009};
+    vector<GLfloat> CorPernas = {0.9, 0.9, 0.9};
     vector<GLfloat> CorArma = {0.161, 0.6, 0.45};
 
-    // corpo
-    glPushMatrix();
-    glTranslatef(x, y, 0.0f);
-    glColor3f(CorCorpo[0], CorCorpo[1], CorCorpo[2]);
-    DesenhaCirculo(x, y);
-    glPopMatrix();
-
-    //perna dir
     glColor3f(CorPernas[0], CorPernas[1], CorPernas[2]);
 
+
     glPushMatrix();
-    glTranslatef(x+20, y, 0.0f);
-    glRecti(0,0,10,50);
+        glRotatef(theta, 0, 0, 1);
+    
+
+    // perna dir
+
+    glPushMatrix();
+    glTranslatef(x + 14, y, 0.0f);
+    glRecti(0, 0, 10, 50);
     glPopMatrix();
     // // perna esq
     glPushMatrix();
-    glTranslatef(x-20, y, 0.0f);
-    glRecti(0,0,10,50);
+    glTranslatef(x - 26, y - 50, 0.0f);
+    glRecti(0, 0, 10, 50);
+    glPopMatrix();
+
+    // corpo
+    glColor3f(CorCorpo[0], CorCorpo[1], CorCorpo[2]);
+
+    glPushMatrix();
+    glTranslatef(x, y, 0.0f);
+    DesenhaCirculo(x, y);
+    glPopMatrix();
+
+    // arma
+
+    glColor3f(CorArma[0], CorArma[1], CorArma[2]);
+    glPushMatrix();
+    glTranslatef(x + 30, y, 0.0f);
+    glRecti(0, 0, 12, 60);
+    glPopMatrix();
+
     glPopMatrix();
 }
 void Personagem::Girar(int dir)
 {
-    gX += dir;
+    if ((theta < 45 and dir > 0) or ( dir < 0 and theta > -45))
+        theta += dir;
 }
 
 void Personagem::Mover(int dir)
 {
+    gX += dir;
+}
+void Personagem::MoverLado(int dir)
+{
     gY += dir;
 }
-
 Tiro *Personagem::Atirar()
 {
     Tiro *t = new Tiro(0.0, 0.0, 0.0);
