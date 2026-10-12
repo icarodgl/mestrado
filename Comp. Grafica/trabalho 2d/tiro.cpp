@@ -2,6 +2,8 @@
 #include <math.h>
 #define DISTANCIA_MAX 500
 
+
+
 void Tiro::DesenhaCirc(GLint radius, GLfloat R, GLfloat G, GLfloat B)
 {
     int segmentos = 8;

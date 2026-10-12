@@ -5,6 +5,8 @@
 #include "colidivel.h"
 
 #define radiusTiro 5
+#define COL_X 10.0;
+#define COL_Y 10.0;
 
 class Tiro : public Colidivel
 {
@@ -37,9 +39,11 @@ public:
         xOut = gX;
         yOut = gY;
     };
-    virtual GLfloat GetTamanho() const override
+    void GetTamanho(GLfloat& x, GLfloat& y) const override
     {
-        return 10.0;
+        x = gX + COL_X;
+        y = gY + COL_Y;
+
     }
 };
 #endif /* TIRO_H */

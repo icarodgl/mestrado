@@ -6,6 +6,9 @@
 #include "tiro.h"
 #include "colidivel.h"
 
+#define COL_X 10.0;
+#define COL_Y 10.0;
+
 class Personagem : public Colidivel
 {
     int vida;
@@ -15,9 +18,11 @@ class Personagem : public Colidivel
 
 private:
     void DesenhaPersonagem(GLfloat x, GLfloat y);
-    GLfloat GetTamanho() const override
+    void GetTamanho(GLfloat& x, GLfloat& y) const override
     {
-        return 10.0;
+        x = gX + COL_X;
+        y = gY + COL_Y;
+
     }
 
 public:

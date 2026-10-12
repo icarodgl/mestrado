@@ -34,7 +34,6 @@ void Personagem::DesenhaPersonagem(GLfloat x, GLfloat y)
 
     glPushMatrix();
         glRotatef(theta, 0, 0, 1);
-    
 
     // perna dir
 
@@ -74,7 +73,13 @@ void Personagem::Girar(int dir)
 
 void Personagem::Mover(int dir)
 {
-    gX += dir;
+    GLfloat rad = this->theta * M_PI / 180.0f;
+    GLfloat vx = -sinf(rad) * dir*5;
+    GLfloat vy = cosf(rad) * dir*5;
+
+    this->gX += vx;
+    this->gY += vy;
+    // gX += dir;
 }
 void Personagem::MoverLado(int dir)
 {

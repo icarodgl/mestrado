@@ -6,22 +6,22 @@ public:
     virtual ~Colidivel() = default;
 
     virtual void GetPos(GLfloat& x, GLfloat& y) const = 0;
-    virtual GLfloat GetTamanho() const = 0;
+    virtual void GetTamanho(GLfloat& x, GLfloat& y) const = 0;
 
     // utilidade compartilhada — não precisa ser virtual
     bool ColideCom(const Colidivel& obj) const
     {
         
-        // GLfloat proprioX,proprioY,proprioZ,proprioD = 0.0;
-        // GLfloat outroX,outroY,outroZ,outroD = 0.0;
-        // GLfloat k = 0.0;
+        GLfloat mX,mY,mXl,mYl = 0.0;
+        GLfloat oX,oY,oXl,oYl = 0.0;
 
-        // this->GetPos(proprioX, proprioY);
-        // proprioD = this->GetTamanho();
-        // obj.GetPos(outroX, outroY);
-        // outroD = obj.GetTamanho();
+        this->GetPos(mX, mY);
+        this->GetTamanho(mXl,mYl);
+        obj.GetPos(oX, oY);
+        obj.GetTamanho(oXl,oYl);
 
-        // k = proprioX;
+        if((mX <= oXl and mY <= oYl) and (mXl >= oX and mYl >= oY ))
+            return true;
 
         return false;
     }
