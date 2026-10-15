@@ -89,3 +89,51 @@ def merge_sort_bottomup(a, lo, hi):
             x = aux_lo + 2 * sz - 1
             merge(a, aux, aux_lo, aux_lo + sz - 1, MIN(x, y))
         sz = 2 * sz
+
+
+def merge_sort_bottomup_cutof(a, lo, hi):
+    N = (hi - lo) + 1
+    if N <= 1:
+        return
+    y = N - 1
+    aux = [None] * N
+
+    # insertion em blocos de CUTOFF
+    for inicio in range(0, N, CUTOFF):
+        fim = MIN(inicio + CUTOFF - 1, y)
+        insertion_sort(a, lo + inicio, lo + fim)
+
+    # merges a partir de CUTOFF
+    sz = CUTOFF
+    while sz < N:
+        for aux_lo in range(0, N - sz, 2 * sz):
+            x = aux_lo + 2 * sz - 1
+            merge(a, aux, aux_lo, aux_lo + sz - 1, MIN(x, y))
+        sz *= 2
+
+
+def merge_sort_bottomup_cutof_merge_skip(a, lo, hi):
+    N = (hi - lo) + 1
+    if N <= 1:
+        return
+    y = N - 1
+    aux = [None] * N
+
+    # insertion em blocos de CUTOFF
+    for inicio in range(0, N, CUTOFF):
+        fim = MIN(inicio + CUTOFF - 1, y)
+        insertion_sort(a, lo + inicio, lo + fim)
+
+    # merges a partir de CUTOFF
+    sz = CUTOFF
+    while sz < N:
+        for aux_lo in range(0, N - sz, 2 * sz):
+            x = aux_lo + 2 * sz - 1
+
+            fim_esq  = lo + aux_lo + sz - 1
+            ini_dir  = lo + aux_lo + sz
+            if a[fim_esq] <= a[ini_dir]:
+                continue
+            
+            merge(a, aux, aux_lo, aux_lo + sz - 1, MIN(x, y))
+        sz *= 2

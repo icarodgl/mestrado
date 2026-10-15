@@ -24,7 +24,9 @@ def sort(a):
     # merge_sort_cutoff(a, aux, 0, hi)
     # merge_sort_skip_merge(a, aux, 0, hi)
     # merge_sort_cutof_skip_merge(a, aux, 0, hi)
-    merge_sort_bottomup(a, 0, hi)
+    # merge_sort_bottomup(a, 0, hi)
+    # merge_sort_bottomup_cutof(a, 0, hi)
+    merge_sort_bottomup_cutof_merge_skip(a, 0, hi)
 
 
 def tamanho_de(nome: str) -> int:

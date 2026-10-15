@@ -479,6 +479,34 @@
             }
         ]
     },
-    {"V6":[]},
-    {"V7":[]}
+    {"V6":[
+{"1Knearly_sorted": 0.002597},
+{"1Kreverse_sorted": 0.002606},
+{"1Ksorted": 0.002593},
+{"1Kunif_rand": 0.003596},
+{"10Knearly_sorted": 0.035511},
+{"10Kreverse_sorted": 0.038658},
+{"10Ksorted": 0.026885},
+{"10Kunif_rand": 0.019186},
+{"100Knearly_sorted": 0.237627},
+{"100Kreverse_sorted": 0.265641},
+{"100Ksorted": 0.207979},
+{"100Kunif_rand": 0.311007}
+]
+},
+    {"V7":[
+{"1Knearly_sorted": 0.000963},
+{"1Kreverse_sorted": 0.003691},
+{"1Ksorted": 0.000418},
+{"1Kunif_rand": 0.001811},
+{"10Knearly_sorted": 0.003633},
+{"10Kreverse_sorted": 0.019605},
+{"10Ksorted": 0.00275},
+{"10Kunif_rand": 0.021353},
+{"100Knearly_sorted": 0.040615},
+{"100Kreverse_sorted": 0.325536},
+{"100Ksorted": 0.027164},
+{"100Kunif_rand": 0.2657}
+]
+}
 ]
