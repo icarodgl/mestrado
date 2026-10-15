@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Resultados - Gráficos por Versão</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f5f7fa;
+            margin: 0;
+            padding: 24px;
+            color: #2c3e50;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .subtitulo {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 32px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+            gap: 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            padding: 20px;
+        }
+        .card h2 {
+            margin: 0 0 16px;
+            font-size: 1.15rem;
+            color: #34495e;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 8px;
+        }
+        .chart-container {
+            position: relative;
+            height: 340px;
+        }
+        #erro {
+            display: none;
+            max-width: 700px;
+            margin: 40px auto;
+            background: #fdecea;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 16px 20px;
+            border-radius: 8px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Resultados Comparativos</h1>
+    <p class="subtitulo">Tempo de execução por tamanho de entrada</p>
+
+    <div id="erro"></div>
+    <div class="grid" id="grid"></div>
+
+    <script>
+        // Carrega o JSON do mesmo diretório
+        fetch('resultados.json')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Não foi possível carregar resultados.json (HTTP ${response.status})`);
+                }
+                return response.json();
+            })
+            .then(dados => renderizar(dados))
+            .catch(err => mostrarErro(err.message));
+
+        function mostrarErro(msg) {
+            const el = document.getElementById('erro');
+            el.style.display = 'block';
+            el.innerHTML = `
+                <strong>Erro ao carregar os dados:</strong><br>
+                ${msg}<br><br>
+                <em>Dica:</em> rode o HTML a partir de um servidor local, por exemplo:<br>
+                <code>python3 -m http.server 8000</code><br>
+                e acesse <code>http://localhost:8000/graficos.html</code>
+            `;
+        }
+
+        // Paleta de cores para cada tamanho (1K, 10K, 100K...)
+        const CORES = [
+            '#3498db', '#e74c3c', '#2ecc71', '#f39c12',
+            '#9b59b6', '#1abc9c', '#e67e22', '#34495e'
+        ];
+
+        function renderizar(dados) {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+
+            dados.forEach((objeto, idx) => {
+                // Cada objeto tem UMA chave: "V1", "V2", ...
+                const versao = Object.keys(objeto)[0];
+                const series  = objeto[versao]; // array de { "1K": 0.1 }, { "10K": 0.5 }, ...
+
+                // Monta labels e valores
+                const labels = series.map(ponto => Object.keys(ponto)[0]);
+                const valores = series.map(ponto => Object.values(ponto)[0]);
+
+                // Cria card + canvas
+                const card = document.createElement('div');
+                card.className = 'card';
+
+                const titulo = document.createElement('h2');
+                titulo.textContent = `Versão: ${versao}`;
+                card.appendChild(titulo);
+
+                const container = document.createElement('div');
+                container.className = 'chart-container';
+
+                const canvas = document.createElement('canvas');
+                canvas.id = `chart-${versao}-${idx}`;
+                container.appendChild(canvas);
+                card.appendChild(container);
+
+                grid.appendChild(card);
+
+                // Plota o gráfico
+                new Chart(canvas.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: `Tempo (s) — ${versao}`,
+                            data: valores,
+                            backgroundColor: labels.map((_, i) => CORES[i % CORES.length]),
+                            borderColor: labels.map((_, i) => CORES[i % CORES.length]),
+                            borderWidth: 1.5,
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: ctx => ` ${ctx.parsed.y} s`
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Tempo (s)'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Tamanho da entrada'
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+
+            if (dados.length === 0) {
+                mostrarErro('O arquivo resultados.json está vazio.');
+            }
+        }
+    </script>
+</body>
+</html>
