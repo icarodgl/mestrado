@@ -1,5 +1,6 @@
 #include "tiro.h"
 #include <math.h>
+#include <stdio.h>
 #define DISTANCIA_MAX 500
 
 void Tiro::DesenhaCirc(GLint radius, GLfloat R, GLfloat G, GLfloat B)
@@ -27,7 +28,7 @@ void Tiro::DesenhaTiro(GLfloat x, GLfloat y)
 
 void Tiro::Move(GLfloat delta) 
 {   
-    
+
     GLfloat rad = this->gDirectionAng * M_PI / 180.0f;
     GLfloat vx = -sinf(rad) * this->gVel * delta;
     GLfloat vy = cosf(rad) * this->gVel * delta;
@@ -38,7 +39,7 @@ void Tiro::Move(GLfloat delta)
 
 bool Tiro::Valido()
 {
-    if (gX > DISTANCIA_MAX || gY > DISTANCIA_MAX)
-        return false;
-    return true;
+    if (gX <= DISTANCIA_MAX || gY <= DISTANCIA_MAX)
+        return true;
+    return false;
 }

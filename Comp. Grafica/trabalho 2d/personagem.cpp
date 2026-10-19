@@ -29,39 +29,36 @@ void Personagem::DesenhaPersonagem(GLfloat x, GLfloat y)
     vector<GLfloat> CorPernas = {0.9, 0.9, 0.9};
     vector<GLfloat> CorArma = {0.161, 0.6, 0.45};
 
-    glColor3f(CorPernas[0], CorPernas[1], CorPernas[2]);
-
-
+   
     glPushMatrix();
-        glRotatef(theta, 0, 0, 1);
+        glTranslatef(x, y, 0);
+        glRotatef(theta, 0, 0, 1); // correções para centralizar no boneco
+    
+        // perna direita
+        glColor3f(CorPernas[0], CorPernas[1], CorPernas[2]);
+        glPushMatrix();
+            glTranslatef(14, 0, 0);
+            glRecti(0, 0, 10, 50);
+        glPopMatrix();
 
-    // perna dir
+        // perna esquerda
+        glPushMatrix();
+            glTranslatef(-26, -50, 0);
+            glRecti(0, 0, 10, 50);
+        glPopMatrix();
 
-    glPushMatrix();
-    glTranslatef(x + 14, y, 0.0f);
-    glRecti(0, 0, 10, 50);
-    glPopMatrix();
-    // // perna esq
-    glPushMatrix();
-    glTranslatef(x - 26, y - 50, 0.0f);
-    glRecti(0, 0, 10, 50);
-    glPopMatrix();
+        // corpo
+        glColor3f(CorCorpo[0], CorCorpo[1], CorCorpo[2]);
+        glPushMatrix();
+            DesenhaCirculo(0, 0);
+        glPopMatrix();
 
-    // corpo
-    glColor3f(CorCorpo[0], CorCorpo[1], CorCorpo[2]);
-
-    glPushMatrix();
-    glTranslatef(x, y, 0.0f);
-    DesenhaCirculo(x, y);
-    glPopMatrix();
-
-    // arma
-
-    glColor3f(CorArma[0], CorArma[1], CorArma[2]);
-    glPushMatrix();
-    glTranslatef(x + 30, y, 0.0f);
-    glRecti(0, 0, 12, 60);
-    glPopMatrix();
+        // arma
+        glColor3f(CorArma[0], CorArma[1], CorArma[2]);
+        glPushMatrix();
+            glTranslatef(30, 0, 0);
+            glRecti(0, 0, 12, 60);
+        glPopMatrix();
 
     glPopMatrix();
 }
@@ -74,20 +71,32 @@ void Personagem::Girar(int dir)
 void Personagem::Mover(int dir)
 {
     GLfloat rad = this->theta * M_PI / 180.0f;
-    GLfloat vx = -sinf(rad) * dir*5;
-    GLfloat vy = cosf(rad) * dir*5;
+    GLfloat vx = -sinf(rad) * dir;
+    GLfloat vy = cosf(rad) * dir;
 
     this->gX += vx;
     this->gY += vy;
-    // gX += dir;
 }
 void Personagem::MoverLado(int dir)
 {
-    gY += dir;
+    gX += dir;
 }
 Tiro *Personagem::Atirar()
 {
-    Tiro *t = new Tiro(0.0, 0.0, 0.0);
+    const GLfloat lx = 36; // braco + centro canhao
+    const GLfloat ly = 60; // ponta canhao
+
+    const GLfloat DegToRad = M_PI / 180.0f; // Graus pra Radiano
+    const GLfloat rad = theta * DegToRad;
+
+    const GLfloat c = cosf(rad);
+    const GLfloat s = sinf(rad);
+
+    const GLfloat x = gX + lx * c - ly * s;
+    const GLfloat y = gY + lx * s + ly * c;
+
+    Tiro *t = new Tiro(x, y, theta);
+    
     return t;
 }
 

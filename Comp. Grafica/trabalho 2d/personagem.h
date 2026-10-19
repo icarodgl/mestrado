@@ -29,7 +29,7 @@ public:
     Personagem()
     {
         gX = 0;
-        gY = 0;
+        gY = -180; // correção do estado inicial;
         theta = 0;
     };
     void Desenha()

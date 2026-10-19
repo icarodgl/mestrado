@@ -8,7 +8,7 @@
 #include "tiro.h"
 #include "personagem.h"
 #define INC_KEY 1
-#define INC_KEYIDLE 1.0
+#define INC_KEYIDLE 5.0
 
 // Key status
 int keyStatus[256];
@@ -28,10 +28,10 @@ int animate = 0;
 // Componentes do mundo virtual sendo modelado
 Personagem personagem;
 
-const int qtTiro = 20;
-const int qtBarril = 20;
-Tiro *tiros[qtTiro] = {nullptr};
-Barril *barris[qtBarril] = {nullptr};
+static const int qtTiro = 50;
+static const int qtBarril = 20;
+Tiro *tiros[qtTiro] = {};
+Barril *barris[qtBarril] = {};
 
 GLdouble deltaTime()
 {
@@ -48,14 +48,27 @@ GLdouble deltaTime()
 
 void criaTiros(Tiro *t)
 {
+    if (!t)
+        return;
+
+    for (int i = 0; i < qtTiro; ++i)
+        if (tiros[i] == nullptr)
+        {
+            tiros[i] = t;
+            return;
+        }
+    delete t;
 }
 void controlaTiros()
-{
+{   
+    GLfloat deltaT = deltaTime();
+
     for (int i = 0; i < qtTiro; ++i)
     {
         if (tiros[i] != nullptr)
         {
-            tiros[i]->Move(deltaTime());
+            tiros[i]->Move(deltaT);
+
             if (!tiros[i]->Valido())
             {
                 delete tiros[i];
@@ -136,6 +149,14 @@ void keyPress(unsigned char key, int x, int y)
     case 'S':
         keyStatus[(int)('s')] = 1; // Using keyStatus trick
         break;
+    case 'q':
+    case 'Q':
+        keyStatus[(int)('q')] = 1; // Using keyStatus trick
+        break;
+    case 'E':
+    case 'e':
+        keyStatus[(int)('e')] = 1; // Using keyStatus trick
+        break;
     case ' ':
         criaTiros(personagem.Atirar());
         break;
@@ -182,11 +203,11 @@ void idle(void)
 
     if (keyStatus[(int)('a')])
     {
-        personagem.Girar(-inc);
+        personagem.Girar(inc);
     }
     if (keyStatus[(int)('d')])
     {
-        personagem.Girar(inc);
+        personagem.Girar(-inc);
     }
     if (keyStatus[(int)('w')])
     {
@@ -196,9 +217,17 @@ void idle(void)
     {
         personagem.Mover(-inc);
     }
+    if (keyStatus[(int)('q')])
+    {
+        personagem.MoverLado(-inc);
+    }
+    if (keyStatus[(int)('e')])
+    {
+        personagem.MoverLado(inc);
+    }
     ResetKeyStatus();
 
-    // controlaTiros();
+    controlaTiros();
     // controlaBarris();
 
     glutPostRedisplay();
