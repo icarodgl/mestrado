@@ -29,7 +29,9 @@ int animate = 0;
 Personagem personagem;
 
 static const int qtTiro = 50;
-static const int qtBarril = 20;
+static const int qtBarril = 6;
+static const GLfloat tempoCriarBarril = 2.0;
+GLfloat tempoTiro = 0.0;
 Tiro *tiros[qtTiro] = {};
 Barril *barris[qtBarril] = {};
 
@@ -48,6 +50,17 @@ GLdouble deltaTime()
 
 void criaTiros(Tiro *t)
 {
+    GLdouble currentTime = glutGet(GLUT_ELAPSED_TIME);
+    if (currentTime > tempoTiro+200.0)
+    {
+        tempoTiro = currentTime;
+    }
+    else
+    {
+        delete t;
+        return;
+    }
+
     if (!t)
         return;
 
@@ -60,7 +73,7 @@ void criaTiros(Tiro *t)
     delete t;
 }
 void controlaTiros()
-{   
+{
     GLfloat deltaT = deltaTime();
 
     for (int i = 0; i < qtTiro; ++i)
@@ -89,11 +102,26 @@ void desenhaTiros()
 }
 void controlaBarris()
 {
+    GLfloat currentTime = glutGet(GLUT_ELAPSED_TIME);
+    GLfloat deltaT = deltaTime();
+
+    if (currentTime > 1000.0)
+    {
+        GLfloat x = 0.0;
+        GLfloat y = 0.0;
+        Barril *b = new Barril(x, y);
+        for (int i = 0; i < qtBarril; ++i)
+            if (barris[i] == nullptr)
+            {
+                barris[i] = b;
+            }
+    }
+
     for (int i = 0; i < qtBarril; ++i)
     {
         if (barris[i] != nullptr)
         {
-            barris[i]->Move(deltaTime());
+            barris[i]->Move(deltaT);
             if (!barris[i]->Valido())
             {
                 delete barris[i];
@@ -228,7 +256,7 @@ void idle(void)
     ResetKeyStatus();
 
     controlaTiros();
-    // controlaBarris();
+    controlaBarris();
 
     glutPostRedisplay();
 }

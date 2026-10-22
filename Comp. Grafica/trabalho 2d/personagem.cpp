@@ -109,4 +109,5 @@ bool Personagem::Atingido(Colidivel *obj)
 
 GLfloat Personagem::GetRaio() const
 {
+    return 0.0;
 }

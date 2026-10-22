@@ -32,6 +32,7 @@ public:
         DesenhaTiro(gX, gY);
     };
     void Move(GLfloat deltaTime);
+    
     bool Valido();
 
     void GetPos(GLfloat &xOut, GLfloat &yOut) const override
@@ -41,8 +42,8 @@ public:
     };
     void GetTamanho(GLfloat& x, GLfloat& y) const override
     {
-        x = gX + COL_X;
-        y = gY + COL_Y;
+        x = COL_X;
+        y = COL_Y;
 
     }
 };
