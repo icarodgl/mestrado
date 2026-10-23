@@ -2,6 +2,7 @@
 #define	BARRIL_H
 #include <GL/gl.h>
 #include <GL/glu.h>
+#include <string>
 #include "tiro.h"
 #include "colidivel.h"
 
@@ -12,21 +13,33 @@
 
 class Barril : public Colidivel  {
     int vida;
+    GLfloat Height = 80.0;
+    GLfloat Width = 160.0;
     GLfloat gX; 
     GLfloat gY;
     GLfloat gVel = 1.0;
 private:
     void DesenhaBarril(GLfloat x, GLfloat y);
+    void DesenhaTexto(float x, float y, const std::string& texto, void* fonte) const
+    {
+        glRasterPos2f(x, y - Height);
+        for (char c : texto)
+            glutBitmapCharacter(fonte, c);
+    };
+
 public:
-    Barril(GLfloat x, GLfloat y){
-        gX = x-80; 
+    Barril(GLfloat x, GLfloat y, int vida){
+        gX = x-(Width/2); // correção da metade do tamanho do barril
         gY = y;
-        vida = 1;
+        this->vida = vida;
     };
     void Desenha(){ 
         DesenhaBarril(gX, gY);
+        DesenhaVida();
     };
-    bool Atingido(Tiro *tiro);
+    void Atingido(){
+        vida -= 1;
+    };
 
     void Move(GLfloat deltaTime){
         gY -= 0.8 + gVel * deltaTime;
@@ -51,6 +64,15 @@ public:
         y = COL_Y;
 
     }
+    void DesenhaVida() const
+{
+    std::string txt = std::to_string(vida);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    DesenhaTexto(gX, gY + Height, txt, GLUT_BITMAP_HELVETICA_18);
+}
 };
 
 #endif
+
+
+

@@ -12,16 +12,16 @@ public:
     bool ColideCom(const Colidivel& obj) const
     {
         
-        // GLfloat mX,mY,mXl,mYl = 0.0;
-        // GLfloat oX,oY,oXl,oYl = 0.0;
+        GLfloat mX,mY,mXl,mYl;
+        GLfloat oX,oY,oXl,oYl;
 
-        // this->GetPos(mX, mY);
-        // this->GetTamanho(mXl,mYl);
-        // obj.GetPos(oX, oY);
-        // obj.GetTamanho(oXl,oYl);
+        this->GetPos(mX, mY);
+        this->GetTamanho(mXl,mYl);
+        obj.GetPos(oX, oY);
+        obj.GetTamanho(oXl,oYl);
 
-        // if((mX <= oXl and mY <= oYl) and (mXl >= oX and mYl >= oY ))
-        //     return true;
+        if((mX <= oXl and mY <= oYl) and (mXl >= oX and mYl >= oY ))
+            return true;
 
         return false;
     }

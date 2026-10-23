@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include "barril.h"
 #include "tiro.h"
+#include "utils.h"
 #include "personagem.h"
 #define INC_KEY 1
 #define INC_KEYIDLE 5.0
@@ -39,11 +40,8 @@ Barril *barris[qtBarril] = {};
 GLdouble deltaTime()
 {
     GLdouble currentTime, timeDiference;
-    // Pega o tempo que passou do inicio da aplicacao
     currentTime = glutGet(GLUT_ELAPSED_TIME);
-    // Calcula o tempo decorrido desde de a ultima frame.
     timeDiference = currentTime - previousTime;
-    // Atualiza o tempo do ultimo frame ocorrido
     previousTime = currentTime;
 
     return timeDiference;
@@ -82,6 +80,14 @@ void controlaTiros()
         if (tiros[i] != nullptr)
         {
             tiros[i]->Move(deltaT);
+            
+            for (int barril = qtBarril- 1; barril >= 0; barril--)
+            {
+                if(barris[barril] != nullptr && tiros[i]->ColideCom(*barris[barril])){
+                    barris[barril]->Atingido();
+                }
+            }
+        
 
             if (!tiros[i]->Valido())
             {
@@ -110,13 +116,12 @@ void controlaBarris()
     {
         tempoCriarBarril = currentTime;
         GLfloat y = 220.0;
-        Barril *b = new Barril(ladoBarril, y);
+        Barril *b = new Barril(ladoBarril, y,IntAleatorio(2,8));
         ladoBarril = ladoBarril * -1;
         for (int i = 0; i < qtBarril; ++i)
         {
             if (barris[i] == nullptr)
             {
-                printf("Criou %d,",i);
                 barris[i] = b;
                 break;
             }
