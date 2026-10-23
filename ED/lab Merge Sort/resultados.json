@@ -362,151 +362,201 @@
     {
         "V3": [
             {
-                "1Knearly_sorted": 0.00125
+                "1Knearly_sorted": 0.000833
             },
             {
-                "1Kreverse_sorted": 0.004669
+                "1Kreverse_sorted": 0.004223
             },
             {
-                "1Ksorted": 0.000692
+                "1Ksorted": 0.000964
             },
             {
-                "1Kunif_rand": 0.004476
+                "1Kunif_rand": 0.004529
             },
             {
-                "10Knearly_sorted": 0.006043
+                "10Knearly_sorted": 0.00913
             },
             {
-                "10Kreverse_sorted": 0.023658
+                "10Kreverse_sorted": 0.033194
             },
             {
-                "10Ksorted": 0.003345
+                "10Ksorted": 0.00391
             },
             {
-                "10Kunif_rand": 0.025684
+                "10Kunif_rand": 0.031518
             },
             {
-                "100Knearly_sorted": 0.058423
+                "100Knearly_sorted": 0.069856
             },
             {
-                "100Kreverse_sorted": 0.348672
+                "100Kreverse_sorted": 0.259809
             },
             {
-                "100Ksorted": 0.037447
+                "100Ksorted": 0.034262
             },
             {
-                "100Kunif_rand": 0.327749
+                "100Kunif_rand": 0.284039
             }
         ]
     },
     {
         "V4": [
             {
-                "1Knearly_sorted": 0.000907
+                "1Knearly_sorted": 0.000609
             },
             {
-                "1Kreverse_sorted": 0.00171
+                "1Kreverse_sorted": 0.00188
             },
             {
-                "1Ksorted": 0.000394
+                "1Ksorted": 0.000534
             },
             {
-                "1Kunif_rand": 0.001453
+                "1Kunif_rand": 0.001421
             },
             {
-                "10Knearly_sorted": 0.003654
+                "10Knearly_sorted": 0.006606
             },
             {
-                "10Kreverse_sorted": 0.029543
+                "10Kreverse_sorted": 0.024074
             },
             {
-                "10Ksorted": 0.0061
+                "10Ksorted": 0.002691
             },
             {
-                "10Kunif_rand": 0.046584
+                "10Kunif_rand": 0.024052
             },
             {
-                "100Knearly_sorted": 0.057781
+                "100Knearly_sorted": 0.058919
             },
             {
-                "100Kreverse_sorted": 0.312842
+                "100Kreverse_sorted": 0.238713
             },
             {
-                "100Ksorted": 0.038137
+                "100Ksorted": 0.026861
             },
             {
-                "100Kunif_rand": 0.326205
+                "100Kunif_rand": 0.243739
             }
         ]
     },
     {
         "V5": [
             {
-                "1Knearly_sorted": 0.001779
+                "1Knearly_sorted": 0.001586
             },
             {
-                "1Kreverse_sorted": 0.004668
+                "1Kreverse_sorted": 0.00163
             },
             {
-                "1Ksorted": 0.00449
+                "1Ksorted": 0.001585
             },
             {
-                "1Kunif_rand": 0.00493
+                "1Kunif_rand": 0.001864
             },
             {
-                "10Knearly_sorted": 0.028525
+                "10Knearly_sorted": 0.023527
             },
             {
-                "10Kreverse_sorted": 0.023773
+                "10Kreverse_sorted": 0.024939
             },
             {
-                "10Ksorted": 0.027203
+                "10Ksorted": 0.02599
             },
             {
-                "10Kunif_rand": 0.029576
+                "10Kunif_rand": 0.025365
             },
             {
-                "100Knearly_sorted": 0.273623
+                "100Knearly_sorted": 0.271199
             },
             {
-                "100Kreverse_sorted": 0.25571
+                "100Kreverse_sorted": 0.288027
             },
             {
-                "100Ksorted": 0.256175
+                "100Ksorted": 0.283827
             },
             {
-                "100Kunif_rand": 0.473717
+                "100Kunif_rand": 0.347339
             }
         ]
     },
-    {"V6":[
-{"1Knearly_sorted": 0.002597},
-{"1Kreverse_sorted": 0.002606},
-{"1Ksorted": 0.002593},
-{"1Kunif_rand": 0.003596},
-{"10Knearly_sorted": 0.035511},
-{"10Kreverse_sorted": 0.038658},
-{"10Ksorted": 0.026885},
-{"10Kunif_rand": 0.019186},
-{"100Knearly_sorted": 0.237627},
-{"100Kreverse_sorted": 0.265641},
-{"100Ksorted": 0.207979},
-{"100Kunif_rand": 0.311007}
-]
-},
-    {"V7":[
-{"1Knearly_sorted": 0.000963},
-{"1Kreverse_sorted": 0.003691},
-{"1Ksorted": 0.000418},
-{"1Kunif_rand": 0.001811},
-{"10Knearly_sorted": 0.003633},
-{"10Kreverse_sorted": 0.019605},
-{"10Ksorted": 0.00275},
-{"10Kunif_rand": 0.021353},
-{"100Knearly_sorted": 0.040615},
-{"100Kreverse_sorted": 0.325536},
-{"100Ksorted": 0.027164},
-{"100Kunif_rand": 0.2657}
-]
-}
+    {
+        "V6": [
+            {
+                "1Knearly_sorted": 0.002597
+            },
+            {
+                "1Kreverse_sorted": 0.002606
+            },
+            {
+                "1Ksorted": 0.002593
+            },
+            {
+                "1Kunif_rand": 0.003596
+            },
+            {
+                "10Knearly_sorted": 0.035511
+            },
+            {
+                "10Kreverse_sorted": 0.038658
+            },
+            {
+                "10Ksorted": 0.026885
+            },
+            {
+                "10Kunif_rand": 0.019186
+            },
+            {
+                "100Knearly_sorted": 0.237627
+            },
+            {
+                "100Kreverse_sorted": 0.265641
+            },
+            {
+                "100Ksorted": 0.207979
+            },
+            {
+                "100Kunif_rand": 0.311007
+            }
+        ]
+    },
+    {
+        "V7": [
+            {
+                "1Knearly_sorted": 0.00038
+            },
+            {
+                "1Kreverse_sorted": 0.001409
+            },
+            {
+                "1Ksorted": 0.000274
+            },
+            {
+                "1Kunif_rand": 0.003443
+            },
+            {
+                "10Knearly_sorted": 0.00444
+            },
+            {
+                "10Kreverse_sorted": 0.021169
+            },
+            {
+                "10Ksorted": 0.002756
+            },
+            {
+                "10Kunif_rand": 0.020509
+            },
+            {
+                "100Knearly_sorted": 0.040282
+            },
+            {
+                "100Kreverse_sorted": 0.270468
+            },
+            {
+                "100Ksorted": 0.02946
+            },
+            {
+                "100Kunif_rand": 0.274244
+            }
+        ]
+    }
 ]
