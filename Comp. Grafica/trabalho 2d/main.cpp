@@ -30,7 +30,8 @@ Personagem personagem;
 
 static const int qtTiro = 50;
 static const int qtBarril = 6;
-static const GLfloat tempoCriarBarril = 2.0;
+GLfloat tempoCriarBarril = 0.0;
+int ladoBarril = 100;
 GLfloat tempoTiro = 0.0;
 Tiro *tiros[qtTiro] = {};
 Barril *barris[qtBarril] = {};
@@ -51,7 +52,7 @@ GLdouble deltaTime()
 void criaTiros(Tiro *t)
 {
     GLdouble currentTime = glutGet(GLUT_ELAPSED_TIME);
-    if (currentTime > tempoTiro+200.0)
+    if (currentTime > tempoTiro + 200.0)
     {
         tempoTiro = currentTime;
     }
@@ -104,17 +105,22 @@ void controlaBarris()
 {
     GLfloat currentTime = glutGet(GLUT_ELAPSED_TIME);
     GLfloat deltaT = deltaTime();
-
-    if (currentTime > 1000.0)
+    
+    if (currentTime > tempoCriarBarril + 1000.0)
     {
-        GLfloat x = 0.0;
-        GLfloat y = 0.0;
-        Barril *b = new Barril(x, y);
+        tempoCriarBarril = currentTime;
+        GLfloat y = 220.0;
+        Barril *b = new Barril(ladoBarril, y);
+        ladoBarril = ladoBarril * -1;
         for (int i = 0; i < qtBarril; ++i)
+        {
             if (barris[i] == nullptr)
             {
+                printf("Criou %d,",i);
                 barris[i] = b;
+                break;
             }
+        }
     }
 
     for (int i = 0; i < qtBarril; ++i)
