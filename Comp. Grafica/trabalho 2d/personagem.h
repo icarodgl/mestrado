@@ -6,24 +6,17 @@
 #include "tiro.h"
 #include "colidivel.h"
 
-#define COL_X 10.0;
-#define COL_Y 10.0;
-
 class Personagem : public Colidivel
 {
     int vida;
     GLfloat gX;
     GLfloat gY;
+    GLfloat width = 30.0;
+    GLfloat height = 30.0;
     GLfloat theta;
 
 private:
     void DesenhaPersonagem(GLfloat x, GLfloat y);
-    void GetTamanho(GLfloat& x, GLfloat& y) const override
-    {
-        x = gX + COL_X;
-        y = gY + COL_Y;
-
-    }
 
 public:
     Personagem()
@@ -41,12 +34,13 @@ public:
     void Mover(int dir);
     void MoverLado(int dir);
     Tiro *Atirar();
-    void GetPos(GLfloat &xOut, GLfloat &yOut) const override
+    virtual void GetColider(GLfloat &x, GLfloat &y, GLfloat &w, GLfloat &h) const override
     {
-        xOut = gX;
-        yOut = gY;
-    }
-    GLfloat GetRaio() const;
+        x = gX - width;
+        y = gY - width;
+        w = gX + width;
+        h = gY + height;
+    };
 };
 
 #endif

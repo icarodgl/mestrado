@@ -1,5 +1,5 @@
 #ifndef BARRIL_H
-#define	BARRIL_H
+#define BARRIL_H
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <string>
@@ -8,71 +8,84 @@
 
 #define COL_X 10.0
 #define COL_Y 10.0
-#define DISTANCIA_MAX 400
+#define DISTANCIA_MAX 400.0
 
-
-class Barril : public Colidivel  {
+class Barril : public Colidivel
+{
     int vida;
-    GLfloat Height = 80.0;
-    GLfloat Width = 160.0;
-    GLfloat gX; 
+    GLfloat height = 80.0;
+    GLfloat width = 160.0;
+    GLfloat gX;
     GLfloat gY;
     GLfloat gVel = 1.0;
+
 private:
-    void DesenhaBarril(GLfloat x, GLfloat y);
-    void DesenhaTexto(float x, float y, const std::string& texto, void* fonte) const
+    void DesenhaVida() const
     {
-        glRasterPos2f(x, y - Height);
+        std::string txt = std::to_string(vida);
+    }
+    void DesenhaBarril(GLfloat x, GLfloat y);
+    void DesenhaTexto(float x, float y, const std::string &texto, void *fonte) const
+    {
+        glRasterPos2f(x, y - height);
         for (char c : texto)
             glutBitmapCharacter(fonte, c);
     };
 
 public:
-    Barril(GLfloat x, GLfloat y, int vida){
-        gX = x-(Width/2); // correção da metade do tamanho do barril
+    Barril(GLfloat x, GLfloat y, int vida)
+    {
+        gX = x - (width / 2); // correção da metade do tamanho do barril
         gY = y;
         this->vida = vida;
     };
-    void Desenha(){ 
+    void Desenha()
+    {
         DesenhaBarril(gX, gY);
         DesenhaVida();
     };
-    void Atingido(){
+    void Atingido()
+    {
         vida -= 1;
     };
 
-    void Move(GLfloat deltaTime){
-        gY -= 0.8 + gVel * deltaTime;
-    }                                           
-
-    bool Valido(){
-    if(vida <= 0) return false;
-    if (gX > DISTANCIA_MAX || gY > DISTANCIA_MAX)
-        return false;
-
-    return true;
-}
-               
-    void GetPos(GLfloat &xOut, GLfloat &yOut) const override
+    void AtingidoPersonagem()
     {
-        xOut = gX;
-        yOut = gY;
+        vida = 0;
     };
-    void GetTamanho(GLfloat& x, GLfloat& y) const override
+    void Move(GLfloat deltaTime)
     {
-        x = COL_X;
-        y = COL_Y;
-
+        gY -= 0.8 + gVel * deltaTime;
     }
-    void DesenhaVida() const
-{
-    std::string txt = std::to_string(vida);
-    glColor3f(1.0f, 1.0f, 1.0f);
-    DesenhaTexto(gX, gY + Height, txt, GLUT_BITMAP_HELVETICA_18);
-}
+
+    bool Valido()
+    {
+        if (vida <= 0)
+            return false;
+        if (gX > DISTANCIA_MAX or gX < -DISTANCIA_MAX or gY > DISTANCIA_MAX or gY < -DISTANCIA_MAX)
+            return false;
+        return true;
+    }
+
+    void DesenhaVida()
+    {
+        std::string txt = std::to_string(vida);
+        glColor3f(1.0f, 1.0f, 1.0f);
+        GLfloat x,y,h,w;
+        GetColider(x,y,w,h);
+        std::string pos = "x y "+std::to_string(x)+ " " + std::to_string(y);
+        std::string col = "w h "+std::to_string(w)+ " " + std::to_string(h);
+        DesenhaTexto(gX, gY + height - 10, pos, GLUT_BITMAP_HELVETICA_12);
+        DesenhaTexto(gX, gY + height - 20, col, GLUT_BITMAP_HELVETICA_12);
+
+        DesenhaTexto(gX, gY + height, txt, GLUT_BITMAP_HELVETICA_18);
+    }
+    virtual void GetColider(GLfloat& x, GLfloat& y, GLfloat& w,GLfloat& h) const override {
+        x = gX;
+        y = gY;
+        w = gX + width;
+        h = gY + height;
+    };
 };
 
 #endif
-
-
-

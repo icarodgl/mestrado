@@ -5,11 +5,11 @@
 #include "colidivel.h"
 
 #define radiusTiro 5
-#define COL_X 10.0;
-#define COL_Y 10.0;
 
 class Tiro : public Colidivel
 {
+    GLfloat height = 10;
+    GLfloat width = 10;
     GLfloat gX;
     GLfloat gY;
     GLfloat gDirectionAng;
@@ -35,16 +35,11 @@ public:
     
     bool Valido();
 
-    void GetPos(GLfloat &xOut, GLfloat &yOut) const override
-    {
-        xOut = gX;
-        yOut = gY;
+    virtual void GetColider(GLfloat& x, GLfloat& y, GLfloat& w,GLfloat& h) const override {
+        x = gX - (width/4);
+        y = gY - (height/4);
+        w = gX + (width/4);
+        h = gY + (height/4);
     };
-    void GetTamanho(GLfloat& x, GLfloat& y) const override
-    {
-        x = COL_X;
-        y = COL_Y;
-
-    }
 };
 #endif /* TIRO_H */

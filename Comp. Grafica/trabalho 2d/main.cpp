@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <stdio.h>
+#include "ui.h"
 #include "barril.h"
 #include "tiro.h"
 #include "utils.h"
@@ -28,6 +29,7 @@ int animate = 0;
 
 // Componentes do mundo virtual sendo modelado
 Personagem personagem;
+MyGameUI gameUI; 
 
 static const int qtTiro = 50;
 static const int qtBarril = 6;
@@ -85,11 +87,13 @@ void controlaTiros()
             {
                 if(barris[barril] != nullptr && tiros[i]->ColideCom(*barris[barril])){
                     barris[barril]->Atingido();
+                    delete tiros[i];
+                    tiros[i] = nullptr;
+                    break;
                 }
             }
         
-
-            if (!tiros[i]->Valido())
+            if (tiros[i] != nullptr and !tiros[i]->Valido())
             {
                 delete tiros[i];
                 tiros[i] = nullptr;
@@ -112,16 +116,17 @@ void controlaBarris()
     GLfloat currentTime = glutGet(GLUT_ELAPSED_TIME);
     GLfloat deltaT = deltaTime();
     
-    if (currentTime > tempoCriarBarril + 1000.0)
+    if (currentTime > tempoCriarBarril + FloatAleatorio(1000.0, 5000.0))
     {
         tempoCriarBarril = currentTime;
         GLfloat y = 220.0;
-        Barril *b = new Barril(ladoBarril, y,IntAleatorio(2,8));
-        ladoBarril = ladoBarril * -1;
+        Barril *b = new Barril(ladoBarril, y,IntAleatorio(2,5));
+        
         for (int i = 0; i < qtBarril; ++i)
         {
             if (barris[i] == nullptr)
             {
+                ladoBarril = ladoBarril * -1;
                 barris[i] = b;
                 break;
             }
@@ -133,7 +138,15 @@ void controlaBarris()
         if (barris[i] != nullptr)
         {
             barris[i]->Move(deltaT);
-            if (!barris[i]->Valido())
+
+            if (barris[i]->ColideCom(personagem)){
+                gameUI.Atingido();
+                delete barris[i];
+                barris[i] = nullptr;
+                break;
+            }
+
+            if (barris[i] != nullptr && !barris[i]->Valido())
             {
                 delete barris[i];
                 barris[i] = nullptr;
@@ -161,6 +174,7 @@ void renderScene(void)
 
     desenhaTiros();
     desenhaBarris();
+    gameUI.Desenha();
 
     glutSwapBuffers(); // Desenha the new frame of the game.
 }

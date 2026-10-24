@@ -29,42 +29,41 @@ void Personagem::DesenhaPersonagem(GLfloat x, GLfloat y)
     vector<GLfloat> CorPernas = {0.9, 0.9, 0.9};
     vector<GLfloat> CorArma = {0.161, 0.6, 0.45};
 
-   
     glPushMatrix();
-        glTranslatef(x, y, 0);
-        glRotatef(theta, 0, 0, 1); // correções para centralizar no boneco
-    
-        // perna direita
-        glColor3f(CorPernas[0], CorPernas[1], CorPernas[2]);
-        glPushMatrix();
-            glTranslatef(14, 0, 0);
-            glRecti(0, 0, 10, 50);
-        glPopMatrix();
+    glTranslatef(x, y, 0);
+    glRotatef(theta, 0, 0, 1); // correções para centralizar no boneco
 
-        // perna esquerda
-        glPushMatrix();
-            glTranslatef(-26, -50, 0);
-            glRecti(0, 0, 10, 50);
-        glPopMatrix();
+    // perna direita
+    glColor3f(CorPernas[0], CorPernas[1], CorPernas[2]);
+    glPushMatrix();
+    glTranslatef(14, 0, 0);
+    glRecti(0, 0, 10, 50);
+    glPopMatrix();
 
-        // corpo
-        glColor3f(CorCorpo[0], CorCorpo[1], CorCorpo[2]);
-        glPushMatrix();
-            DesenhaCirculo(0, 0);
-        glPopMatrix();
+    // perna esquerda
+    glPushMatrix();
+    glTranslatef(-26, -50, 0);
+    glRecti(0, 0, 10, 50);
+    glPopMatrix();
 
-        // arma
-        glColor3f(CorArma[0], CorArma[1], CorArma[2]);
-        glPushMatrix();
-            glTranslatef(30, 0, 0);
-            glRecti(0, 0, 12, 60);
-        glPopMatrix();
+    // corpo
+    glColor3f(CorCorpo[0], CorCorpo[1], CorCorpo[2]);
+    glPushMatrix();
+    DesenhaCirculo(0, 0);
+    glPopMatrix();
+
+    // arma
+    glColor3f(CorArma[0], CorArma[1], CorArma[2]);
+    glPushMatrix();
+    glTranslatef(30, 0, 0);
+    glRecti(0, 0, 12, 60);
+    glPopMatrix();
 
     glPopMatrix();
 }
 void Personagem::Girar(int dir)
 {
-    if ((theta < 45 and dir > 0) or ( dir < 0 and theta > -45))
+    if ((theta < 60 and dir > 0) or (dir < 0 and theta > -60))
         theta += dir;
 }
 
@@ -74,11 +73,17 @@ void Personagem::Mover(int dir)
     GLfloat vx = -sinf(rad) * dir;
     GLfloat vy = cosf(rad) * dir;
 
-    this->gX += vx;
+    if ((gY > 0 and vy > 0) or (gY < -200 and vy < 0))
+        return;
+    if ((gX > 200 and vx > 0) or (gX < -200 and vx < 0))
+        return;
+    this-> gX += vx;
     this->gY += vy;
 }
 void Personagem::MoverLado(int dir)
 {
+    if ((gX > 200 and dir > 0) or (gX < -200 and dir < 0))
+        return;
     gX += dir;
 }
 Tiro *Personagem::Atirar()
@@ -96,7 +101,7 @@ Tiro *Personagem::Atirar()
     const GLfloat y = gY + lx * s + ly * c;
 
     Tiro *t = new Tiro(x, y, theta);
-    
+
     return t;
 }
 
@@ -105,9 +110,4 @@ bool Personagem::Atingido(Colidivel *obj)
     if (!obj)
         return false;
     return ColideCom(*obj);
-}
-
-GLfloat Personagem::GetRaio() const
-{
-    return 0.0;
 }

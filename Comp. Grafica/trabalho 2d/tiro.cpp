@@ -1,6 +1,6 @@
 #include "tiro.h"
 #include <math.h>
-#define DISTANCIA_MAX 500
+#define DISTANCIA_MAX 300
 
 
 
@@ -42,7 +42,7 @@ void Tiro::Move(GLfloat delta)
 
 bool Tiro::Valido()
 {
-    if (gX > DISTANCIA_MAX || gY > DISTANCIA_MAX)
+    if (gX > DISTANCIA_MAX or gX < -DISTANCIA_MAX or gY > DISTANCIA_MAX or gY < -DISTANCIA_MAX)
         return false;
     return true;
 }
