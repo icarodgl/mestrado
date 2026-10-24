@@ -6,7 +6,7 @@
 class MyGameUI
 {
     int vida;
-    GLfloat vidaPosX = 200.0;
+    GLfloat vidaPosX = 180.0;
     GLfloat vidaPosY = 200.0;
 
 private:

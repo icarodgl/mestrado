@@ -170,7 +170,7 @@ void renderScene(void)
     // Clear the screen.
     glClear(GL_COLOR_BUFFER_BIT);
 
-    personagem.Desenha();
+    personagem.Desenha(deltaTime());
 
     desenhaTiros();
     desenhaBarris();

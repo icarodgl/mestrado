@@ -71,12 +71,12 @@ public:
     {
         std::string txt = std::to_string(vida);
         glColor3f(1.0f, 1.0f, 1.0f);
-        GLfloat x,y,h,w;
-        GetColider(x,y,w,h);
-        std::string pos = "x y "+std::to_string(x)+ " " + std::to_string(y);
-        std::string col = "w h "+std::to_string(w)+ " " + std::to_string(h);
-        DesenhaTexto(gX, gY + height - 10, pos, GLUT_BITMAP_HELVETICA_12);
-        DesenhaTexto(gX, gY + height - 20, col, GLUT_BITMAP_HELVETICA_12);
+        //GLfloat x,y,h,w;
+        //GetColider(x,y,w,h);
+        //std::string pos = "x y "+std::to_string(x)+ " " + std::to_string(y);
+        //std::string col = "w h "+std::to_string(w)+ " " + std::to_string(h);
+        //DesenhaTexto(gX, gY + height - 10, pos, GLUT_BITMAP_HELVETICA_12);
+        //DesenhaTexto(gX, gY + height - 20, col, GLUT_BITMAP_HELVETICA_12);
 
         DesenhaTexto(gX, gY + height, txt, GLUT_BITMAP_HELVETICA_18);
     }
