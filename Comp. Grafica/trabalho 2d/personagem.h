@@ -17,7 +17,7 @@ class Personagem : public Colidivel
     GLfloat pernas = 40;
 
 private:
-    void DesenhaPersonagem(GLfloat x, GLfloat y, GLfloat deltaTime);
+    void DesenhaPersonagem(GLfloat x, GLfloat y);
 
 public:
     Personagem()
@@ -26,9 +26,9 @@ public:
         gY = -180; // correção do estado inicial;
         theta = 0;
     };
-    void Desenha(GLfloat deltaTime)
+    void Desenha()
     {
-        DesenhaPersonagem(gX, gY, deltaTime);
+        DesenhaPersonagem(gX, gY);
     };
     bool Atingido(Colidivel *obj);
     void Girar(int dir);

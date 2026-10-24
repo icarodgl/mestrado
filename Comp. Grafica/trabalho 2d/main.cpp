@@ -87,6 +87,7 @@ void controlaTiros()
             {
                 if(barris[barril] != nullptr && tiros[i]->ColideCom(*barris[barril])){
                     barris[barril]->Atingido();
+                    gameUI.Ponto();
                     delete tiros[i];
                     tiros[i] = nullptr;
                     break;
@@ -170,7 +171,7 @@ void renderScene(void)
     // Clear the screen.
     glClear(GL_COLOR_BUFFER_BIT);
 
-    personagem.Desenha(deltaTime());
+    personagem.Desenha();
 
     desenhaTiros();
     desenhaBarris();

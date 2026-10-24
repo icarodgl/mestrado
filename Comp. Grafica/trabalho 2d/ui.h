@@ -6,13 +6,16 @@
 class MyGameUI
 {
     int vida;
+    int pontos;
     GLfloat vidaPosX = 180.0;
     GLfloat vidaPosY = 200.0;
 
 private:
-    void DesenhaVida() const
+    void DesenhaPontos() const
     {
-        std::string txt = std::to_string(vida);
+        std::string txt = "Pontos: " + std::to_string(pontos);
+        glColor3f(1.0f, 1.0f, 1.0f);
+        DesenhaTexto(-vidaPosX, vidaPosY, txt, GLUT_BITMAP_HELVETICA_18);
     }
     void DesenhaTexto(float x, float y, const std::string &texto, void *fonte) const
     {
@@ -37,19 +40,25 @@ private:
     {
         std::string txt = "Vidas: " + std::to_string(vida);
         glColor3f(1.0f, 1.0f, 1.0f);
-        DesenhaTexto(vidaPosX, vidaPosX, txt, GLUT_BITMAP_HELVETICA_18);
+        DesenhaTexto(vidaPosX, vidaPosY, txt, GLUT_BITMAP_HELVETICA_18);
     }
 
 public:
     MyGameUI()
     {
         vida = 5;
+        pontos = 0;
     }
     void Atingido()
     {
         if (vida > 0)
             vida -= 1;
     };
+    void Ponto()
+    {
+        if (vida > 0)
+            pontos += 1;
+    }
     void Desenha()
     {
         if (vida <= 0)
@@ -57,5 +66,6 @@ public:
             DesenhaGameOver();
         }
         DesenhaVida();
+        DesenhaPontos();
     }
 };
