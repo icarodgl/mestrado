@@ -25,7 +25,7 @@ void controlaPernas(GLfloat x, GLfloat y){
     vector<GLfloat> CorPernas = {0.9, 0.9, 0.9};
     glColor3f(CorPernas[0], CorPernas[1], CorPernas[2]);
 
-    GLfloat tamanhoPerna = 50.0 * sin((y+x)/10);
+    GLfloat tamanhoPerna = 50.0 * sin((y+x)/14);
 
     // perna direita
     glPushMatrix();
