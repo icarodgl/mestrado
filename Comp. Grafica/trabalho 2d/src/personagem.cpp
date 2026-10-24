@@ -21,11 +21,11 @@ void DesenhaCirculo(GLfloat x, GLfloat y)
     }
     glEnd();
 }
-void controlaPernas(GLfloat x, GLfloat y){
+void controlaPernas(GLfloat x, GLfloat y, GLfloat theta){
     vector<GLfloat> CorPernas = {0.9, 0.9, 0.9};
     glColor3f(CorPernas[0], CorPernas[1], CorPernas[2]);
 
-    GLfloat tamanhoPerna = 50.0 * sin((y+x)/14);
+    GLfloat tamanhoPerna = 50.0 * sin((y+x+theta)/14);
 
     // perna direita
     glPushMatrix();
@@ -49,7 +49,7 @@ void Personagem::DesenhaPersonagem(GLfloat x, GLfloat y)
     glTranslatef(x, y, 0);
     glRotatef(theta, 0, 0, 1); // correções para centralizar no boneco
 
-    controlaPernas(x,y);
+    controlaPernas(x,y, theta);
 
     // corpo
     glColor3f(CorCorpo[0], CorCorpo[1], CorCorpo[2]);
