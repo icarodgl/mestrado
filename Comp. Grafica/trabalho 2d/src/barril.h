@@ -18,31 +18,36 @@ class Barril : public Colidivel
     GLfloat gX;
     GLfloat gY;
     GLfloat gVel = 1.0;
-
+    GLfloat theta = 180.0;
+    GLfloat disparo = 0.0;
+    bool inimigo = false;
 private:
     void DesenhaVida() const
     {
         std::string txt = std::to_string(vida);
     }
     void DesenhaBarril(GLfloat x, GLfloat y);
+    void DesenhaInimigo(GLfloat x, GLfloat y);
     void DesenhaTexto(float x, float y, const std::string &texto, void *fonte) const
     {
         glRasterPos2f(x, y - height);
         for (char c : texto)
             glutBitmapCharacter(fonte, c);
     };
-
 public:
-    Barril(GLfloat x, GLfloat y, int vida)
+    Barril(GLfloat x, GLfloat y, int vida, bool inimigo)
     {
-        gX = x - (width / 2); // correção da metade do tamanho do barril
+        gX = x - (width / 2); // correção da metade do tamanho do barril para centralizar
         gY = y;
         this->vida = vida;
+        this->inimigo = inimigo;
     };
     void Desenha()
     {
         DesenhaBarril(gX, gY);
         DesenhaVida();
+        if (inimigo)
+            DesenhaInimigo(gX+(width/2), gY+(height/2));
     };
     void Atingido()
     {
@@ -66,6 +71,8 @@ public:
             return false;
         return true;
     }
+
+    Tiro* Atirar(GLfloat deltaTime);
 
     void DesenhaVida()
     {

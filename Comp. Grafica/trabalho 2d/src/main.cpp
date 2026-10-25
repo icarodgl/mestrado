@@ -31,12 +31,14 @@ int animate = 0;
 Personagem personagem;
 MyGameUI gameUI; 
 
-static const int qtTiro = 50;
+static const int qtTiro = 20;
 static const int qtBarril = 6;
 GLfloat tempoCriarBarril = 0.0;
+GLfloat tempoInimigoAtirar = 0.0;
 int ladoBarril = 100;
 GLfloat tempoTiro = 0.0;
 Tiro *tiros[qtTiro] = {};
+Tiro *tirosInimigo[qtTiro] = {};
 Barril *barris[qtBarril] = {};
 
 GLdouble deltaTime()
@@ -49,26 +51,15 @@ GLdouble deltaTime()
     return timeDiference;
 }
 
-void criaTiros(Tiro *t)
+void criaTiros(Tiro *t, Tiro* arrTiro[])
 {
-    GLdouble currentTime = glutGet(GLUT_ELAPSED_TIME);
-    if (currentTime > tempoTiro + 200.0)
-    {
-        tempoTiro = currentTime;
-    }
-    else
-    {
-        delete t;
-        return;
-    }
-
-    if (!t)
+    if (t == nullptr)
         return;
 
     for (int i = 0; i < qtTiro; ++i)
-        if (tiros[i] == nullptr)
+        if (arrTiro[i] == nullptr)
         {
-            tiros[i] = t;
+            arrTiro[i] = t;
             return;
         }
     delete t;
@@ -79,6 +70,30 @@ void controlaTiros()
 
     for (int i = 0; i < qtTiro; ++i)
     {
+        // ==========================================
+        // Tiro inimigo
+        // ==========================================
+
+        if (tirosInimigo[i] != nullptr){
+
+            tirosInimigo[i]->Move(deltaT);
+
+            if (!tirosInimigo[i]->Valido())
+                {
+                    delete tirosInimigo[i];
+                    tirosInimigo[i] = nullptr;
+                }
+
+            if(tirosInimigo[i] != nullptr and tirosInimigo[i]->ColideCom(personagem)){
+                gameUI.Atingido();
+                delete tirosInimigo[i];
+                tirosInimigo[i] = nullptr;
+            }
+
+        }
+        // ==========================================
+        // Tiro Aliado
+        // ==========================================
         if (tiros[i] != nullptr)
         {
             tiros[i]->Move(deltaT);
@@ -110,6 +125,10 @@ void desenhaTiros()
         {
             tiros[i]->Desenha();
         }
+        if (tirosInimigo[i] != nullptr)
+        {
+            tirosInimigo[i]->Desenha();
+        }
     }
 }
 void controlaBarris()
@@ -121,7 +140,7 @@ void controlaBarris()
     {
         tempoCriarBarril = currentTime;
         GLfloat y = 220.0;
-        Barril *b = new Barril(ladoBarril, y,IntAleatorio(2,5));
+        Barril *b = new Barril(ladoBarril, y,IntAleatorio(2,5), true);
         
         for (int i = 0; i < qtBarril; ++i)
         {
@@ -138,8 +157,18 @@ void controlaBarris()
     {
         if (barris[i] != nullptr)
         {
+        // ==========================================
+        // Cria Tiro inimigo
+        // ==========================================
+            criaTiros(barris[i]->Atirar(currentTime),tirosInimigo);
+        // ==========================================
+        // Move inimigo
+        // ==========================================
             barris[i]->Move(deltaT);
 
+        // ==========================================
+        // Testa colizao
+        // ==========================================
             if (barris[i]->ColideCom(personagem)){
                 gameUI.Atingido();
                 delete barris[i];
@@ -212,7 +241,8 @@ void keyPress(unsigned char key, int x, int y)
         keyStatus[(int)('e')] = 1; // Using keyStatus trick
         break;
     case ' ':
-        criaTiros(personagem.Atirar());
+        keyStatus[(int)(' ')] = 1;
+     
         break;
     case 27:
         exit(0);
@@ -278,6 +308,14 @@ void idle(void)
     if (keyStatus[(int)('e')])
     {
         personagem.MoverLado(inc);
+    }
+    if (keyStatus[(int)(' ')]){
+        GLdouble currentTime = glutGet(GLUT_ELAPSED_TIME);
+        if (currentTime > tempoTiro + 200.0)
+        {
+            tempoTiro = currentTime;
+            criaTiros(personagem.Atirar(), tiros);
+        }
     }
     ResetKeyStatus();
 

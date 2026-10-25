@@ -4,18 +4,84 @@
 
 #include "barril.h"
 #include "tiro.h"
-
+#include "utils.h"
 
 using namespace std;
 
-
-void Barril::DesenhaBarril(GLfloat x, GLfloat y){
-    GLfloat cor[] =  {0.24, 0.14, 0.0};
+void Barril::DesenhaBarril(GLfloat x, GLfloat y)
+{
+    GLfloat cor[] = {0.24, 0.14, 0.0};
     int h = 20;
     int w = 40;
     glPushMatrix();
-        glTranslatef(x, y, 0);
-        glColor3f(cor[0], cor[1], cor[2]);
-        glRecti(0,0,160,80);
+    glTranslatef(x, y, 0);
+    glColor3f(cor[0], cor[1], cor[2]);
+    glRecti(0, 0, 160, 80);
     glPopMatrix();
+}
+
+void Barril::DesenhaInimigo(GLfloat x, GLfloat y)
+{
+    vector<GLfloat> CorCorpo = {0.75, 0.156, 0.09};
+    vector<GLfloat> CorArma = {0.161, 0.6, 0.45};
+    vector<GLfloat> CorPernas = {0.9, 0.9, 0.9};
+    GLfloat tamanhoPerna;
+
+    controlaPernas(tamanhoPerna, x, y, theta);
+
+    glPushMatrix();
+    glTranslatef(x, y, 0);
+    glRotatef(theta, 0, 0, 1); // correções para centralizar no boneco
+
+    glColor3f(CorPernas[0], CorPernas[1], CorPernas[2]);
+    // perna direita
+    glPushMatrix();
+    glTranslatef(14, 0, 0);
+    glRecti(0, 0, 10, tamanhoPerna);
+    glPopMatrix();
+
+    // perna esquerda
+    glPushMatrix();
+    glTranslatef(-26, 0, 0);
+    glRecti(0, 0, 10, -tamanhoPerna);
+    glPopMatrix();
+
+    // corpo
+    glColor3f(CorCorpo[0], CorCorpo[1], CorCorpo[2]);
+    glPushMatrix();
+    DesenhaCirculo(0, 0);
+    glPopMatrix();
+
+    // arma
+    glColor3f(CorArma[0], CorArma[1], CorArma[2]);
+    glPushMatrix();
+    glTranslatef(30, 0, 0);
+    glRecti(0, 0, 12, 60);
+    glPopMatrix();
+
+    glPopMatrix();
+}
+Tiro *Barril::Atirar(GLfloat deltaTime)
+{
+    if (deltaTime > disparo + 2500.0)
+    {
+        disparo = deltaTime;
+
+        const GLfloat lx = 36; // braco + centro canhao
+        const GLfloat ly = 60; // ponta canhao
+
+        const GLfloat DegToRad = M_PI / 180.0f; // Graus pra Radiano
+        const GLfloat rad = theta * DegToRad;
+
+        const GLfloat c = cosf(rad);
+        const GLfloat s = sinf(rad);
+
+        const GLfloat x = (gX + (width / 2)) + lx * c - ly * s;
+        const GLfloat y = (gY + (height / 2)) + lx * s + ly * c;
+
+        Tiro *t = new Tiro(x, y, theta);
+
+        return t;
+    }
+    return nullptr;
 }

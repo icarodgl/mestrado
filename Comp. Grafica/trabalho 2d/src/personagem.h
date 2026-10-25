@@ -2,7 +2,6 @@
 #define PERSONAGEM_H
 #include <GL/gl.h>
 #include <GL/glu.h>
-#include "barril.h"
 #include "tiro.h"
 #include "colidivel.h"
 
