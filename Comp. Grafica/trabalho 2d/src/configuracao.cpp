@@ -6,9 +6,6 @@
 
 using namespace tinyxml2;
 
-// ---- helpers sobre ATRIBUTOS ----
-// Query*Attribute retorna XML_SUCCESS se o atributo existe e é válido,
-// e deixa `out` intacto em caso de erro/ausência (bom pra defaults).
 
 static void LerFloat(const XMLElement* el, const char* nome, float& out)
 {
@@ -22,7 +19,6 @@ static void LerInt(const XMLElement* el, const char* nome, int& out)
     el->QueryIntAttribute(nome, &out);
 }
 
-// ---- carregamento ----
 
 bool CarregaConfiguracao(const char* caminho, Configuracao& out)
 {
@@ -45,26 +41,22 @@ bool CarregaConfiguracao(const char* caminho, Configuracao& out)
         return false;
     }
 
-    // ---- <arena> ----
     if (const XMLElement* e = raiz->FirstChildElement("arena")) {
         LerInt(e, "largura", out.arena.largura);
         LerInt(e, "altura",  out.arena.altura);
     }
 
-    // ---- <jogador> ----
     if (const XMLElement* e = raiz->FirstChildElement("jogador")) {
         LerFloat(e, "raioCabeca", out.jogador.raioCabeca);
         LerFloat(e, "velocidade", out.jogador.velocidade);
     }
 
-    // ---- <inimigo> ----
     if (const XMLElement* e = raiz->FirstChildElement("inimigo")) {
         LerFloat(e, "raioCabeca",      out.inimigo.raioCabeca);
         LerFloat(e, "tirosPorSegundo", out.inimigo.tirosPorSegundo);
         LerFloat(e, "velocidadeTiro",  out.inimigo.velocidadeTiro);
     }
 
-    // ---- <barril> ----
     if (const XMLElement* e = raiz->FirstChildElement("barril")) {
         LerFloat(e, "altura",      out.barril.altura);
         LerFloat(e, "largura",     out.barril.largura);
@@ -73,7 +65,6 @@ bool CarregaConfiguracao(const char* caminho, Configuracao& out)
         LerFloat(e, "velocidade",  out.barril.velocidade);
     }
 
-    // ---- validação mínima ----
     if (out.arena.largura <= 0 || out.arena.altura <= 0) {
         fprintf(stderr, "Arena inválida\n"); return false;
     }

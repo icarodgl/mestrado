@@ -9,9 +9,12 @@
 #include "tiro.h"
 #include "utils.h"
 #include "personagem.h"
+#include "configuracao.h"
+
 #define INC_KEY 1
 #define INC_KEYIDLE 5.0
 
+Configuracao cfg;
 // Key status
 int keyStatus[256];
 
@@ -140,7 +143,7 @@ void controlaBarris()
     {
         tempoCriarBarril = currentTime;
         GLfloat y = 220.0;
-        Barril *b = new Barril(ladoBarril, y,IntAleatorio(2,5), true);
+        Barril *b = new Barril(ladoBarril, y,IntAleatorio(2,5), IntAleatorio(0,1));
         
         for (int i = 0; i < qtBarril; ++i)
         {
@@ -329,6 +332,10 @@ int main(int argc, char *argv[])
 {
     // Initialize openGL with Double buffer and RGB color without transparency.
     // Its interesting to try GLUT_SINGLE instead of GLUT_DOUBLE.
+
+    if (!CarregaConfiguracao("configuracoes.xml", cfg))
+        fprintf(stderr, "Usando valores padrão.\n");
+
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
 

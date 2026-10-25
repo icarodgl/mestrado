@@ -22,9 +22,9 @@ void Barril::DesenhaBarril(GLfloat x, GLfloat y)
 
 void Barril::DesenhaInimigo(GLfloat x, GLfloat y)
 {
-    vector<GLfloat> CorCorpo = {0.75, 0.156, 0.09};
+    vector<GLfloat> CorCorpo = {0.4, 0.156, 0.9};
     vector<GLfloat> CorArma = {0.161, 0.6, 0.45};
-    vector<GLfloat> CorPernas = {0.9, 0.9, 0.9};
+    vector<GLfloat> CorPernas = {0.2, 0.0, 0.3};
     GLfloat tamanhoPerna;
 
     controlaPernas(tamanhoPerna, x, y, theta);
@@ -63,7 +63,7 @@ void Barril::DesenhaInimigo(GLfloat x, GLfloat y)
 }
 Tiro *Barril::Atirar(GLfloat deltaTime)
 {
-    if (deltaTime > disparo + 2500.0)
+    if (inimigo and deltaTime > disparo + 2500.0)
     {
         disparo = deltaTime;
 
