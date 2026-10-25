@@ -139,9 +139,9 @@ void controlaBarris()
     GLfloat currentTime = glutGet(GLUT_ELAPSED_TIME);
     GLfloat deltaT = deltaTime();
     
-    if (currentTime > tempoCriarBarril + FloatAleatorio(1000.0, 5000.0))
+    if (currentTime > tempoCriarBarril )
     {
-        tempoCriarBarril = currentTime;
+        tempoCriarBarril = currentTime + FloatAleatorio(1000.0, 5000.0);
         GLfloat y = 220.0;
         Barril *b = new Barril(ladoBarril, y,IntAleatorio(2,5), IntAleatorio(0,1));
         
