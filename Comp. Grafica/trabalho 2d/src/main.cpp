@@ -12,7 +12,7 @@
 #include "configuracao.h"
 
 #define INC_KEY 1
-#define INC_KEYIDLE 5.0
+#define INC_KEYIDLE 50.0
 
 Configuracao cfg;
 // Key status
@@ -67,9 +67,8 @@ void criaTiros(Tiro *t, Tiro* arrTiro[])
         }
     delete t;
 }
-void controlaTiros()
+void controlaTiros(GLfloat deltaT)
 {
-    GLfloat deltaT = deltaTime();
 
     for (int i = 0; i < qtTiro; ++i)
     {
@@ -134,10 +133,10 @@ void desenhaTiros()
         }
     }
 }
-void controlaBarris()
+void controlaBarris(GLfloat deltaT)
 {
     GLfloat currentTime = glutGet(GLUT_ELAPSED_TIME);
-    GLfloat deltaT = deltaTime();
+    GLfloat barrilVel = 0.04;
     
     if (currentTime > tempoCriarBarril )
     {
@@ -167,7 +166,7 @@ void controlaBarris()
         // ==========================================
         // Move inimigo
         // ==========================================
-            barris[i]->Move(deltaT);
+            barris[i]->Move(barrilVel*deltaT);
 
         // ==========================================
         // Testa colizao
@@ -286,31 +285,36 @@ void init(void)
 
 void idle(void)
 {
-    double inc = INC_KEYIDLE;
+    double inc = 200;
+    GLfloat deltaT = deltaTime()/1000;
 
     if (keyStatus[(int)('a')])
     {
-        personagem.Girar(inc);
+        personagem.MoverLado(-inc*deltaT);
+        //personagem.Girar(inc*deltaT);
     }
     if (keyStatus[(int)('d')])
     {
-        personagem.Girar(-inc);
+        personagem.MoverLado(inc*deltaT);
+        //personagem.Girar(-inc*deltaT);
     }
     if (keyStatus[(int)('w')])
     {
-        personagem.Mover(inc);
+        personagem.Mover(inc*deltaT);
     }
     if (keyStatus[(int)('s')])
     {
-        personagem.Mover(-inc);
+        personagem.Mover(-inc*deltaT);
     }
     if (keyStatus[(int)('q')])
     {
-        personagem.MoverLado(-inc);
+        personagem.Girar(inc*deltaT);
+        //personagem.MoverLado(-inc*deltaT);
     }
     if (keyStatus[(int)('e')])
     {
-        personagem.MoverLado(inc);
+        personagem.Girar(-inc*deltaT);
+        //personagem.MoverLado(inc*deltaT);
     }
     if (keyStatus[(int)(' ')]){
         GLdouble currentTime = glutGet(GLUT_ELAPSED_TIME);
@@ -320,10 +324,9 @@ void idle(void)
             criaTiros(personagem.Atirar(), tiros);
         }
     }
-    ResetKeyStatus();
 
-    controlaTiros();
-    controlaBarris();
+    controlaTiros(deltaT);
+    controlaBarris(deltaT);
 
     glutPostRedisplay();
 }

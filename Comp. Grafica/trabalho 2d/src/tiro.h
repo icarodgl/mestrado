@@ -25,7 +25,7 @@ public:
         gX = x;
         gY = y;
         gDirectionAng = directionAng;
-        gVel = 0.1;
+        gVel = 400;
     };
     void Desenha()
     {
