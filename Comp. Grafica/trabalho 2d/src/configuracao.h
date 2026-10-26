@@ -23,6 +23,7 @@ struct ConfigBarril {
     float   freqTiro  = 1.0;       
     int   nParaGanhar  = 20;
     float velocidade   = 100.0f;
+    int vida = 3;
 };
 struct ConfigTiro
 {

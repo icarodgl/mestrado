@@ -18,7 +18,7 @@ class Personagem : public Colidivel
     // arena
     int larguraArena = 200;
     int alturaArena = 150;
-    int CorrecaoArenaY = 100;
+    int CorrecaoArenaY = 200;
 
 private:
     void DesenhaPersonagem(GLfloat x, GLfloat y);
@@ -43,12 +43,11 @@ public:
         if (conf.arena.altura and conf.arena.altura >= 100)
         {
             alturaArena = conf.arena.altura;
-            gY = -((conf.arena.altura - raioCabeca) + CorrecaoArenaY);
+
         }
         if (conf.arena.largura and conf.arena.largura >= 100)
         {
             larguraArena = conf.arena.largura;
-            gX = (conf.arena.largura) / 2;
         }
     }
 
@@ -60,6 +59,10 @@ public:
     void Girar(int x, int y);
     void Mover(int dir);
     void MoverLado(int dir);
+    void getPos(GLfloat &x, GLfloat &y){
+        x = gX;
+        y = gY;
+    }
     Tiro *Atirar(GLfloat velocidade);
     virtual void GetColider(GLfloat &x, GLfloat &y, GLfloat &w, GLfloat &h) const override
     {

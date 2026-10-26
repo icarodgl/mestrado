@@ -61,7 +61,30 @@ GLdouble deltaTime()
 
     return timeDiference;
 }
-
+void resetGame(){
+    gameUI.Reset(config);
+    barris[qtBarril] = {nullptr};
+    tiros[qtTiro] = {nullptr};
+    tirosInimigo[qtTiro] = {nullptr};
+    for (int i = 0; i < qtTiro; ++i){
+        if (tiros[i] != nullptr){
+            delete tiros[i];
+            tiros[i] = nullptr;
+        }
+        if (tirosInimigo[i] != nullptr){
+            delete tirosInimigo[i];
+            tirosInimigo[i] = nullptr;
+        }
+    }
+    for (int i = 0; i < qtBarril; ++i)
+    {
+        if (barris[i] != nullptr)
+        {
+            delete barris[i];
+            barris[i] = nullptr;
+        }
+    }
+}
 void criaTiros(Tiro *t, Tiro *arrTiro[])
 {
     if (t == nullptr)
@@ -148,12 +171,15 @@ void desenhaTiros()
 void controlaBarris(GLfloat deltaT)
 {
     GLfloat currentTime = glutGet(GLUT_ELAPSED_TIME);
+    GLfloat personX, personY;
+
+    personagem.getPos(personX,personY);
 
     if (currentTime > tempoCriarBarril)
     {
         tempoCriarBarril = currentTime + FloatAleatorio(1000.0, 5000.0);
         GLfloat y = 220.0;
-        Barril *b = new Barril(ladoBarril, y, IntAleatorio(2, 5), IntAleatorio(0, 1));
+        Barril *b = new Barril(ladoBarril, y, IntAleatorio(0, 1));
         b->Configurar(config);
 
         for (int i = 0; i < qtBarril; ++i)
@@ -171,6 +197,9 @@ void controlaBarris(GLfloat deltaT)
     {
         if (barris[i] != nullptr)
         {
+            
+            barris[i]->Mirar(personX,personY);
+            
             // ==========================================
             // Cria Tiro inimigo
             // ==========================================
@@ -228,6 +257,11 @@ void keyPress(unsigned char key, int x, int y)
 {
     switch (key)
     {
+    case 'R':
+    case 'r':
+        // reset game
+        keyStatus[(int)('r')] = 1; 
+        break;
     case '1':
         animate = !animate;
         break;
@@ -342,6 +376,8 @@ void idle(void)
             criaTiros(personagem.Atirar(VelocidadeTiro), tiros);
         }
     }
+    if (keyStatus[(int)('r')])
+        resetGame();
 
     personagem.Girar(gMouseWorldX, gMouseWorldY);
     controlaTiros(deltaT);
@@ -349,6 +385,7 @@ void idle(void)
 
     glutPostRedisplay();
 }
+
 void ConfigurarUsandoXML()
 {
 

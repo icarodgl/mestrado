@@ -23,7 +23,7 @@ void Barril::DesenhaInimigo(GLfloat x, GLfloat y)
     vector<GLfloat> CorCorpo = {0.4, 0.156, 0.9};
     vector<GLfloat> CorArma = {0.161, 0.6, 0.45};
     vector<GLfloat> CorPernas = {0.2, 0.0, 0.3};
-    GLfloat tamanhoPerna = raioCabeca+(raioCabeca/2);
+    GLfloat tamanhoPerna = raioCabeca*1.4;
 
     controlaPernas(tamanhoPerna, x, y, theta);
 
@@ -31,30 +31,31 @@ void Barril::DesenhaInimigo(GLfloat x, GLfloat y)
     glTranslatef(x, y, 0);
     glRotatef(theta, 0, 0, 1); // correções para centralizar no boneco
 
+
     glColor3f(CorPernas[0], CorPernas[1], CorPernas[2]);
-    // perna direita
+   // perna direita
     glPushMatrix();
-    glTranslatef((raioCabeca-15), 0, 0);
-    glRecti(0, 0, 10, tamanhoPerna);
+    glTranslatef(raioCabeca*0.6, 0, 0);
+    glRecti(0, 0, raioCabeca/3, tamanhoPerna);
     glPopMatrix();
 
     // perna esquerda
     glPushMatrix();
-    glTranslatef(-(raioCabeca - 5), 0, 0);
-    glRecti(0, 0, 10, -tamanhoPerna);
+    glTranslatef(-(raioCabeca*0.95), 0, 0);
+    glRecti(0, 0, raioCabeca/3, -tamanhoPerna);
     glPopMatrix();
 
     // corpo
     glColor3f(CorCorpo[0], CorCorpo[1], CorCorpo[2]);
     glPushMatrix();
-    DesenhaCirculo(0, 0, raioCabeca);
+    DesenhaCirculo(0, 0,raioCabeca);
     glPopMatrix();
 
     // arma
     glColor3f(CorArma[0], CorArma[1], CorArma[2]);
     glPushMatrix();
     glTranslatef(raioCabeca, 0, 0);
-    glRecti(0, 0, 12, 60);
+    glRecti(0, 0, raioCabeca*0.4, raioCabeca*1.8);
     glPopMatrix();
 
     glPopMatrix();
@@ -65,8 +66,8 @@ Tiro *Barril::Atirar(GLfloat deltaTime, GLfloat velocidadeTiro)
     {
         disparo = deltaTime;
 
-        const GLfloat lx = raioCabeca+6; // braco + centro canhao
-        const GLfloat ly = 60; // ponta canhao
+        const GLfloat lx = raioCabeca + (raioCabeca*0.4) - ((raioCabeca*0.4)/2); // braco + centro canhao
+        const GLfloat ly = raioCabeca*1.8; // ponta canhao
 
         const GLfloat DegToRad = M_PI / 180.0f; // Graus pra Radiano
         const GLfloat rad = theta * DegToRad;

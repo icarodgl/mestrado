@@ -66,6 +66,7 @@ bool CarregaConfiguracao(const char* caminho, Configuracao& out)
         LerFloat(e, "largura",     out.barril.largura);
         LerFloat  (e, "freqTiro", out.barril.freqTiro);
         LerInt  (e, "nParaGanhar", out.barril.nParaGanhar);
+        LerInt  (e, "vida", out.barril.vida);
         LerFloat(e, "velocidade",  out.barril.velocidade);
     }
     if (out.jogador.vida <= 0 ) {

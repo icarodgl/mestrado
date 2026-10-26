@@ -38,12 +38,16 @@ private:
     {
         glColor3f(0.0f, 0.0f, 0.0f);
         std::string txt = "Game Over!";
+        std::string txtInfo = "Aperte R para reiniciar o jogo";
+
         glPushMatrix();
         glTranslatef(0, 0, 0);
         glRecti(-250, -250, 250, 250);
         glPopMatrix();
         glColor3f(1.0f, 1.0f, 1.0f);
         DesenhaTexto(-20, 0, txt, GLUT_BITMAP_HELVETICA_18);
+        DesenhaTexto(-50, -30, txtInfo, GLUT_BITMAP_HELVETICA_12);
+
     }
 
     void DesenhaGanhou()
@@ -99,6 +103,13 @@ public:
         DesenhaVida();
         DesenhaPontos();
         DesenhaBarrisParaGanhar();
+    }
+    void Reset(Configuracao conf){
+        pontos = 0;
+        if (conf.jogador.vida)
+            vida = conf.jogador.vida;
+        if (conf.barril.nParaGanhar)
+            nParaGanhar = conf.barril.nParaGanhar;
     }
     void Configurar(Configuracao conf)
     {

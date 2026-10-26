@@ -40,7 +40,7 @@ private:
     };
 
 public:
-    Barril(GLfloat x, GLfloat y, int vida, bool inimigo)
+    Barril(GLfloat x, GLfloat y, bool inimigo)
     {
         gX = x - (width / 2); // correção da metade do tamanho do barril para centralizar
         gY = y;
@@ -85,10 +85,10 @@ public:
         glColor3f(1.0f, 1.0f, 1.0f);
         // GLfloat x,y,h,w;
         // GetColider(x,y,w,h);
-        // std::string pos = "x y "+std::to_string(x)+ " " + std::to_string(y);
+        std::string pos = "theta"+std::to_string(theta);
         // std::string col = "w h "+std::to_string(w)+ " " + std::to_string(h);
         // DesenhaTexto(gX, gY + height - 10, pos, GLUT_BITMAP_HELVETICA_12);
-        // DesenhaTexto(gX, gY + height - 20, col, GLUT_BITMAP_HELVETICA_12);
+        DesenhaTexto(gX, gY + height - 20, pos, GLUT_BITMAP_HELVETICA_12);
 
         DesenhaTexto(gX, gY + height, txt, GLUT_BITMAP_HELVETICA_18);
     }
@@ -99,6 +99,19 @@ public:
         w = gX + width;
         h = gY + height;
     };
+    void Mirar(GLfloat x, GLfloat y)
+    {
+        GLfloat dx = x - gX;
+        GLfloat dy = y - gY;
+        GLfloat angulo = (atan2f(dy, dx) * 180.0f / M_PI);
+        angulo -= 90.0f;
+        const GLfloat MIN = -210.0f;
+        const GLfloat MAX = -150.0f;
+
+        if (angulo >= MIN && angulo <= MAX)
+            theta = angulo;
+    }
+    bool getPossuiInimigo() { return this->inimigo; }
     void Configurar(Configuracao config)
     {
         if (config.inimigo.raioCabeca)
@@ -111,6 +124,8 @@ public:
             velocidadeInimigo = config.barril.velocidade;
         if (config.inimigo.tirosPorSegundo)
             tiroPorSegundo = config.inimigo.tirosPorSegundo;
+        if (config.barril.vida)
+            vida = this->inimigo ? config.barril.vida + 2 : config.barril.vida;
     }
 };
 

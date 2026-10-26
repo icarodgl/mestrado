@@ -12,16 +12,17 @@ void Personagem::DesenhaArena()
         glColor3f(0.1f, 0.1f, 0.1f);
         glPushMatrix();
         glTranslatef(0, 0, 0);
-        glRecti(-larguraArena, -(alturaArena+CorrecaoArenaY), larguraArena, alturaArena-CorrecaoArenaY);
+        glRecti(-larguraArena, -250, larguraArena, alturaArena - CorrecaoArenaY);
         glPopMatrix();
     }
 void Personagem::DesenhaPersonagem(GLfloat x, GLfloat y)
 {
 
-    vector<GLfloat> CorCorpo = {0.75, 0.156, 0.09};
-    vector<GLfloat> CorArma = {0.161, 0.6, 0.45};
+    vector<GLfloat> CorArma = {0.75, 0.156, 0.09};
+    vector<GLfloat> CorCorpo  = {0.161, 0.6, 0.45};
     vector<GLfloat> CorPernas = {0.9, 0.9, 0.9};
-    GLfloat tamanhoPerna = raioCabeca+(raioCabeca/2);
+    GLfloat tamanhoPerna = raioCabeca*1.4;
+
     DesenhaArena();
     controlaPernas(tamanhoPerna, x, y, theta);
 
@@ -33,14 +34,14 @@ void Personagem::DesenhaPersonagem(GLfloat x, GLfloat y)
     glColor3f(CorPernas[0], CorPernas[1], CorPernas[2]);
    // perna direita
     glPushMatrix();
-    glTranslatef((raioCabeca-15), 0, 0);
-    glRecti(0, 0, 10, tamanhoPerna);
+    glTranslatef(raioCabeca*0.6, 0, 0);
+    glRecti(0, 0, raioCabeca/3, tamanhoPerna);
     glPopMatrix();
 
     // perna esquerda
     glPushMatrix();
-    glTranslatef(-(raioCabeca - 5), 0, 0);
-    glRecti(0, 0, 10, -tamanhoPerna);
+    glTranslatef(-(raioCabeca*0.95), 0, 0);
+    glRecti(0, 0, raioCabeca/3, -tamanhoPerna);
     glPopMatrix();
 
     // corpo
@@ -53,7 +54,7 @@ void Personagem::DesenhaPersonagem(GLfloat x, GLfloat y)
     glColor3f(CorArma[0], CorArma[1], CorArma[2]);
     glPushMatrix();
     glTranslatef(raioCabeca, 0, 0);
-    glRecti(0, 0, 12, 60);
+    glRecti(0, 0, raioCabeca*0.4, raioCabeca*1.8);
     glPopMatrix();
 
     glPopMatrix();
@@ -63,7 +64,7 @@ void Personagem::Girar(int x, int y)
     GLfloat dx = x - gX;
     GLfloat dy = y - gY;
     GLfloat angulo = (atan2f(dy, dx) * 180.0f / M_PI)-90;
-    if (angulo > 60 or  angulo < -60)
+    if (angulo > 30 or  angulo < -30)
         return;
     theta = angulo;
 
@@ -78,9 +79,9 @@ void Personagem::Mover(int dir)
     GLfloat vx = -sinf(rad) * (dir * velocidade/100.0);
     GLfloat vy = cosf(rad) * (dir * velocidade/100.0);
 
-    if ((gY > (alturaArena- CorrecaoArenaY - raioCabeca) and vy > 0) or (gY < -alturaArena+raioCabeca-CorrecaoArenaY  and vy < 0))
+    if ((gY > ((alturaArena - raioCabeca)- CorrecaoArenaY) and vy > 0) or (gY < -(250.0-raioCabeca)  and vy < 0))
         return;
-    if ((gX > (larguraArena-raioCabeca) and vx > 0) or (gX < -(larguraArena + raioCabeca) and vx < 0))
+    if ((gX > (larguraArena-raioCabeca) and vx > 0) or (gX < -(larguraArena - raioCabeca) and vx < 0))
         return;
     this->gX += vx;
     this->gY += vy;
@@ -93,8 +94,9 @@ void Personagem::MoverLado(int dir)
 }
 Tiro *Personagem::Atirar(GLfloat VelocidadeTiro)
 {
-    const GLfloat lx = raioCabeca+6; // braco + centro canhao
-    const GLfloat ly = 60; // ponta canhao
+
+    const GLfloat lx = raioCabeca + (raioCabeca*0.4) - ((raioCabeca*0.4)/2); // braco + centro canhao
+    const GLfloat ly = raioCabeca*1.8; // ponta canhao
 
     const GLfloat DegToRad = M_PI / 180.0f; // Graus pra Radiano
     const GLfloat rad = theta * DegToRad;
