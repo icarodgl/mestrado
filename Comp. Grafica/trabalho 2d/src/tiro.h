@@ -20,12 +20,12 @@ private:
     void DesenhaTiro(GLfloat x, GLfloat y);
 
 public:
-    Tiro(GLfloat x, GLfloat y, GLfloat directionAng)
+    Tiro(GLfloat x, GLfloat y, GLfloat directionAng,GLfloat velocidade)
     {
         gX = x;
         gY = y;
         gDirectionAng = directionAng;
-        gVel = 400;
+        gVel = velocidade;
     };
     void Desenha()
     {

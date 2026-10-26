@@ -21,7 +21,7 @@ void Personagem::DesenhaPersonagem(GLfloat x, GLfloat y)
     vector<GLfloat> CorCorpo = {0.75, 0.156, 0.09};
     vector<GLfloat> CorArma = {0.161, 0.6, 0.45};
     vector<GLfloat> CorPernas = {0.9, 0.9, 0.9};
-    GLfloat tamanhoPerna;
+    GLfloat tamanhoPerna = raioCabeca+(raioCabeca/2);
     DesenhaArena();
     controlaPernas(tamanhoPerna, x, y, theta);
 
@@ -31,15 +31,15 @@ void Personagem::DesenhaPersonagem(GLfloat x, GLfloat y)
 
 
     glColor3f(CorPernas[0], CorPernas[1], CorPernas[2]);
-    // perna direita
+   // perna direita
     glPushMatrix();
-    glTranslatef(14, 0, 0);
+    glTranslatef((raioCabeca-15), 0, 0);
     glRecti(0, 0, 10, tamanhoPerna);
     glPopMatrix();
 
     // perna esquerda
     glPushMatrix();
-    glTranslatef(-26, 0, 0);
+    glTranslatef(-(raioCabeca - 5), 0, 0);
     glRecti(0, 0, 10, -tamanhoPerna);
     glPopMatrix();
 
@@ -52,7 +52,7 @@ void Personagem::DesenhaPersonagem(GLfloat x, GLfloat y)
     // arma
     glColor3f(CorArma[0], CorArma[1], CorArma[2]);
     glPushMatrix();
-    glTranslatef(30, 0, 0);
+    glTranslatef(raioCabeca, 0, 0);
     glRecti(0, 0, 12, 60);
     glPopMatrix();
 
@@ -83,9 +83,9 @@ void Personagem::MoverLado(int dir)
         return;
     gX += dir;
 }
-Tiro *Personagem::Atirar()
+Tiro *Personagem::Atirar(GLfloat VelocidadeTiro)
 {
-    const GLfloat lx = 36; // braco + centro canhao
+    const GLfloat lx = raioCabeca+6; // braco + centro canhao
     const GLfloat ly = 60; // ponta canhao
 
     const GLfloat DegToRad = M_PI / 180.0f; // Graus pra Radiano
@@ -97,7 +97,7 @@ Tiro *Personagem::Atirar()
     const GLfloat x = gX + lx * c - ly * s;
     const GLfloat y = gY + lx * s + ly * c;
 
-    Tiro *t = new Tiro(x, y, theta);
+    Tiro *t = new Tiro(x, y, theta, VelocidadeTiro);
 
     return t;
 }

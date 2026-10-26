@@ -51,7 +51,10 @@ bool CarregaConfiguracao(const char* caminho, Configuracao& out)
         LerFloat(e, "velocidade", out.jogador.velocidade);
         LerInt(e, "vida", out.jogador.vida);
     }
-
+    if (const XMLElement* e = raiz->FirstChildElement("tiro")) {
+        LerInt(e, "tiroPorSegundo", out.tiro.tiroPorSegundo);
+        LerFloat(e, "velocidade", out.tiro.velocidade);
+    }
     if (const XMLElement* e = raiz->FirstChildElement("inimigo")) {
         LerFloat(e, "raioCabeca",      out.inimigo.raioCabeca);
         LerFloat(e, "tirosPorSegundo", out.inimigo.tirosPorSegundo);

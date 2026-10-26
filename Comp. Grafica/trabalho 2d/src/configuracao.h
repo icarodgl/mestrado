@@ -24,12 +24,18 @@ struct ConfigBarril {
     int   nParaGanhar  = 10;
     float velocidade   = 60.0f;
 };
+struct ConfigTiro
+{
+    int tiroPorSegundo = 4;
+    float velocidade = 200;
+};
 
 struct Configuracao {
     ConfigArena   arena;
     ConfigJogador jogador;
     ConfigInimigo inimigo;
     ConfigBarril  barril;
+    ConfigTiro tiro;
     
 };
 

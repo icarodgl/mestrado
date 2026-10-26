@@ -24,8 +24,8 @@ inline void DesenhaCirculo(GLfloat x, GLfloat y, GLfloat raio)
     for (int i = 0; i <= segmentos; i++)
     {
         float angulo = 2.0f * M_PI * i / segmentos;
-        float x = 0 + raio * cosf(angulo);
-        float y = 0 + raio * sinf(angulo);
+        x = raio * cosf(angulo);
+        y = raio * sinf(angulo);
         glVertex2f(x, y);
     }
     glEnd();

@@ -5,6 +5,7 @@
 #include <string>
 #include "tiro.h"
 #include "colidivel.h"
+#include "configuracao.h"
 
 #define COL_X 10.0
 #define COL_Y 10.0
@@ -17,11 +18,13 @@ class Barril : public Colidivel
     GLfloat width = 160.0;
     GLfloat gX;
     GLfloat gY;
-    GLfloat gVel = 1.0;
+    GLfloat velocidadeInimigo = 100.0;
     GLfloat theta = 180.0;
     GLfloat disparo = 0.0;
+    GLfloat tiroPorSegundo = 1;
     GLfloat raioCabeca = 30.0;
     bool inimigo = false;
+
 private:
     void DesenhaVida() const
     {
@@ -35,6 +38,7 @@ private:
         for (char c : texto)
             glutBitmapCharacter(fonte, c);
     };
+
 public:
     Barril(GLfloat x, GLfloat y, int vida, bool inimigo)
     {
@@ -48,7 +52,7 @@ public:
         DesenhaBarril(gX, gY);
         DesenhaVida();
         if (inimigo)
-            DesenhaInimigo(gX+(width/2), gY+(height/2));
+            DesenhaInimigo(gX + (width / 2), gY + (height / 2));
     };
     void Atingido()
     {
@@ -61,7 +65,7 @@ public:
     };
     void Move(GLfloat deltaTime)
     {
-        gY -= 0.8 + gVel * deltaTime;
+        gY -= velocidadeInimigo * deltaTime;
     }
 
     bool Valido()
@@ -73,27 +77,41 @@ public:
         return true;
     }
 
-    Tiro* Atirar(GLfloat deltaTime);
+    Tiro *Atirar(GLfloat deltaTime, GLfloat velocidadeTiro);
 
     void DesenhaVida()
     {
         std::string txt = std::to_string(vida);
         glColor3f(1.0f, 1.0f, 1.0f);
-        //GLfloat x,y,h,w;
-        //GetColider(x,y,w,h);
-        //std::string pos = "x y "+std::to_string(x)+ " " + std::to_string(y);
-        //std::string col = "w h "+std::to_string(w)+ " " + std::to_string(h);
-        //DesenhaTexto(gX, gY + height - 10, pos, GLUT_BITMAP_HELVETICA_12);
-        //DesenhaTexto(gX, gY + height - 20, col, GLUT_BITMAP_HELVETICA_12);
+        // GLfloat x,y,h,w;
+        // GetColider(x,y,w,h);
+        // std::string pos = "x y "+std::to_string(x)+ " " + std::to_string(y);
+        // std::string col = "w h "+std::to_string(w)+ " " + std::to_string(h);
+        // DesenhaTexto(gX, gY + height - 10, pos, GLUT_BITMAP_HELVETICA_12);
+        // DesenhaTexto(gX, gY + height - 20, col, GLUT_BITMAP_HELVETICA_12);
 
         DesenhaTexto(gX, gY + height, txt, GLUT_BITMAP_HELVETICA_18);
     }
-    virtual void GetColider(GLfloat& x, GLfloat& y, GLfloat& w,GLfloat& h) const override {
+    virtual void GetColider(GLfloat &x, GLfloat &y, GLfloat &w, GLfloat &h) const override
+    {
         x = gX;
         y = gY;
         w = gX + width;
         h = gY + height;
     };
+    void Configurar(Configuracao config)
+    {
+        if (config.inimigo.raioCabeca)
+            raioCabeca = config.inimigo.raioCabeca;
+        if (config.barril.altura)
+            height = config.barril.altura;
+        if (config.barril.largura)
+            width = config.barril.largura;
+        if (config.barril.velocidade)
+            velocidadeInimigo = config.barril.velocidade;
+        if (config.inimigo.tirosPorSegundo)
+            tiroPorSegundo = config.inimigo.tirosPorSegundo;
+    }
 };
 
 #endif

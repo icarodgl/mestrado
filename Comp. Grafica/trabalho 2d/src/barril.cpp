@@ -11,12 +11,10 @@ using namespace std;
 void Barril::DesenhaBarril(GLfloat x, GLfloat y)
 {
     GLfloat cor[] = {0.24, 0.14, 0.0};
-    int h = 20;
-    int w = 40;
     glPushMatrix();
     glTranslatef(x, y, 0);
     glColor3f(cor[0], cor[1], cor[2]);
-    glRecti(0, 0, 160, 80);
+    glRecti(0, 0, width, height);
     glPopMatrix();
 }
 
@@ -25,7 +23,7 @@ void Barril::DesenhaInimigo(GLfloat x, GLfloat y)
     vector<GLfloat> CorCorpo = {0.4, 0.156, 0.9};
     vector<GLfloat> CorArma = {0.161, 0.6, 0.45};
     vector<GLfloat> CorPernas = {0.2, 0.0, 0.3};
-    GLfloat tamanhoPerna;
+    GLfloat tamanhoPerna = raioCabeca+(raioCabeca/2);
 
     controlaPernas(tamanhoPerna, x, y, theta);
 
@@ -36,13 +34,13 @@ void Barril::DesenhaInimigo(GLfloat x, GLfloat y)
     glColor3f(CorPernas[0], CorPernas[1], CorPernas[2]);
     // perna direita
     glPushMatrix();
-    glTranslatef(14, 0, 0);
+    glTranslatef((raioCabeca-15), 0, 0);
     glRecti(0, 0, 10, tamanhoPerna);
     glPopMatrix();
 
     // perna esquerda
     glPushMatrix();
-    glTranslatef(-26, 0, 0);
+    glTranslatef(-(raioCabeca - 5), 0, 0);
     glRecti(0, 0, 10, -tamanhoPerna);
     glPopMatrix();
 
@@ -55,19 +53,19 @@ void Barril::DesenhaInimigo(GLfloat x, GLfloat y)
     // arma
     glColor3f(CorArma[0], CorArma[1], CorArma[2]);
     glPushMatrix();
-    glTranslatef(30, 0, 0);
+    glTranslatef(raioCabeca, 0, 0);
     glRecti(0, 0, 12, 60);
     glPopMatrix();
 
     glPopMatrix();
 }
-Tiro *Barril::Atirar(GLfloat deltaTime)
+Tiro *Barril::Atirar(GLfloat deltaTime, GLfloat velocidadeTiro)
 {
-    if (inimigo and deltaTime > disparo + 2500.0)
+    if (inimigo and deltaTime > disparo +( 1000.0 / tiroPorSegundo))
     {
         disparo = deltaTime;
 
-        const GLfloat lx = 36; // braco + centro canhao
+        const GLfloat lx = raioCabeca+6; // braco + centro canhao
         const GLfloat ly = 60; // ponta canhao
 
         const GLfloat DegToRad = M_PI / 180.0f; // Graus pra Radiano
@@ -79,7 +77,7 @@ Tiro *Barril::Atirar(GLfloat deltaTime)
         const GLfloat x = (gX + (width / 2)) + lx * c - ly * s;
         const GLfloat y = (gY + (height / 2)) + lx * s + ly * c;
 
-        Tiro *t = new Tiro(x, y, theta);
+        Tiro *t = new Tiro(x, y, theta, velocidadeTiro);
 
         return t;
     }

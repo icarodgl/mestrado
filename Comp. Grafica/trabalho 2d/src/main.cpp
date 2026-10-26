@@ -36,8 +36,11 @@ MyGameUI gameUI;
 
 static const int qtTiro = 20;
 static const int qtBarril = 6;
+GLfloat velocidadeInimigo = 1;
 GLfloat tempoCriarBarril = 0.0;
 GLfloat tempoInimigoAtirar = 0.0;
+GLfloat tiroPorSegundo = 200.0;
+GLfloat VelocidadeTiro = 200.0;
 int ladoBarril = 100;
 GLfloat tempoTiro = 0.0;
 Tiro *tiros[qtTiro] = {};
@@ -140,13 +143,13 @@ void desenhaTiros()
 void controlaBarris(GLfloat deltaT)
 {
     GLfloat currentTime = glutGet(GLUT_ELAPSED_TIME);
-    GLfloat barrilVel = 0.04;
 
     if (currentTime > tempoCriarBarril)
     {
         tempoCriarBarril = currentTime + FloatAleatorio(1000.0, 5000.0);
         GLfloat y = 220.0;
         Barril *b = new Barril(ladoBarril, y, IntAleatorio(2, 5), IntAleatorio(0, 1));
+        b->Configurar(config);
 
         for (int i = 0; i < qtBarril; ++i)
         {
@@ -166,11 +169,11 @@ void controlaBarris(GLfloat deltaT)
             // ==========================================
             // Cria Tiro inimigo
             // ==========================================
-            criaTiros(barris[i]->Atirar(currentTime), tirosInimigo);
+            criaTiros(barris[i]->Atirar(currentTime, VelocidadeTiro), tirosInimigo);
             // ==========================================
             // Move inimigo
             // ==========================================
-            barris[i]->Move(barrilVel * deltaT);
+            barris[i]->Move(deltaT);
 
             // ==========================================
             // Testa colizao
@@ -254,11 +257,15 @@ void keyPress(unsigned char key, int x, int y)
     case 27:
         exit(0);
     }
+    x = x; // eliminando warning
+    y = y;// eliminando warning
     glutPostRedisplay();
 }
 
 void keyup(unsigned char key, int x, int y)
-{
+{   
+    x = x; // eliminando warning
+    y = y;// eliminando warning
     keyStatus[(int)(key)] = 0;
     glutPostRedisplay();
 }
@@ -324,10 +331,10 @@ void idle(void)
     if (keyStatus[(int)(' ')])
     {
         GLdouble currentTime = glutGet(GLUT_ELAPSED_TIME);
-        if (currentTime > tempoTiro + 200.0)
+        if (currentTime > tempoTiro + tiroPorSegundo)
         {
             tempoTiro = currentTime;
-            criaTiros(personagem.Atirar(), tiros);
+            criaTiros(personagem.Atirar(VelocidadeTiro), tiros);
         }
     }
 
@@ -344,6 +351,9 @@ void ConfigurarUsandoXML()
 
     personagem.Configurar(config);
     gameUI.Configurar(config);
+    tiroPorSegundo = (1000.0/config.tiro.tiroPorSegundo);
+    VelocidadeTiro = config.tiro.velocidade;
+    velocidadeInimigo = config.barril.velocidade;
 }
 
 int main(int argc, char *argv[])

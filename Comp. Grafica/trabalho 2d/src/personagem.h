@@ -11,8 +11,6 @@ class Personagem : public Colidivel
     int vida;
     GLfloat gX = 0;
     GLfloat gY = -180;
-    GLfloat width = 30.0;
-    GLfloat height = 30.0;
     GLfloat tamanho = 30.0;
     GLfloat theta = 0;
     GLfloat pernas = 40;
@@ -20,36 +18,40 @@ class Personagem : public Colidivel
     GLfloat raioCabeca = 30.0;
     // arena
     int larguraArena = 200;
-    int alturaArena  = 150;
+    int alturaArena = 150;
     int CorrecaoArenaY = 100;
 
 private:
     void DesenhaPersonagem(GLfloat x, GLfloat y);
     void DesenhaArena();
-public:
 
-    Personagem(){};
-    void Configurar(Configuracao conf){
-        if(conf.jogador.raioCabeca){
+public:
+    Personagem() {};
+    void Configurar(Configuracao conf)
+    {
+        if (conf.jogador.raioCabeca)
+        {
             raioCabeca = conf.jogador.raioCabeca;
         }
-        if(conf.jogador.velocidade){
+        if (conf.jogador.velocidade)
+        {
             velocidade = conf.jogador.velocidade;
         }
-        if(conf.jogador.vida){
+        if (conf.jogador.vida)
+        {
             vida = conf.jogador.vida;
         }
-        if(conf.arena.altura and conf.arena.altura >= 100){
+        if (conf.arena.altura and conf.arena.altura >= 100)
+        {
             alturaArena = conf.arena.altura;
-            gY = -((conf.arena.altura - raioCabeca)+CorrecaoArenaY);
+            gY = -((conf.arena.altura - raioCabeca) + CorrecaoArenaY);
         }
-        if(conf.arena.largura and conf.arena.largura >= 100){
+        if (conf.arena.largura and conf.arena.largura >= 100)
+        {
             larguraArena = conf.arena.largura;
-            gX = (conf.arena.largura)/2;
+            gX = (conf.arena.largura) / 2;
         }
-
     }
-
 
     void Desenha()
     {
@@ -59,13 +61,13 @@ public:
     void Girar(int dir);
     void Mover(int dir);
     void MoverLado(int dir);
-    Tiro *Atirar();
+    Tiro *Atirar(GLfloat velocidade);
     virtual void GetColider(GLfloat &x, GLfloat &y, GLfloat &w, GLfloat &h) const override
     {
-        x = gX - width;
-        y = gY - width;
-        w = gX + width;
-        h = gY + height;
+        x = gX - tamanho;
+        y = gY - tamanho;
+        w = gX + tamanho;
+        h = gY + tamanho;
     };
 };
 
