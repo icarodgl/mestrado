@@ -57,7 +57,7 @@ public:
         DesenhaPersonagem(gX, gY);
     };
     bool Atingido(Colidivel *obj);
-    void Girar(int dir);
+    void Girar(int x, int y);
     void Mover(int dir);
     void MoverLado(int dir);
     Tiro *Atirar(GLfloat velocidade);

@@ -58,10 +58,18 @@ void Personagem::DesenhaPersonagem(GLfloat x, GLfloat y)
 
     glPopMatrix();
 }
-void Personagem::Girar(int dir)
-{
-    if ((theta < 60 and dir > 0) or (dir < 0 and theta > -60))
-        theta += dir;
+void Personagem::Girar(int x, int y)
+{   
+    GLfloat dx = x - gX;
+    GLfloat dy = y - gY;
+    GLfloat angulo = (atan2f(dy, dx) * 180.0f / M_PI)-90;
+    if (angulo > 60 or  angulo < -60)
+        return;
+    theta = angulo;
+
+    
+    //if ((theta < 60 and dir > 0) or (dir < 0 and theta > -60))
+    //    theta += dir;
 }
 
 void Personagem::Mover(int dir)

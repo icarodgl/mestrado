@@ -26,6 +26,11 @@ const GLint Height = 700;
 const GLint ViewingWidth = 500;
 const GLint ViewingHeight = 500;
 
+int gMousePixelX = 0;
+int gMousePixelY = 0;
+GLfloat gMouseWorldX = 0.0f;
+GLfloat gMouseWorldY = 0.0f;
+
 static GLdouble previousTime = glutGet(GLUT_ELAPSED_TIME);
 // Controla a animacao do robo
 int animate = 0;
@@ -33,7 +38,7 @@ int animate = 0;
 // Componentes do mundo virtual sendo modelado
 Personagem personagem;
 MyGameUI gameUI;
-
+bool mousePressionado = false;
 static const int qtTiro = 20;
 static const int qtBarril = 6;
 GLfloat velocidadeInimigo = 1;
@@ -258,14 +263,14 @@ void keyPress(unsigned char key, int x, int y)
         exit(0);
     }
     x = x; // eliminando warning
-    y = y;// eliminando warning
+    y = y; // eliminando warning
     glutPostRedisplay();
 }
 
 void keyup(unsigned char key, int x, int y)
-{   
+{
     x = x; // eliminando warning
-    y = y;// eliminando warning
+    y = y; // eliminando warning
     keyStatus[(int)(key)] = 0;
     glutPostRedisplay();
 }
@@ -318,17 +323,17 @@ void idle(void)
     {
         personagem.Mover(-inc * deltaT);
     }
-    if (keyStatus[(int)('q')])
-    {
-        personagem.Girar(inc * deltaT);
-        // personagem.MoverLado(-inc*deltaT);
-    }
-    if (keyStatus[(int)('e')])
-    {
-        personagem.Girar(-inc * deltaT);
-        // personagem.MoverLado(inc*deltaT);
-    }
-    if (keyStatus[(int)(' ')])
+    // if (keyStatus[(int)('q')])
+    //{
+    //     personagem.Girar(inc * deltaT);
+    //  personagem.MoverLado(-inc*deltaT);
+    //}
+    // if (keyStatus[(int)('e')])
+    //{
+    //    personagem.Girar(-inc * deltaT);
+    // personagem.MoverLado(inc*deltaT);
+    //}
+    if (keyStatus[(int)(' ')] or mousePressionado)
     {
         GLdouble currentTime = glutGet(GLUT_ELAPSED_TIME);
         if (currentTime > tempoTiro + tiroPorSegundo)
@@ -338,6 +343,7 @@ void idle(void)
         }
     }
 
+    personagem.Girar(gMouseWorldX, gMouseWorldY);
     controlaTiros(deltaT);
     controlaBarris(deltaT);
 
@@ -351,11 +357,46 @@ void ConfigurarUsandoXML()
 
     personagem.Configurar(config);
     gameUI.Configurar(config);
-    tiroPorSegundo = (1000.0/config.tiro.tiroPorSegundo);
+    tiroPorSegundo = (1000.0 / config.tiro.tiroPorSegundo);
     VelocidadeTiro = config.tiro.velocidade;
     velocidadeInimigo = config.barril.velocidade;
 }
+void AtualizaMouse(int px, int py)
+{
+    gMousePixelX = px;
+    gMousePixelY = py;
 
+    // limites do glOrtho (devem coincidir com o init)
+    const GLfloat left = -ViewingWidth * 0.5f;
+    const GLfloat right = ViewingWidth * 0.5f;
+    const GLfloat bottom = -ViewingHeight * 0.5f;
+    const GLfloat top = ViewingHeight * 0.5f;
+
+    gMouseWorldX = left + (GLfloat)px / Width * (right - left);
+    gMouseWorldY = top - (GLfloat)py / Height * (top - bottom);
+}
+
+void mousePassivo(int x, int y)
+{
+    AtualizaMouse(x, y);
+    glutPostRedisplay();
+}
+void mouseAtivo(int x, int y)
+{
+    AtualizaMouse(x, y);
+    glutPostRedisplay();
+}
+void mouseClick(int button, int state, int px, int py)
+{
+    if (button == GLUT_LEFT_BUTTON)
+    {
+        if (state == GLUT_DOWN)
+            mousePressionado = true;
+
+        if (state == GLUT_UP)
+            mousePressionado = false;
+    }
+}
 int main(int argc, char *argv[])
 {
     // Initialize openGL with Double buffer and RGB color without transparency.
@@ -377,6 +418,9 @@ int main(int argc, char *argv[])
     glutIdleFunc(idle);
     glutKeyboardUpFunc(keyup);
 
+    glutPassiveMotionFunc(mousePassivo);
+    glutMotionFunc(mouseAtivo);
+    glutMouseFunc(mouseClick);
     init();
 
     glutMainLoop();
