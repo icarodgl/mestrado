@@ -11,7 +11,6 @@ class Personagem : public Colidivel
     int vida;
     GLfloat gX = 0;
     GLfloat gY = -180;
-    GLfloat tamanho = 30.0;
     GLfloat theta = 0;
     GLfloat pernas = 40;
     GLfloat velocidade = 5.0;
@@ -64,10 +63,10 @@ public:
     Tiro *Atirar(GLfloat velocidade);
     virtual void GetColider(GLfloat &x, GLfloat &y, GLfloat &w, GLfloat &h) const override
     {
-        x = gX - tamanho;
-        y = gY - tamanho;
-        w = gX + tamanho;
-        h = gY + tamanho;
+        x = gX - raioCabeca;
+        y = gY - raioCabeca;
+        w = gX + raioCabeca;
+        h = gY + raioCabeca;
     };
 };
 

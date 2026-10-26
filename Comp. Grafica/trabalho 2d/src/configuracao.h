@@ -2,12 +2,12 @@
 
 struct ConfigArena {
     int largura = 200;
-    int altura  = 200;
+    int altura  = 150;
 };
 
 struct ConfigJogador {
     float raioCabeca = 30.0f;
-    float velocidade = 200.0f;
+    float velocidade = 100.0f;
     int vida = 3;
 };
 
@@ -18,11 +18,11 @@ struct ConfigInimigo {
 };
 
 struct ConfigBarril {
-    float altura       = 40.0f;
-    float largura      = 30.0f;
+    float altura       = 50.0f;
+    float largura      = 120.0f;
     float   freqTiro  = 1.0;       
-    int   nParaGanhar  = 10;
-    float velocidade   = 60.0f;
+    int   nParaGanhar  = 20;
+    float velocidade   = 100.0f;
 };
 struct ConfigTiro
 {

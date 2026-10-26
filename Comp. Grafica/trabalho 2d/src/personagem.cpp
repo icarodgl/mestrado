@@ -67,8 +67,8 @@ void Personagem::Girar(int dir)
 void Personagem::Mover(int dir)
 {
     GLfloat rad = this->theta * M_PI / 180.0f;
-    GLfloat vx = -sinf(rad) * (dir * velocidade);
-    GLfloat vy = cosf(rad) * (dir * velocidade);
+    GLfloat vx = -sinf(rad) * (dir * velocidade/100.0);
+    GLfloat vy = cosf(rad) * (dir * velocidade/100.0);
 
     if ((gY > (alturaArena- CorrecaoArenaY - raioCabeca) and vy > 0) or (gY < -alturaArena+raioCabeca-CorrecaoArenaY  and vy < 0))
         return;
@@ -81,7 +81,7 @@ void Personagem::MoverLado(int dir)
 {
     if ((gX > larguraArena-raioCabeca and dir > 0) or (gX < -larguraArena+raioCabeca and dir < 0))
         return;
-    gX += dir;
+    gX += dir*velocidade/100.0;
 }
 Tiro *Personagem::Atirar(GLfloat VelocidadeTiro)
 {
