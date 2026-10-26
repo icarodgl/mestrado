@@ -4,39 +4,53 @@
 #include <GL/glu.h>
 #include "tiro.h"
 #include "colidivel.h"
+#include "configuracao.h"
 
 class Personagem : public Colidivel
 {
     int vida;
-    GLfloat gX;
-    GLfloat gY;
+    GLfloat gX = 0;
+    GLfloat gY = -180;
     GLfloat width = 30.0;
     GLfloat height = 30.0;
     GLfloat tamanho = 30.0;
-    GLfloat theta;
+    GLfloat theta = 0;
     GLfloat pernas = 40;
     GLfloat velocidade = 5.0;
+    GLfloat raioCabeca = 30.0;
+    // arena
+    int larguraArena = 200;
+    int alturaArena  = 150;
+    int CorrecaoArenaY = 100;
 
 private:
     void DesenhaPersonagem(GLfloat x, GLfloat y);
-
+    void DesenhaArena();
 public:
 
-    Personagem()
-    {
-        gX = 0;
-        gY = -180; // correção do estado inicial;
-        theta = 0;
-    };
-    void SetTamanho(GLfloat t){
-        tamanho =t;
+    Personagem(){};
+    void Configurar(Configuracao conf){
+        if(conf.jogador.raioCabeca){
+            raioCabeca = conf.jogador.raioCabeca;
+        }
+        if(conf.jogador.velocidade){
+            velocidade = conf.jogador.velocidade;
+        }
+        if(conf.jogador.vida){
+            vida = conf.jogador.vida;
+        }
+        if(conf.arena.altura and conf.arena.altura >= 100){
+            alturaArena = conf.arena.altura;
+            gY = -((conf.arena.altura - raioCabeca)+CorrecaoArenaY);
+        }
+        if(conf.arena.largura and conf.arena.largura >= 100){
+            larguraArena = conf.arena.largura;
+            gX = (conf.arena.largura)/2;
+        }
+
     }
-    void SetVida(int v){
-        vida = v;
-    }
-    void setVelocidade(GLfloat v){
-        velocidade = v;
-    }
+
+
     void Desenha()
     {
         DesenhaPersonagem(gX, gY);

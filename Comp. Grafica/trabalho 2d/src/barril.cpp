@@ -49,7 +49,7 @@ void Barril::DesenhaInimigo(GLfloat x, GLfloat y)
     // corpo
     glColor3f(CorCorpo[0], CorCorpo[1], CorCorpo[2]);
     glPushMatrix();
-    DesenhaCirculo(0, 0);
+    DesenhaCirculo(0, 0, raioCabeca);
     glPopMatrix();
 
     // arma

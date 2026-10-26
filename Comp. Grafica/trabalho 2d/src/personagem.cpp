@@ -7,6 +7,14 @@
 
 using namespace std;
 
+void Personagem::DesenhaArena()
+    {
+        glColor3f(0.1f, 0.1f, 0.1f);
+        glPushMatrix();
+        glTranslatef(0, 0, 0);
+        glRecti(-larguraArena, -(alturaArena+CorrecaoArenaY), larguraArena, alturaArena-CorrecaoArenaY);
+        glPopMatrix();
+    }
 void Personagem::DesenhaPersonagem(GLfloat x, GLfloat y)
 {
 
@@ -14,7 +22,7 @@ void Personagem::DesenhaPersonagem(GLfloat x, GLfloat y)
     vector<GLfloat> CorArma = {0.161, 0.6, 0.45};
     vector<GLfloat> CorPernas = {0.9, 0.9, 0.9};
     GLfloat tamanhoPerna;
-
+    DesenhaArena();
     controlaPernas(tamanhoPerna, x, y, theta);
 
     glPushMatrix();
@@ -38,7 +46,7 @@ void Personagem::DesenhaPersonagem(GLfloat x, GLfloat y)
     // corpo
     glColor3f(CorCorpo[0], CorCorpo[1], CorCorpo[2]);
     glPushMatrix();
-    DesenhaCirculo(0, 0);
+    DesenhaCirculo(0, 0,raioCabeca);
     glPopMatrix();
 
     // arma
@@ -59,19 +67,19 @@ void Personagem::Girar(int dir)
 void Personagem::Mover(int dir)
 {
     GLfloat rad = this->theta * M_PI / 180.0f;
-    GLfloat vx = -sinf(rad) * dir;
-    GLfloat vy = cosf(rad) * dir;
+    GLfloat vx = -sinf(rad) * (dir * velocidade);
+    GLfloat vy = cosf(rad) * (dir * velocidade);
 
-    if ((gY > 0 and vy > 0) or (gY < -200 and vy < 0))
+    if ((gY > (alturaArena- CorrecaoArenaY - raioCabeca) and vy > 0) or (gY < -alturaArena+raioCabeca-CorrecaoArenaY  and vy < 0))
         return;
-    if ((gX > 200 and vx > 0) or (gX < -200 and vx < 0))
+    if ((gX > (larguraArena-raioCabeca) and vx > 0) or (gX < -(larguraArena + raioCabeca) and vx < 0))
         return;
     this->gX += vx;
     this->gY += vy;
 }
 void Personagem::MoverLado(int dir)
 {
-    if ((gX > 200 and dir > 0) or (gX < -200 and dir < 0))
+    if ((gX > larguraArena-raioCabeca and dir > 0) or (gX < -larguraArena+raioCabeca and dir < 0))
         return;
     gX += dir;
 }

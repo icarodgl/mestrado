@@ -14,7 +14,7 @@
 #define INC_KEY 1
 #define INC_KEYIDLE 50.0
 
-Configuracao cfg;
+Configuracao config;
 // Key status
 int keyStatus[256];
 
@@ -32,7 +32,7 @@ int animate = 0;
 
 // Componentes do mundo virtual sendo modelado
 Personagem personagem;
-MyGameUI gameUI; 
+MyGameUI gameUI;
 
 static const int qtTiro = 20;
 static const int qtBarril = 6;
@@ -54,7 +54,7 @@ GLdouble deltaTime()
     return timeDiference;
 }
 
-void criaTiros(Tiro *t, Tiro* arrTiro[])
+void criaTiros(Tiro *t, Tiro *arrTiro[])
 {
     if (t == nullptr)
         return;
@@ -76,22 +76,23 @@ void controlaTiros(GLfloat deltaT)
         // Tiro inimigo
         // ==========================================
 
-        if (tirosInimigo[i] != nullptr){
+        if (tirosInimigo[i] != nullptr)
+        {
 
             tirosInimigo[i]->Move(deltaT);
 
             if (!tirosInimigo[i]->Valido())
-                {
-                    delete tirosInimigo[i];
-                    tirosInimigo[i] = nullptr;
-                }
-
-            if(tirosInimigo[i] != nullptr and tirosInimigo[i]->ColideCom(personagem)){
-                gameUI.Atingido();
+            {
                 delete tirosInimigo[i];
                 tirosInimigo[i] = nullptr;
             }
 
+            if (tirosInimigo[i] != nullptr and tirosInimigo[i]->ColideCom(personagem))
+            {
+                gameUI.Atingido();
+                delete tirosInimigo[i];
+                tirosInimigo[i] = nullptr;
+            }
         }
         // ==========================================
         // Tiro Aliado
@@ -99,18 +100,21 @@ void controlaTiros(GLfloat deltaT)
         if (tiros[i] != nullptr)
         {
             tiros[i]->Move(deltaT);
-            
-            for (int barril = qtBarril- 1; barril >= 0; barril--)
+
+            for (int barril = qtBarril - 1; barril >= 0; barril--)
             {
-                if(barris[barril] != nullptr && tiros[i]->ColideCom(*barris[barril])){
+                if (barris[barril] != nullptr && tiros[i]->ColideCom(*barris[barril]))
+                {
                     barris[barril]->Atingido();
                     gameUI.Ponto();
+                    if (!barris[barril]->Valido())
+                        gameUI.BarrilDestruido();
                     delete tiros[i];
                     tiros[i] = nullptr;
                     break;
                 }
             }
-        
+
             if (tiros[i] != nullptr and !tiros[i]->Valido())
             {
                 delete tiros[i];
@@ -137,13 +141,13 @@ void controlaBarris(GLfloat deltaT)
 {
     GLfloat currentTime = glutGet(GLUT_ELAPSED_TIME);
     GLfloat barrilVel = 0.04;
-    
-    if (currentTime > tempoCriarBarril )
+
+    if (currentTime > tempoCriarBarril)
     {
         tempoCriarBarril = currentTime + FloatAleatorio(1000.0, 5000.0);
         GLfloat y = 220.0;
-        Barril *b = new Barril(ladoBarril, y,IntAleatorio(2,5), IntAleatorio(0,1));
-        
+        Barril *b = new Barril(ladoBarril, y, IntAleatorio(2, 5), IntAleatorio(0, 1));
+
         for (int i = 0; i < qtBarril; ++i)
         {
             if (barris[i] == nullptr)
@@ -159,19 +163,20 @@ void controlaBarris(GLfloat deltaT)
     {
         if (barris[i] != nullptr)
         {
-        // ==========================================
-        // Cria Tiro inimigo
-        // ==========================================
-            criaTiros(barris[i]->Atirar(currentTime),tirosInimigo);
-        // ==========================================
-        // Move inimigo
-        // ==========================================
-            barris[i]->Move(barrilVel*deltaT);
+            // ==========================================
+            // Cria Tiro inimigo
+            // ==========================================
+            criaTiros(barris[i]->Atirar(currentTime), tirosInimigo);
+            // ==========================================
+            // Move inimigo
+            // ==========================================
+            barris[i]->Move(barrilVel * deltaT);
 
-        // ==========================================
-        // Testa colizao
-        // ==========================================
-            if (barris[i]->ColideCom(personagem)){
+            // ==========================================
+            // Testa colizao
+            // ==========================================
+            if (barris[i]->ColideCom(personagem))
+            {
                 gameUI.Atingido();
                 delete barris[i];
                 barris[i] = nullptr;
@@ -244,7 +249,7 @@ void keyPress(unsigned char key, int x, int y)
         break;
     case ' ':
         keyStatus[(int)(' ')] = 1;
-     
+
         break;
     case 27:
         exit(0);
@@ -286,37 +291,38 @@ void init(void)
 void idle(void)
 {
     double inc = 200;
-    GLfloat deltaT = deltaTime()/1000;
+    GLfloat deltaT = deltaTime() / 1000;
 
     if (keyStatus[(int)('a')])
     {
-        personagem.MoverLado(-inc*deltaT);
-        //personagem.Girar(inc*deltaT);
+        personagem.MoverLado(-inc * deltaT);
+        // personagem.Girar(inc*deltaT);
     }
     if (keyStatus[(int)('d')])
     {
-        personagem.MoverLado(inc*deltaT);
-        //personagem.Girar(-inc*deltaT);
+        personagem.MoverLado(inc * deltaT);
+        // personagem.Girar(-inc*deltaT);
     }
     if (keyStatus[(int)('w')])
     {
-        personagem.Mover(inc*deltaT);
+        personagem.Mover(inc * deltaT);
     }
     if (keyStatus[(int)('s')])
     {
-        personagem.Mover(-inc*deltaT);
+        personagem.Mover(-inc * deltaT);
     }
     if (keyStatus[(int)('q')])
     {
-        personagem.Girar(inc*deltaT);
-        //personagem.MoverLado(-inc*deltaT);
+        personagem.Girar(inc * deltaT);
+        // personagem.MoverLado(-inc*deltaT);
     }
     if (keyStatus[(int)('e')])
     {
-        personagem.Girar(-inc*deltaT);
-        //personagem.MoverLado(inc*deltaT);
+        personagem.Girar(-inc * deltaT);
+        // personagem.MoverLado(inc*deltaT);
     }
-    if (keyStatus[(int)(' ')]){
+    if (keyStatus[(int)(' ')])
+    {
         GLdouble currentTime = glutGet(GLUT_ELAPSED_TIME);
         if (currentTime > tempoTiro + 200.0)
         {
@@ -330,14 +336,22 @@ void idle(void)
 
     glutPostRedisplay();
 }
+void ConfigurarUsandoXML()
+{
+
+    if (!CarregaConfiguracao("configuracoes.xml", config))
+        fprintf(stderr, "Usando valores padrão.\n");
+
+    personagem.Configurar(config);
+    gameUI.Configurar(config);
+}
 
 int main(int argc, char *argv[])
 {
     // Initialize openGL with Double buffer and RGB color without transparency.
     // Its interesting to try GLUT_SINGLE instead of GLUT_DOUBLE.
 
-    if (!CarregaConfiguracao("configuracoes.xml", cfg))
-        fprintf(stderr, "Usando valores padrão.\n");
+    ConfigurarUsandoXML();
 
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);

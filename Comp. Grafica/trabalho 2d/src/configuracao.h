@@ -1,13 +1,14 @@
 #pragma once
 
 struct ConfigArena {
-    int largura = 800;
-    int altura  = 600;
+    int largura = 200;
+    int altura  = 200;
 };
 
 struct ConfigJogador {
     float raioCabeca = 30.0f;
     float velocidade = 200.0f;
+    int vida = 3;
 };
 
 struct ConfigInimigo {
@@ -19,7 +20,7 @@ struct ConfigInimigo {
 struct ConfigBarril {
     float altura       = 40.0f;
     float largura      = 30.0f;
-    int   numeroTiros  = 3;       
+    float   freqTiro  = 1.0;       
     int   nParaGanhar  = 10;
     float velocidade   = 60.0f;
 };
@@ -29,6 +30,7 @@ struct Configuracao {
     ConfigJogador jogador;
     ConfigInimigo inimigo;
     ConfigBarril  barril;
+    
 };
 
 bool CarregaConfiguracao(const char* caminho, Configuracao& out);

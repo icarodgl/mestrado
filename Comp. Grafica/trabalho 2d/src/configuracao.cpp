@@ -49,6 +49,7 @@ bool CarregaConfiguracao(const char* caminho, Configuracao& out)
     if (const XMLElement* e = raiz->FirstChildElement("jogador")) {
         LerFloat(e, "raioCabeca", out.jogador.raioCabeca);
         LerFloat(e, "velocidade", out.jogador.velocidade);
+        LerInt(e, "vida", out.jogador.vida);
     }
 
     if (const XMLElement* e = raiz->FirstChildElement("inimigo")) {
@@ -60,16 +61,18 @@ bool CarregaConfiguracao(const char* caminho, Configuracao& out)
     if (const XMLElement* e = raiz->FirstChildElement("barril")) {
         LerFloat(e, "altura",      out.barril.altura);
         LerFloat(e, "largura",     out.barril.largura);
-        LerInt  (e, "numeroTiros", out.barril.numeroTiros);
+        LerFloat  (e, "freqTiro", out.barril.freqTiro);
         LerInt  (e, "nParaGanhar", out.barril.nParaGanhar);
         LerFloat(e, "velocidade",  out.barril.velocidade);
     }
-
+    if (out.jogador.vida <= 0 ) {
+        fprintf(stderr, "Vida do jogador inválida\n"); return false;
+    }
     if (out.arena.largura <= 0 || out.arena.altura <= 0) {
         fprintf(stderr, "Arena inválida\n"); return false;
     }
-    if (out.barril.numeroTiros <= 0) {
-        fprintf(stderr, "numeroTiros deve ser >= 1\n"); return false;
+    if (out.barril.freqTiro <= 0) {
+        fprintf(stderr, "freqTiro deve ser >= 1.0\n"); return false;
     }
     if (out.barril.nParaGanhar <= 0) {
         fprintf(stderr, "nParaGanhar deve ser >= 1\n"); return false;

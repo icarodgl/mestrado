@@ -20,6 +20,7 @@ class Barril : public Colidivel
     GLfloat gVel = 1.0;
     GLfloat theta = 180.0;
     GLfloat disparo = 0.0;
+    GLfloat raioCabeca = 30.0;
     bool inimigo = false;
 private:
     void DesenhaVida() const
