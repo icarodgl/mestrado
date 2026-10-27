@@ -85,10 +85,10 @@ public:
         glColor3f(1.0f, 1.0f, 1.0f);
         // GLfloat x,y,h,w;
         // GetColider(x,y,w,h);
-        std::string pos = "theta"+std::to_string(theta);
+        // std::string pos = "theta"+std::to_string(theta);
         // std::string col = "w h "+std::to_string(w)+ " " + std::to_string(h);
         // DesenhaTexto(gX, gY + height - 10, pos, GLUT_BITMAP_HELVETICA_12);
-        DesenhaTexto(gX, gY + height - 20, pos, GLUT_BITMAP_HELVETICA_12);
+        // DesenhaTexto(gX, gY + height - 20, pos, GLUT_BITMAP_HELVETICA_12);
 
         DesenhaTexto(gX, gY + height, txt, GLUT_BITMAP_HELVETICA_18);
     }

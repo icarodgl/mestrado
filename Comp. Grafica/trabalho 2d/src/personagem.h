@@ -57,8 +57,8 @@ public:
     };
     bool Atingido(Colidivel *obj);
     void Girar(int x, int y);
-    void Mover(int dir);
-    void MoverLado(int dir);
+    void Mover(GLfloat dir);
+    void MoverLado(GLfloat dir);
     void getPos(GLfloat &x, GLfloat &y){
         x = gX;
         y = gY;

@@ -61,17 +61,21 @@ GLdouble deltaTime()
 
     return timeDiference;
 }
-void resetGame(){
+void resetGame()
+{
     gameUI.Reset(config);
     barris[qtBarril] = {nullptr};
     tiros[qtTiro] = {nullptr};
     tirosInimigo[qtTiro] = {nullptr};
-    for (int i = 0; i < qtTiro; ++i){
-        if (tiros[i] != nullptr){
+    for (int i = 0; i < qtTiro; ++i)
+    {
+        if (tiros[i] != nullptr)
+        {
             delete tiros[i];
             tiros[i] = nullptr;
         }
-        if (tirosInimigo[i] != nullptr){
+        if (tirosInimigo[i] != nullptr)
+        {
             delete tirosInimigo[i];
             tirosInimigo[i] = nullptr;
         }
@@ -173,7 +177,7 @@ void controlaBarris(GLfloat deltaT)
     GLfloat currentTime = glutGet(GLUT_ELAPSED_TIME);
     GLfloat personX, personY;
 
-    personagem.getPos(personX,personY);
+    personagem.getPos(personX, personY);
 
     if (currentTime > tempoCriarBarril)
     {
@@ -197,9 +201,9 @@ void controlaBarris(GLfloat deltaT)
     {
         if (barris[i] != nullptr)
         {
-            
-            barris[i]->Mirar(personX,personY);
-            
+
+            barris[i]->Mirar(personX, personY);
+
             // ==========================================
             // Cria Tiro inimigo
             // ==========================================
@@ -260,7 +264,7 @@ void keyPress(unsigned char key, int x, int y)
     case 'R':
     case 'r':
         // reset game
-        keyStatus[(int)('r')] = 1; 
+        keyStatus[(int)('r')] = 1;
         break;
     case '1':
         animate = !animate;
@@ -336,36 +340,35 @@ void init(void)
 
 void idle(void)
 {
-    double inc = 200;
     GLfloat deltaT = deltaTime() / 1000;
 
     if (keyStatus[(int)('a')])
     {
-        personagem.MoverLado(-inc * deltaT);
-        // personagem.Girar(inc*deltaT);
+        personagem.MoverLado(-deltaT);
+        // personagem.Girar(deltaT*deltaT);
     }
     if (keyStatus[(int)('d')])
     {
-        personagem.MoverLado(inc * deltaT);
-        // personagem.Girar(-inc*deltaT);
+        personagem.MoverLado(deltaT);
+        // personagem.Girar(-deltaT*deltaT);
     }
     if (keyStatus[(int)('w')])
     {
-        personagem.Mover(inc * deltaT);
+        personagem.Mover(deltaT);
     }
     if (keyStatus[(int)('s')])
     {
-        personagem.Mover(-inc * deltaT);
+        personagem.Mover(-deltaT);
     }
     // if (keyStatus[(int)('q')])
     //{
-    //     personagem.Girar(inc * deltaT);
-    //  personagem.MoverLado(-inc*deltaT);
+    // personagem.Girar(inc * deltaT);
+    //  personagem.MoverLado(-deltaT);
     //}
     // if (keyStatus[(int)('e')])
     //{
     //    personagem.Girar(-inc * deltaT);
-    // personagem.MoverLado(inc*deltaT);
+    // personagem.MoverLado(deltaT);
     //}
     if (keyStatus[(int)(' ')] or mousePressionado)
     {
@@ -394,9 +397,14 @@ void ConfigurarUsandoXML()
 
     personagem.Configurar(config);
     gameUI.Configurar(config);
-    tiroPorSegundo = (1000.0 / config.tiro.tiroPorSegundo);
-    VelocidadeTiro = config.tiro.velocidade;
-    velocidadeInimigo = config.barril.velocidade;
+    if (config.tiro.tiroPorSegundo)
+        tiroPorSegundo = (1000.0 / config.tiro.tiroPorSegundo);
+    if (config.tiro.velocidade)
+        VelocidadeTiro = config.tiro.velocidade;
+    if (config.barril.velocidade)
+        velocidadeInimigo = config.barril.velocidade;
+    if (config.arena.largura)
+        ladoBarril = (config.arena.largura / 2);
 }
 void AtualizaMouse(int px, int py)
 {
