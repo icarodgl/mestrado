@@ -5,6 +5,7 @@ def Elimina_Repetidos(lista):
             nova_lista.append(e)
     return nova_lista
 
+
 class Conjunto:
     ''' Define a classe Conjunto'''
     # Construtor da classe
