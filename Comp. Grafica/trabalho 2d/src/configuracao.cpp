@@ -72,8 +72,8 @@ bool CarregaConfiguracao(const char* caminho, Configuracao& out)
     if (out.jogador.vida <= 0 ) {
         fprintf(stderr, "Vida do jogador inválida\n"); return false;
     }
-    if (out.arena.largura <= 0 || out.arena.altura <= 0) {
-        fprintf(stderr, "Arena inválida\n"); return false;
+    if (out.arena.largura <= 400 || out.arena.altura <= 400) {
+        fprintf(stderr, "Arena inválida (min: 400 x 400)\n"); return false;
     }
     if (out.barril.freqTiro <= 0) {
         fprintf(stderr, "freqTiro deve ser >= 1.0\n"); return false;

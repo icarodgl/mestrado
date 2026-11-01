@@ -3,6 +3,7 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include "colidivel.h"
+#include "configuracao.h"
 
 #define radiusTiro 5
 
@@ -10,6 +11,8 @@ class Tiro : public Colidivel
 {
     GLfloat height = 10;
     GLfloat width = 10;
+    GLfloat alturaMax = 500;
+    GLfloat larguraMax = 500;
     GLfloat gX;
     GLfloat gY;
     GLfloat gDirectionAng;
@@ -41,5 +44,9 @@ public:
         w = gX + (width/4);
         h = gY + (height/4);
     };
+void Configurar(Configuracao conf){
+    alturaMax = conf.arena.altura;
+    larguraMax = conf.arena.largura;
+}
 };
 #endif /* TIRO_H */

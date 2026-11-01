@@ -29,7 +29,7 @@ void Barril::DesenhaInimigo(GLfloat x, GLfloat y)
 
     glPushMatrix();
     glTranslatef(x, y, 0);
-    glRotatef(theta, 0, 0, 1); // correções para centralizar no boneco
+    
 
 
     glColor3f(CorPernas[0], CorPernas[1], CorPernas[2]);
@@ -54,6 +54,7 @@ void Barril::DesenhaInimigo(GLfloat x, GLfloat y)
     // arma
     glColor3f(CorArma[0], CorArma[1], CorArma[2]);
     glPushMatrix();
+    glRotatef(theta, 0, 0, 1);
     glTranslatef(raioCabeca, 0, 0);
     glRecti(0, 0, raioCabeca*0.4, raioCabeca*1.8);
     glPopMatrix();
@@ -70,7 +71,7 @@ Tiro *Barril::Atirar(GLfloat deltaTime, GLfloat velocidadeTiro)
         const GLfloat ly = raioCabeca*1.8; // ponta canhao
 
         const GLfloat DegToRad = M_PI / 180.0f; // Graus pra Radiano
-        const GLfloat rad = theta * DegToRad;
+        const GLfloat rad = (theta) * DegToRad;
 
         const GLfloat c = cosf(rad);
         const GLfloat s = sinf(rad);

@@ -12,6 +12,7 @@ class Personagem : public Colidivel
     GLfloat gX = 0;
     GLfloat gY = -180;
     GLfloat theta = 0;
+    GLfloat thetaArma = 0;
     GLfloat pernas = 40;
     GLfloat velocidade = 5.0;
     GLfloat raioCabeca = 30.0;
@@ -56,12 +57,15 @@ public:
         DesenhaPersonagem(gX, gY);
     };
     bool Atingido(Colidivel *obj);
-    void Girar(int x, int y);
+    void GirarArma(int x, int y);
     void Mover(GLfloat dir);
     void MoverLado(GLfloat dir);
+    void Girar(GLfloat dir){
+        theta += dir*velocidade;
+    }
     void getPos(GLfloat &x, GLfloat &y){
-        x = gX;
-        y = gY;
+        x = gX-raioCabeca;
+        y = gY-raioCabeca;
     }
     Tiro *Atirar(GLfloat velocidade);
     virtual void GetColider(GLfloat &x, GLfloat &y, GLfloat &w, GLfloat &h) const override

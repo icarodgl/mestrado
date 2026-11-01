@@ -9,22 +9,30 @@ class MyGameUI
     int vida;
     int pontos;
     int nParaGanhar;
-    GLfloat vidaPosX = 180.0;
+    GLfloat altura;
+    GLfloat largura; 
+    GLfloat vidaPosX = 200.0;
     GLfloat vidaPosY = 200.0;
  
 private:
+    void DesenhaVida()
+    {
+        std::string txt = "Vidas: " + std::to_string(vida);
+        glColor3f(1.0f, 1.0f, 1.0f);
+        DesenhaTexto(vidaPosX-80, vidaPosY-50, txt, GLUT_BITMAP_HELVETICA_18);
+    }
     void DesenhaPontos() const
     {
         std::string txt = "Pontos: " + std::to_string(pontos);
         glColor3f(1.0f, 1.0f, 1.0f);
-        DesenhaTexto(-vidaPosX, vidaPosY, txt, GLUT_BITMAP_HELVETICA_18);
+        DesenhaTexto(-vidaPosX, vidaPosY-50, txt, GLUT_BITMAP_HELVETICA_18);
     }
 
     void DesenhaBarrisParaGanhar() const
     {
         std::string txt = "Faltam: " + std::to_string(nParaGanhar) + " Inimigos";
         glColor3f(1.0f, 1.0f, 1.0f);
-        DesenhaTexto(-vidaPosX/3, vidaPosY, txt, GLUT_BITMAP_HELVETICA_18);
+        DesenhaTexto(-vidaPosX/3, vidaPosY-50, txt, GLUT_BITMAP_HELVETICA_18);
     }
     void DesenhaTexto(float x, float y, const std::string &texto, void *fonte) const
     {
@@ -41,12 +49,12 @@ private:
         std::string txtInfo = "Aperte R para reiniciar o jogo";
 
         glPushMatrix();
-        glTranslatef(0, 0, 0);
-        glRecti(-250, -250, 250, 250);
+        glTranslatef(-largura,-altura, 0);
+        glRecti(0, 0, largura*2, altura*2 );
         glPopMatrix();
         glColor3f(1.0f, 1.0f, 1.0f);
-        DesenhaTexto(-20, 0, txt, GLUT_BITMAP_HELVETICA_18);
-        DesenhaTexto(-50, -30, txtInfo, GLUT_BITMAP_HELVETICA_12);
+        DesenhaTexto(-50, 0, txt, GLUT_BITMAP_HELVETICA_18);
+        DesenhaTexto(-80, -30, txtInfo, GLUT_BITMAP_HELVETICA_12);
 
     }
 
@@ -54,19 +62,16 @@ private:
     {
         glColor3f(0.0f, 0.0f, 0.0f);
         std::string txt = "WIN!";
+        std::string txtInfo = "Aperte R para reiniciar o jogo";
         glPushMatrix();
-        glTranslatef(0, 0, 0);
-        glRecti(-250, -250, 250, 250);
+        glTranslatef(-largura,-altura, 0);
+        glRecti(0, 0, largura*2, altura*2 );
         glPopMatrix();
         glColor3f(1.0f, 1.0f, 1.0f);
         DesenhaTexto(-20, 0, txt, GLUT_BITMAP_HELVETICA_18);
+        DesenhaTexto(-80, -30, txtInfo, GLUT_BITMAP_HELVETICA_12);
     }
-    void DesenhaVida()
-    {
-        std::string txt = "Vidas: " + std::to_string(vida);
-        glColor3f(1.0f, 1.0f, 1.0f);
-        DesenhaTexto(vidaPosX, vidaPosY, txt, GLUT_BITMAP_HELVETICA_18);
-    }
+
 
 public:
     MyGameUI()
@@ -117,5 +122,13 @@ public:
             vida = conf.jogador.vida;
         if (conf.barril.nParaGanhar)
             nParaGanhar = conf.barril.nParaGanhar;
+        if (conf.arena.altura){
+            altura = conf.arena.altura;
+            vidaPosY = conf.arena.altura/2;
+        }
+        if (conf.arena.largura){
+            largura = conf.arena.largura;
+            vidaPosX = conf.arena.largura/2;
+        }
     }
 };

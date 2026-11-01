@@ -103,12 +103,25 @@ public:
     {
         GLfloat dx = x - gX;
         GLfloat dy = y - gY;
-        GLfloat angulo = (atan2f(dy, dx) * 180.0f / M_PI);
-        angulo -= 90.0f;
-        const GLfloat MIN = -210.0f;
-        const GLfloat MAX = -150.0f;
+        GLfloat angulo = atan2f(-dx, dy) * 180.0f / M_PI;
 
-        if (angulo >= MIN && angulo <= MAX)
+        if (angulo < 0.0f)
+            angulo += 360.0f;
+
+        const GLfloat CENTRO = 180.0f;
+        const GLfloat MEIO = 30.0f;
+
+        GLfloat diff = angulo - CENTRO;
+        if (diff > 180.0f)
+            diff -= 360.0f;
+        if (diff < -180.0f)
+            diff += 360.0f;
+
+        if (diff > MEIO)
+            theta = CENTRO + MEIO; // 210°
+        else if (diff < -MEIO)
+            theta = CENTRO - MEIO; // 150°
+        else
             theta = angulo;
     }
     bool getPossuiInimigo() { return this->inimigo; }

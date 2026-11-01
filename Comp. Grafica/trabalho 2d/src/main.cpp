@@ -19,12 +19,12 @@ Configuracao config;
 int keyStatus[256];
 
 // Window dimensions
-const GLint Width = 700;
-const GLint Height = 700;
+GLint Width = 700;
+GLint Height = 700;
 
 // Viewing dimensions
-const GLint ViewingWidth = 500;
-const GLint ViewingHeight = 500;
+GLint ViewingWidth = 700;
+GLint ViewingHeight = 700;
 
 int gMousePixelX = 0;
 int gMousePixelY = 0;
@@ -93,7 +93,8 @@ void criaTiros(Tiro *t, Tiro *arrTiro[])
 {
     if (t == nullptr)
         return;
-
+    
+    t->Configurar(config);
     for (int i = 0; i < qtTiro; ++i)
         if (arrTiro[i] == nullptr)
         {
@@ -182,7 +183,7 @@ void controlaBarris(GLfloat deltaT)
     if (currentTime > tempoCriarBarril)
     {
         tempoCriarBarril = currentTime + FloatAleatorio(1000.0, 5000.0);
-        GLfloat y = 220.0;
+        GLfloat y = (config.arena.altura / 2);
         Barril *b = new Barril(ladoBarril, y, IntAleatorio(0, 1));
         b->Configurar(config);
 
@@ -344,13 +345,13 @@ void idle(void)
 
     if (keyStatus[(int)('a')])
     {
-        personagem.MoverLado(-deltaT);
-        // personagem.Girar(deltaT*deltaT);
+        // personagem.MoverLado(-deltaT);
+        personagem.Girar(deltaT);
     }
     if (keyStatus[(int)('d')])
     {
-        personagem.MoverLado(deltaT);
-        // personagem.Girar(-deltaT*deltaT);
+        // personagem.MoverLado(deltaT);
+        personagem.Girar(-deltaT);
     }
     if (keyStatus[(int)('w')])
     {
@@ -360,16 +361,16 @@ void idle(void)
     {
         personagem.Mover(-deltaT);
     }
-    // if (keyStatus[(int)('q')])
-    //{
-    // personagem.Girar(inc * deltaT);
-    //  personagem.MoverLado(-deltaT);
-    //}
-    // if (keyStatus[(int)('e')])
-    //{
-    //    personagem.Girar(-inc * deltaT);
-    // personagem.MoverLado(deltaT);
-    //}
+    if (keyStatus[(int)('q')])
+    {
+        //  personagem.Girar(deltaT);
+        personagem.MoverLado(-deltaT);
+    }
+    if (keyStatus[(int)('e')])
+    {
+        //   personagem.Girar(deltaT);
+        personagem.MoverLado(deltaT);
+    }
     if (keyStatus[(int)(' ')] or mousePressionado)
     {
         GLdouble currentTime = glutGet(GLUT_ELAPSED_TIME);
@@ -382,7 +383,7 @@ void idle(void)
     if (keyStatus[(int)('r')])
         resetGame();
 
-    personagem.Girar(gMouseWorldX, gMouseWorldY);
+    personagem.GirarArma(gMouseWorldX, gMouseWorldY);
     controlaTiros(deltaT);
     controlaBarris(deltaT);
 
@@ -404,7 +405,16 @@ void ConfigurarUsandoXML()
     if (config.barril.velocidade)
         velocidadeInimigo = config.barril.velocidade;
     if (config.arena.largura)
-        ladoBarril = (config.arena.largura / 2);
+    {
+        ladoBarril = (config.arena.largura / 4);
+        Width = config.arena.largura;
+        ViewingWidth = config.arena.largura;
+    }
+    if (config.arena.largura)
+    {
+        Height = config.arena.altura;
+        ViewingHeight = config.arena.altura;
+    }
 }
 void AtualizaMouse(int px, int py)
 {

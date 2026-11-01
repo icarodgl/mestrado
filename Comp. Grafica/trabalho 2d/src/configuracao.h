@@ -1,8 +1,8 @@
 #pragma once
 
 struct ConfigArena {
-    int largura = 200;
-    int altura  = 150;
+    int largura = 400;
+    int altura  = 400;
 };
 
 struct ConfigJogador {
