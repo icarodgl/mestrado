@@ -11,6 +11,9 @@ class Personagem : public Colidivel
     int vida;
     GLfloat gX = 0;
     GLfloat gY = -180;
+    GLfloat ultimoX   = 0.0f;
+    GLfloat ultimoY   = 0.0f;
+    GLfloat fasePasso = 0.0f;
     GLfloat theta = 0;
     GLfloat thetaArma = 0;
     GLfloat pernas = 40;
@@ -24,7 +27,8 @@ class Personagem : public Colidivel
 private:
     void DesenhaPersonagem(GLfloat x, GLfloat y);
     void DesenhaArena();
-
+    GLfloat CalculaBalancoPasso(GLfloat amplitude) const; 
+    void AtualizaAnimacao();
 public:
     Personagem() {};
     void Configurar(Configuracao conf)
@@ -32,6 +36,7 @@ public:
         if (conf.jogador.raioCabeca)
         {
             raioCabeca = conf.jogador.raioCabeca;
+            pernas = raioCabeca*1.4;
         }
         if (conf.jogador.velocidade)
         {

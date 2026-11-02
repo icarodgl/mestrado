@@ -22,10 +22,10 @@ void Barril::DesenhaInimigo(GLfloat x, GLfloat y)
 {
     vector<GLfloat> CorCorpo = {0.4, 0.156, 0.9};
     vector<GLfloat> CorArma = {0.161, 0.6, 0.45};
-    vector<GLfloat> CorPernas = {0.2, 0.0, 0.3};
+    vector<GLfloat> CorPernas = {0.7, 0.0, 0.7};
     GLfloat tamanhoPerna = raioCabeca*1.4;
 
-    controlaPernas(tamanhoPerna, x, y, theta);
+    controlaPernas(tamanhoPerna, x, y);
 
     glPushMatrix();
     glTranslatef(x, y, 0);

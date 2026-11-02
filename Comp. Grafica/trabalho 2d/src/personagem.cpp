@@ -38,10 +38,10 @@ void Personagem::DesenhaPersonagem(GLfloat x, GLfloat y)
     vector<GLfloat> CorArma = {0.75, 0.156, 0.09};
     vector<GLfloat> CorCorpo  = {0.161, 0.6, 0.45};
     vector<GLfloat> CorPernas = {0.9, 0.9, 0.9};
-    GLfloat tamanhoPerna = raioCabeca*1.4;
 
     DesenhaArena();
-    controlaPernas(tamanhoPerna, x, y, theta);
+    
+    GLfloat balanco = CalculaBalancoPasso(raioCabeca * 0.6f);
 
     glPushMatrix();
     glTranslatef(x, y, 0);
@@ -51,14 +51,14 @@ void Personagem::DesenhaPersonagem(GLfloat x, GLfloat y)
     glColor3f(CorPernas[0], CorPernas[1], CorPernas[2]);
    // perna direita
     glPushMatrix();
-    glTranslatef(raioCabeca*0.6, 0, 0);
-    glRecti(0, 0, raioCabeca/3, tamanhoPerna);
+    glTranslatef(raioCabeca*0.6,0, 0);
+    glRecti(0, 0, raioCabeca/3, pernas * balanco);
     glPopMatrix();
 
     // perna esquerda
     glPushMatrix();
-    glTranslatef(-(raioCabeca*0.95), 0, 0);
-    glRecti(0, 0, raioCabeca/3, -tamanhoPerna);
+    glTranslatef(-(raioCabeca*0.95),0, 0);
+    glRecti(0, 0, raioCabeca/3, -pernas * balanco);
     glPopMatrix();
 
     // corpo
@@ -89,10 +89,12 @@ void Personagem::GirarArma(int x, int y)
 
 void Personagem::Mover(GLfloat dir)
 {
+
     GLfloat rad = this->theta * M_PI / 180.0f;
     GLfloat vx = -sinf(rad) * (dir * velocidade);
     GLfloat vy = cosf(rad) * (dir * velocidade);
 
+    
     // arena Altura
     if ((gY > ((0 - raioCabeca)) and vy > 0) or (gY < -((alturaArena/2)-raioCabeca)  and vy < 0))
         return;
@@ -103,6 +105,7 @@ void Personagem::Mover(GLfloat dir)
 
     this->gX += vx;
     this->gY += vy;
+    AtualizaAnimacao();
 }
 void Personagem::MoverLado(GLfloat dir)
 {
@@ -135,4 +138,20 @@ bool Personagem::Atingido(Colidivel *obj)
     if (!obj)
         return false;
     return ColideCom(*obj);
+}
+
+void Personagem::AtualizaAnimacao()
+{
+    const GLfloat dx = gX - ultimoX;
+    const GLfloat dy = gY - ultimoY;
+
+    fasePasso += sqrtf(dx*dx + dy*dy) * 0.05f;
+
+    ultimoX = gX;
+    ultimoY = gY;
+}
+
+GLfloat Personagem::CalculaBalancoPasso(GLfloat amplitude) const
+{
+    return sinf(fasePasso) * amplitude *0.06;
 }

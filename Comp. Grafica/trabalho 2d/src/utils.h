@@ -31,7 +31,7 @@ inline void DesenhaCirculo(GLfloat x, GLfloat y, GLfloat raio)
     glEnd();
 }
 
-inline void controlaPernas(GLfloat &tamanhoPerna, GLfloat x, GLfloat y, GLfloat theta){
+inline void controlaPernas(GLfloat &tamanhoPerna, GLfloat x, GLfloat y){
     tamanhoPerna = tamanhoPerna * sin((y+x)/14);
     //tamanhoPerna = 50.0 * (sin(((y+theta)/10)*cos((10*x+theta)/1000)));
 }
