@@ -12,6 +12,7 @@ def main():
     escrever_arquivo_saida(saida)
 
     ordem, operacoes = ler_entrada(entrada)
+
     arvore = ArvoreB(ordem, ARQUIVO_BIN)
 
     for op in operacoes:

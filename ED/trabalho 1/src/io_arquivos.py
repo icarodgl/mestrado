@@ -12,11 +12,13 @@ def ler_entrada(caminho: str):
     n = int(linhas[1])
     operacoes = []
 
+
     for linha in linhas[2:2 + n]:
-        partes = linha.split()
+        partes = linha.replace(",","").split()
         op = partes[0].upper()
         if op == "I":
-            chave_str, valor_str = partes[1].split(", ")
+            chave_str = partes[1]
+            valor_str = partes[2]
             operacoes.append(("I", int(chave_str), int(valor_str)))
         elif op == "R":
             operacoes.append(("R", int(partes[1])))
