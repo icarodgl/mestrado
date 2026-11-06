@@ -1,4 +1,5 @@
 from pathlib import Path
+
 def ler_entrada(caminho: str):
     """
     Retorna (ordem, lista_de_operacoes).

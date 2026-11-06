@@ -1,5 +1,7 @@
 import sys
 from arvoreb import ArvoreB
+from no import No
+from repositorio import Repositorio
 from io_arquivos import ler_entrada, escrever_resultado_busca, escrever_arquivo_saida
 
 ARQUIVO_BIN = "arvore.bin"
@@ -13,7 +15,9 @@ def main():
 
     ordem, operacoes = ler_entrada(entrada)
 
-    arvore = ArvoreB(ordem, ARQUIVO_BIN)
+    No.configurar(ordem)
+    repo = Repositorio(ARQUIVO_BIN)
+    arvore = ArvoreB(ordem, repo)
 
     for op in operacoes:
         if op[0] == "I":
@@ -26,8 +30,7 @@ def main():
             _, chave = op
             escrever_resultado_busca(saida, arvore.buscar(chave))
 
-    arvore.imprimir_largura(saida)
-
+    # arvore.imprimir_largura(saida)
 
 if __name__ == "__main__":
     main()

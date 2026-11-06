@@ -1,34 +1,21 @@
 import struct
+from no import No
 
 class Registro:
-    # Layout fixo: chave (int) + valor (int) -> 8 bytes
-    _FORMATO = "ii"
-    TAMANHO = struct.calcsize(_FORMATO)
 
-    def __init__(self, chave: int, valor: int):
-        self.__chave = chave
-        self.__valor = valor
+    def __init__(self, caminho_bin: str):
+        self.__caminho = caminho_bin
 
-    # ---- acessores (encapsulamento) ----
-    @property
-    def chave(self) -> int:
-        return self.__chave
+    def limpar_registros(self,caminho):
+        with open(caminho, "wb") as f:
+            pass
 
-    @property
-    def valor(self) -> int:
-        return self.__valor
+    def _ler_no(self, indice: int) -> No:
+        with open(self.__caminho, "rb") as f:
+            f.seek(indice * No.TAMANHO)
+            return No.from_bytes(f.read(No.TAMANHO))
 
-    @valor.setter
-    def valor(self, novo: int) -> None:
-        self.__valor = novo
-
-    def to_bytes(self) -> bytes:
-        return struct.pack(self._FORMATO, self.__chave, self.__valor)
-
-    @classmethod
-    def from_bytes(cls, dados: bytes) -> "Registro":
-        chave, valor = struct.unpack(cls._FORMATO, dados)
-        return cls(chave, valor)
-
-    def __repr__(self):
-        return f"Registro(chave={self.__chave}, valor={self.__valor})"
+    def _escrever_no(self, indice: int, no: No) -> None:
+        with open(self.__caminho, "r+b") as f:
+            f.seek(indice * No.TAMANHO)
+            f.write(no.to_bytes())
