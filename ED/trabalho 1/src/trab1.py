@@ -32,6 +32,9 @@ def main():
         elif op[0] == "B":
             _, chave = op
             io.escrever_resultado_busca(arvore.buscar(chave))
+            
+        #io.debuger(op)
+        #io.escrever_arvore(arvore.imprimir_largura())
 
     io.escrever_arvore(arvore.imprimir_largura())
 

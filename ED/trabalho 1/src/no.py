@@ -59,10 +59,10 @@ class No:
         for j in range(i, self.__num_chaves - 1):
             self.__chaves[j] = self.__chaves[j + 1]
             self.__valores[j] = self.__valores[j + 1]
-        for j in range(i + 1, self.__num_chaves):
+        for j in range(i, self.__num_chaves):          # ← i, não i+1
             self.__filhos[j] = self.__filhos[j + 1]
         self.__num_chaves -= 1
-        self.__filhos[self.__num_chaves + 1] = VAZIO
+        self.__filhos[self.__num_chaves + 1] = -1
 
         
     # ---- serialização ----

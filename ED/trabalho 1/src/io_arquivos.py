@@ -43,6 +43,10 @@ class IO:
                 for linha in arvore:
                     out.write(linha + "\n")
 
+    def debuger(self,saida):
+        with open(self.__saida, "a", encoding="utf-8") as f:
+            f.write(f"debugger: {saida}\n")
+
     def escrever_arquivo_saida(self):
         caminho = Path(self.__saida)
         caminho.parent.mkdir(parents=True, exist_ok=True)
