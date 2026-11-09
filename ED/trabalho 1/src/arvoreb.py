@@ -31,98 +31,100 @@ class ArvoreB():
         else:
             self._inserir_nao_cheio(self.__raiz, chave, valor)
 
+    def _min_chaves(self):
+        return (self.__d + 1) // 2 - 1
+
+    def _maior_chave(self, indice: int):
+        """
+        Retorna (chave, valor) da MAIOR chave da subárvore enraizada em `indice`.
+        Desce sempre pelo último filho até achar uma folha.
+        """
+        no = self.__repo.ler(indice)
+        while not no.folha:
+            no = self.__repo.ler(no.filho(no.num_chaves))
+        j = no.num_chaves - 1
+        return no.chave(j), no.valor(j)
 
 
+    def _merge(self, pai_indice: int, pai: No, i: int) -> None:
+        esq = self.__repo.ler(pai.filho(i))
+        dir_ = self.__repo.ler(pai.filho(i + 1))
+        folha = esq.folha
+
+        # 1) a chave separadora do pai desce para o fim do filho esquerdo.
+        #    Se o filho não é folha, o filho à direita dessa chave é o
+        #    PRIMEIRO filho do irmão direito (dir_.filho(0)).
+        esq.inserir_em(
+            esq.num_chaves,
+            pai.chave(i), pai.valor(i),
+            dir_.filho(0) if not folha else -1,
+        )
+
+        # 2) copia todas as chaves/valores/filhos do irmão direito
+        #    para o fim do filho esquerdo.
+        for j in range(dir_.num_chaves):
+            esq.inserir_em(
+                esq.num_chaves,
+                dir_.chave(j), dir_.valor(j),
+                dir_.filho(j + 1) if not folha else -1,
+            )
+
+        # 3) remove a chave i e o filho i+1 do pai.
+        pai.remover_em(i)
+
+        # 4) persiste os nós modificados.
+        self.__repo.escrever(pai.filho(i), esq)   # filho esquerdo (agora fundido)
+        self.__repo.escrever(pai_indice, pai)     # pai modificado
+        # o irmão direito (dir_) fica órfão no arquivo — não é mais referenciado.
 
 
-
-    # # ============ impressão em largura ============
-    # def imprimir_largura(self, caminho_saida: str) -> None:
-    #     """Imprime a árvore nível a nível no arquivo de saída."""
-    #     with open(caminho_saida, "a", encoding="utf-8") as out:
-    #         out.write("-- ARVORE B\n")
-    #         if self.__raiz == -1:
-    #             return
-    #         fila = [self.__raiz]
-    #         while fila:
-    #             proximo = []
-    #             linha = ""
-    #             for idx in fila:
-    #                 no = self._ler_no(idx)
-    #                 for i in range(no.num_chaves):
-    #                     linha += f"[key: {no.chave(i)}, "
-    #                 if no.num_chaves > 0:
-    #                     # fecha o colchete do nó
-    #                     linha = linha.rstrip(", ") + ", ]" if False else linha
-    #                 # formatação correta do nó: [key: x, key: y, ]
-    #                 linha_no = "[" + "".join(
-    #                     f"key: {no.chave(i)}, " for i in range(no.num_chaves)
-    #                 ) + "]"
-    #                 linha += linha_no + " " if not linha else ""
-    #                 # (reescrever com cuidado — veja observação abaixo)
-    #                 if not no.folha:
-    #                     for i in range(no.num_chaves + 1):
-    #                         if no.filho(i) != -1:
-    #                             proximo.append(no.filho(i))
-    #             out.write(linha.rstrip() + "\n")
-    #             fila = proximo
+    def imprimir_largura(self) -> list[str]:
+        if self.__raiz == -1:
+            return []
+        linhas = []
+        fila = [self.__raiz]
+        while fila:
+            proximo = []
+            partes = []
+            for idx in fila:
+                no = self.__repo.ler(idx)
+                corpo = "".join(f"key: {no.chave(i)}, " for i in range(no.num_chaves))
+                partes.append(f"[{corpo}]")
+                if not no.folha:
+                    for i in range(no.num_chaves + 1):
+                        if no.filho(i) != -1:
+                            proximo.append(no.filho(i))
+            linhas.append(" ".join(partes))
+            fila = proximo
+        return linhas
 
     def _split(self, pai: No, i: int) -> None:
-        """
-        Divide o filho i do pai (que está CHEIO) em dois nós,
-        promovendo a chave do meio para o pai.
-
-        Pré-condição: pai.filho(i) tem num_chaves == d - 1.
-        Pós-condição: o pai ganha 1 chave e 1 filho; o filho i é substituído
-                    por dois nós (esquerda e direita) com a chave do meio no pai.
-        """
         d = self.__d
-        cheio = self.__repo.ler(pai.filho(i))       # nó que vai ser dividido
-
-        # índice da chave que sobe
+        cheio = self.__repo.ler(pai.filho(i))
         t = (d - 1) // 2
-
-        # ---- monta o nó da direita ----
         direita = No()
         direita.folha = cheio.folha
-        # chaves/valores de t+1 até o fim vão para a direita
         n_dir = cheio.num_chaves - t - 1
         direita.set_num_chaves(n_dir)
         for j in range(n_dir):
             direita.set_chave(j, cheio.chave(t + 1 + j))
             direita.set_valor(j, cheio.valor(t + 1 + j))
-        # filhos: se não for folha, os filhos t+1..d vão para a direita
         if not cheio.folha:
             for j in range(n_dir + 1):
                 direita.set_filho(j, cheio.filho(t + 1 + j))
 
-        # ---- chave que será promovida ----
         chave_meio = cheio.chave(t)
         valor_meio = cheio.valor(t)
 
-        # ---- nó da esquerda é o próprio `cheio`, truncado ----
         cheio.set_num_chaves(t)
-        # limpa o resto (opcional, mas ajuda na serialização)
         for j in range(t, d - 1):
             cheio.set_chave(j, 0)
             cheio.set_valor(j, 0)
         for j in range(t + 1, d):
             cheio.set_filho(j, -1)
-
-        # ---- aloca o nó da direita no arquivo ----
         indice_direita = self.__repo.alocar(direita)
-
-        # ---- atualiza o pai: insere chave_meio na posição i,
-        #      e o ponteiro para o novo nó vai em i+1 ----
         pai.inserir_em(i, chave_meio, valor_meio, indice_direita)
-        # inserir_em já desloca os filhos existentes e coloca indice_direita em i+1
-
-        # ---- persiste o filho esquerdo (o próprio `cheio` truncado) ----
         self.__repo.escrever(pai.filho(i), cheio)
-
-        # ---- persiste o pai (pode ser raiz ou nó interno) ----
-        # o chamador decide se reescreve; aqui já reescrevemos por segurança
-        # (o pai é passado por referência, mas está em RAM)
 
     def _inserir_nao_cheio(self, indice: int, chave: int, valor: int) -> None:
 
@@ -130,7 +132,6 @@ class ArvoreB():
         i = no.num_chaves - 1
 
         if no.folha:
-            # ---- caso 1: é folha, insere direto na posição ordenada ----
             # procura posição de inserção (mantendo ordem crescente)
             while i >= 0 and chave < no.chave(i):
                 i -= 1
@@ -199,17 +200,14 @@ class ArvoreB():
 
 
     def remover(self, chave):
-        if self.__raiz == -1:
+        if self.__raiz == -1 or not self.buscar(chave):
             return
         self._remover(self.__raiz, chave)
+        raiz = self.__repo.ler(self.__raiz)
+        if raiz.num_chaves == 0:
+            self.__raiz = -1 if raiz.folha else raiz.filho(0)
 
     def _remover(self, indice: int, chave: int) -> None:
-        """
-        Remove `chave` da subárvore enraizada no nó `indice`.
-        Pré-condição: a chave existe na subárvore.
-        Garante (top-down) que o nó `indice` tem > mínimo de chaves,
-        exceto se for a raiz.
-        """
         no = self.__repo.ler(indice)
         i = 0
         while i < no.num_chaves and chave > no.chave(i):
@@ -255,3 +253,6 @@ class ArvoreB():
         #i = self._garantir_minimo(indice, no, i)
         no = self.__repo.ler(indice)   # reler: _garantir_minimo pode ter mudado o pai
         self._remover(no.filho(i), chave)
+
+
+    

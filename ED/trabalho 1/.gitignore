@@ -39,3 +39,5 @@ htmlcov/
 # MyPy / type checkers
 .mypy_cache/
 .dmypy.json
+
+arvore.bin
