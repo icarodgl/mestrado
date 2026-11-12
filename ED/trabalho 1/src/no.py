@@ -12,7 +12,8 @@ class No:
         cls._d = d
         max_chaves = d - 1
         cls._FORMATO = (
-            "ii" # num de chavez, é folha (0,1)
+            "i" # d (num chaves)
+            + "i" # e é folha (0,1)
             + "i" * max_chaves          # chaves
             + "i" * max_chaves          # valor
             + "i" * d
