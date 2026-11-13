@@ -1,0 +1,484 @@
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <GL/glut.h>
+#include <stdlib.h>
+#include <math.h>
+#include <stdio.h>
+#include "ui.h"
+#include "barril.h"
+#include "tiro.h"
+#include "utils.h"
+#include "personagem.h"
+#include "configuracao.h"
+
+#define INC_KEY 1
+#define INC_KEYIDLE 50.0
+
+Configuracao config;
+// Key status
+int keyStatus[256];
+
+// Window dimensions
+GLint Width = 700;
+GLint Height = 700;
+
+// Viewing dimensions
+GLint ViewingWidth = 700;
+GLint ViewingHeight = 700;
+
+int gMousePixelX = 0;
+int gMousePixelY = 0;
+GLfloat gMouseWorldX = 0.0f;
+GLfloat gMouseWorldY = 0.0f;
+
+static GLdouble previousTime = glutGet(GLUT_ELAPSED_TIME);
+// Controla a animacao do robo
+int animate = 0;
+
+// Componentes do mundo virtual sendo modelado
+Personagem personagem;
+MyGameUI gameUI;
+bool mousePressionado = false;
+static const int qtTiro = 20;
+static const int qtBarril = 6;
+GLfloat velocidadeInimigo = 1;
+GLfloat tempoCriarBarril = 0.0;
+GLfloat tempoInimigoAtirar = 0.0;
+GLfloat tiroPorSegundo = 200.0;
+GLfloat VelocidadeTiro = 200.0;
+int ladoBarril = 100;
+GLfloat tempoTiro = 0.0;
+Tiro *tiros[qtTiro] = {};
+Tiro *tirosInimigo[qtTiro] = {};
+Barril *barris[qtBarril] = {};
+
+GLdouble deltaTime()
+{
+    GLdouble currentTime, timeDiference;
+    currentTime = glutGet(GLUT_ELAPSED_TIME);
+    timeDiference = currentTime - previousTime;
+    previousTime = currentTime;
+
+    return timeDiference;
+}
+void resetGame()
+{
+    gameUI.Reset(config);
+    barris[qtBarril] = {nullptr};
+    tiros[qtTiro] = {nullptr};
+    tirosInimigo[qtTiro] = {nullptr};
+    for (int i = 0; i < qtTiro; ++i)
+    {
+        if (tiros[i] != nullptr)
+        {
+            delete tiros[i];
+            tiros[i] = nullptr;
+        }
+        if (tirosInimigo[i] != nullptr)
+        {
+            delete tirosInimigo[i];
+            tirosInimigo[i] = nullptr;
+        }
+    }
+    for (int i = 0; i < qtBarril; ++i)
+    {
+        if (barris[i] != nullptr)
+        {
+            delete barris[i];
+            barris[i] = nullptr;
+        }
+    }
+}
+void criaTiros(Tiro *t, Tiro *arrTiro[])
+{
+    if (t == nullptr)
+        return;
+    
+    t->Configurar(config);
+    for (int i = 0; i < qtTiro; ++i)
+        if (arrTiro[i] == nullptr)
+        {
+            arrTiro[i] = t;
+            return;
+        }
+    delete t;
+}
+void controlaTiros(GLfloat deltaT)
+{
+
+    for (int i = 0; i < qtTiro; ++i)
+    {
+        // ==========================================
+        // Tiro inimigo
+        // ==========================================
+
+        if (tirosInimigo[i] != nullptr)
+        {
+
+            tirosInimigo[i]->Move(deltaT);
+
+            if (!tirosInimigo[i]->Valido())
+            {
+                delete tirosInimigo[i];
+                tirosInimigo[i] = nullptr;
+            }
+
+            if (tirosInimigo[i] != nullptr and tirosInimigo[i]->ColideCom(personagem))
+            {
+                gameUI.Atingido();
+                delete tirosInimigo[i];
+                tirosInimigo[i] = nullptr;
+            }
+        }
+        // ==========================================
+        // Tiro Aliado
+        // ==========================================
+        if (tiros[i] != nullptr)
+        {
+            tiros[i]->Move(deltaT);
+
+            for (int barril = qtBarril - 1; barril >= 0; barril--)
+            {
+                if (barris[barril] != nullptr && tiros[i]->ColideCom(*barris[barril]))
+                {
+                    barris[barril]->Atingido();
+                    gameUI.Ponto();
+                    if (!barris[barril]->Valido())
+                        gameUI.BarrilDestruido();
+                    delete tiros[i];
+                    tiros[i] = nullptr;
+                    break;
+                }
+            }
+
+            if (tiros[i] != nullptr and !tiros[i]->Valido())
+            {
+                delete tiros[i];
+                tiros[i] = nullptr;
+            }
+        }
+    }
+}
+void desenhaTiros()
+{
+    for (int i = 0; i < qtTiro; ++i)
+    {
+        if (tiros[i] != nullptr)
+        {
+            tiros[i]->Desenha();
+        }
+        if (tirosInimigo[i] != nullptr)
+        {
+            tirosInimigo[i]->Desenha();
+        }
+    }
+}
+void controlaBarris(GLfloat deltaT)
+{
+    GLfloat currentTime = glutGet(GLUT_ELAPSED_TIME);
+    GLfloat personX, personY;
+
+    personagem.getPos(personX, personY);
+
+    if (currentTime > tempoCriarBarril)
+    {
+        tempoCriarBarril = currentTime + FloatAleatorio(1000.0, 5000.0);
+        GLfloat y = (config.arena.altura / 2);
+        Barril *b = new Barril(ladoBarril, y, IntAleatorio(0, 1));
+        b->Configurar(config);
+
+        for (int i = 0; i < qtBarril; ++i)
+        {
+            if (barris[i] == nullptr)
+            {
+                ladoBarril = ladoBarril * -1;
+                barris[i] = b;
+                break;
+            }
+        }
+    }
+
+    for (int i = 0; i < qtBarril; ++i)
+    {
+        if (barris[i] != nullptr)
+        {
+
+            barris[i]->Mirar(personX, personY);
+
+            // ==========================================
+            // Cria Tiro inimigo
+            // ==========================================
+            criaTiros(barris[i]->Atirar(currentTime, VelocidadeTiro), tirosInimigo);
+            // ==========================================
+            // Move inimigo
+            // ==========================================
+            barris[i]->Move(deltaT);
+
+            // ==========================================
+            // Testa colizao
+            // ==========================================
+            if (barris[i]->ColideCom(personagem))
+            {
+                gameUI.Atingido();
+                delete barris[i];
+                barris[i] = nullptr;
+                break;
+            }
+
+            if (barris[i] != nullptr && !barris[i]->Valido())
+            {
+                delete barris[i];
+                barris[i] = nullptr;
+            }
+        }
+    }
+}
+
+void desenhaBarris()
+{
+    for (int i = 0; i < qtBarril; ++i)
+    {
+        if (barris[i] != nullptr)
+        {
+            barris[i]->Desenha();
+        }
+    }
+}
+void renderScene(void)
+{
+    // Clear the screen.
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    personagem.Desenha();
+
+    desenhaTiros();
+    desenhaBarris();
+    gameUI.Desenha();
+
+    glutSwapBuffers(); // Desenha the new frame of the game.
+}
+
+void keyPress(unsigned char key, int x, int y)
+{
+    switch (key)
+    {
+    case 'R':
+    case 'r':
+        // reset game
+        keyStatus[(int)('r')] = 1;
+        break;
+    case '1':
+        animate = !animate;
+        break;
+    case 'a':
+    case 'A':
+        keyStatus[(int)('a')] = 1; // Using keyStatus trick
+        break;
+    case 'd':
+    case 'D':
+        keyStatus[(int)('d')] = 1; // Using keyStatus trick
+        break;
+    case 'w':
+    case 'W':
+        keyStatus[(int)('w')] = 1; // Using keyStatus trick
+        break;
+    case 's':
+    case 'S':
+        keyStatus[(int)('s')] = 1; // Using keyStatus trick
+        break;
+    case 'q':
+    case 'Q':
+        keyStatus[(int)('q')] = 1; // Using keyStatus trick
+        break;
+    case 'E':
+    case 'e':
+        keyStatus[(int)('e')] = 1; // Using keyStatus trick
+        break;
+    case ' ':
+        keyStatus[(int)(' ')] = 1;
+
+        break;
+    case 27:
+        exit(0);
+    }
+    x = x; // eliminando warning
+    y = y; // eliminando warning
+    glutPostRedisplay();
+}
+
+void keyup(unsigned char key, int x, int y)
+{
+    x = x; // eliminando warning
+    y = y; // eliminando warning
+    keyStatus[(int)(key)] = 0;
+    glutPostRedisplay();
+}
+
+void ResetKeyStatus()
+{
+    int i;
+    // Initialize keyStatus
+    for (i = 0; i < 256; i++)
+        keyStatus[i] = 0;
+}
+
+void init(void)
+{
+    ResetKeyStatus();
+    // The color the windows will redraw. Its done to erase the previous frame.
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Black, no opacity(alpha).
+
+    glMatrixMode(GL_PROJECTION);  // Select the projection matrix
+    glOrtho(-(ViewingWidth / 2),  // X coordinate of left edge
+            (ViewingWidth / 2),   // X coordinate of right edge
+            -(ViewingHeight / 2), // Y coordinate of bottom edge
+            (ViewingHeight / 2),  // Y coordinate of top edge
+            -100,                 // Z coordinate of the “near” plane
+            100);                 // Z coordinate of the “far” plane
+    glMatrixMode(GL_MODELVIEW);   // Select the projection matrix
+    glLoadIdentity();
+}
+
+void idle(void)
+{
+    GLfloat deltaT = deltaTime() / 1000;
+
+    if (keyStatus[(int)('a')])
+    {
+        // personagem.MoverLado(-deltaT);
+        personagem.Girar(deltaT);
+    }
+    if (keyStatus[(int)('d')])
+    {
+        // personagem.MoverLado(deltaT);
+        personagem.Girar(-deltaT);
+    }
+    if (keyStatus[(int)('w')])
+    {
+        personagem.Mover(deltaT);
+    }
+    if (keyStatus[(int)('s')])
+    {
+        personagem.Mover(-deltaT);
+    }
+    if (keyStatus[(int)('q')])
+    {
+        //  personagem.Girar(deltaT);
+        personagem.MoverLado(-deltaT);
+    }
+    if (keyStatus[(int)('e')])
+    {
+        //   personagem.Girar(deltaT);
+        personagem.MoverLado(deltaT);
+    }
+    if (keyStatus[(int)(' ')] or mousePressionado)
+    {
+        GLdouble currentTime = glutGet(GLUT_ELAPSED_TIME);
+        if (currentTime > tempoTiro + tiroPorSegundo)
+        {
+            tempoTiro = currentTime;
+            criaTiros(personagem.Atirar(VelocidadeTiro), tiros);
+        }
+    }
+    if (keyStatus[(int)('r')])
+        resetGame();
+
+    personagem.GirarArma(gMouseWorldX, gMouseWorldY);
+    controlaTiros(deltaT);
+    controlaBarris(deltaT);
+
+    glutPostRedisplay();
+}
+
+void ConfigurarUsandoXML()
+{
+
+    if (!CarregaConfiguracao("configuracoes.xml", config))
+        fprintf(stderr, "Usando valores padrão.\n");
+
+    personagem.Configurar(config);
+    gameUI.Configurar(config);
+    if (config.tiro.tiroPorSegundo)
+        tiroPorSegundo = (1000.0 / config.tiro.tiroPorSegundo);
+    if (config.tiro.velocidade)
+        VelocidadeTiro = config.tiro.velocidade;
+    if (config.barril.velocidade)
+        velocidadeInimigo = config.barril.velocidade;
+    if (config.arena.largura)
+    {
+        ladoBarril = (config.arena.largura / 4);
+        Width = config.arena.largura;
+        ViewingWidth = config.arena.largura;
+    }
+    if (config.arena.largura)
+    {
+        Height = config.arena.altura;
+        ViewingHeight = config.arena.altura;
+    }
+}
+void AtualizaMouse(int px, int py)
+{
+    gMousePixelX = px;
+    gMousePixelY = py;
+
+    // limites do glOrtho (devem coincidir com o init)
+    const GLfloat left = -ViewingWidth * 0.5f;
+    const GLfloat right = ViewingWidth * 0.5f;
+    const GLfloat bottom = -ViewingHeight * 0.5f;
+    const GLfloat top = ViewingHeight * 0.5f;
+
+    gMouseWorldX = left + (GLfloat)px / Width * (right - left);
+    gMouseWorldY = top - (GLfloat)py / Height * (top - bottom);
+}
+
+void mousePassivo(int x, int y)
+{
+    AtualizaMouse(x, y);
+    glutPostRedisplay();
+}
+void mouseAtivo(int x, int y)
+{
+    AtualizaMouse(x, y);
+    glutPostRedisplay();
+}
+void mouseClick(int button, int state, int px, int py)
+{
+    if (button == GLUT_LEFT_BUTTON)
+    {
+        if (state == GLUT_DOWN)
+            mousePressionado = true;
+
+        if (state == GLUT_UP)
+            mousePressionado = false;
+    }
+}
+int main(int argc, char *argv[])
+{
+    // Initialize openGL with Double buffer and RGB color without transparency.
+    // Its interesting to try GLUT_SINGLE instead of GLUT_DOUBLE.
+
+    ConfigurarUsandoXML();
+
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+
+    // Create the window.
+    glutInitWindowSize(Width, Height);
+    glutInitWindowPosition(150, 50);
+    glutCreateWindow("Tranformations 2D");
+
+    // Define callbacks.
+    glutDisplayFunc(renderScene);
+    glutKeyboardFunc(keyPress);
+    glutIdleFunc(idle);
+    glutKeyboardUpFunc(keyup);
+
+    glutPassiveMotionFunc(mousePassivo);
+    glutMotionFunc(mouseAtivo);
+    glutMouseFunc(mouseClick);
+    init();
+
+    glutMainLoop();
+
+    return 0;
+}
