@@ -1,3 +1,5 @@
+# 2026230168 - Icaro Duarte Gavazza Lima
+
 import struct
 VAZIO = -1
 

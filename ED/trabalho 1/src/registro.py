@@ -1,4 +1,4 @@
-import struct
+# 2026230168 - Icaro Duarte Gavazza Lima
 from no import No
 
 class Registro:

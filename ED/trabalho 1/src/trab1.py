@@ -1,3 +1,4 @@
+# 2026230168 - Icaro Duarte Gavazza Lima
 import sys
 from arvoreb import ArvoreB
 from no import No
