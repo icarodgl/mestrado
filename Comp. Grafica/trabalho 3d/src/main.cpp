@@ -10,475 +10,357 @@
 #include "utils.h"
 #include "personagem.h"
 #include "configuracao.h"
-
-#define INC_KEY 1
-#define INC_KEYIDLE 50.0
+#include "camera.h"
+#include "lighting.h"
 
 Configuracao config;
-// Key status
 int keyStatus[256];
 
-// Window dimensions
-GLint Width = 700;
+GLint Width  = 700;
 GLint Height = 700;
 
-// Viewing dimensions
-GLint ViewingWidth = 700;
-GLint ViewingHeight = 700;
-
-int gMousePixelX = 0;
-int gMousePixelY = 0;
-GLfloat gMouseWorldX = 0.0f;
-GLfloat gMouseWorldY = 0.0f;
+// Mouse
+int   gMousePixelX = 0, gMousePixelY = 0;
+GLfloat gMouseWorldX = 0.0f, gMouseWorldY = 0.0f;
+bool  mousePressionado = false;
+int   mouseBtnDown = 0;
+int   lastMouseX = 0, lastMouseY = 0;
 
 static GLdouble previousTime = glutGet(GLUT_ELAPSED_TIME);
-// Controla a animacao do robo
-int animate = 0;
 
-// Componentes do mundo virtual sendo modelado
 Personagem personagem;
-MyGameUI gameUI;
-bool mousePressionado = false;
-static const int qtTiro = 20;
+MyGameUI   gameUI;
+
+static const int qtTiro   = 20;
 static const int qtBarril = 6;
 GLfloat velocidadeInimigo = 1;
-GLfloat tempoCriarBarril = 0.0;
-GLfloat tempoInimigoAtirar = 0.0;
-GLfloat tiroPorSegundo = 200.0;
-GLfloat VelocidadeTiro = 200.0;
-int ladoBarril = 100;
-GLfloat tempoTiro = 0.0;
-Tiro *tiros[qtTiro] = {};
-Tiro *tirosInimigo[qtTiro] = {};
-Barril *barris[qtBarril] = {};
+GLfloat tempoCriarBarril  = 0.0;
+GLfloat tiroPorSegundo    = 200.0;
+GLfloat VelocidadeTiro    = 200.0;
+int     ladoBarril        = 100;
+GLfloat tempoTiro         = 0.0;
+Tiro *tiros[qtTiro]           = {};
+Tiro *tirosInimigo[qtTiro]    = {};
+Barril *barris[qtBarril]      = {};
 
-GLdouble deltaTime()
+// ------------------------------------------------------------------
+// Tempo
+// ------------------------------------------------------------------
+static GLdouble deltaTime()
 {
-    GLdouble currentTime, timeDiference;
-    currentTime = glutGet(GLUT_ELAPSED_TIME);
-    timeDiference = currentTime - previousTime;
-    previousTime = currentTime;
-
-    return timeDiference;
+    GLdouble now = glutGet(GLUT_ELAPSED_TIME);
+    GLdouble dt  = now - previousTime;
+    previousTime = now;
+    return dt;
 }
-void resetGame()
+
+// ------------------------------------------------------------------
+// Reset
+// ------------------------------------------------------------------
+static void resetGame()
 {
     gameUI.Reset(config);
-    barris[qtBarril] = {nullptr};
-    tiros[qtTiro] = {nullptr};
-    tirosInimigo[qtTiro] = {nullptr};
-    for (int i = 0; i < qtTiro; ++i)
-    {
-        if (tiros[i] != nullptr)
-        {
-            delete tiros[i];
-            tiros[i] = nullptr;
-        }
-        if (tirosInimigo[i] != nullptr)
-        {
-            delete tirosInimigo[i];
-            tirosInimigo[i] = nullptr;
-        }
+    for (int i = 0; i < qtTiro; ++i) {
+        delete tiros[i];        tiros[i] = nullptr;
+        delete tirosInimigo[i]; tirosInimigo[i] = nullptr;
     }
-    for (int i = 0; i < qtBarril; ++i)
-    {
-        if (barris[i] != nullptr)
-        {
-            delete barris[i];
-            barris[i] = nullptr;
-        }
+    for (int i = 0; i < qtBarril; ++i) {
+        delete barris[i];       barris[i] = nullptr;
     }
 }
-void criaTiros(Tiro *t, Tiro *arrTiro[])
+
+// ------------------------------------------------------------------
+// Tiros
+// ------------------------------------------------------------------
+static void criaTiros(Tiro *t, Tiro *arr[])
 {
-    if (t == nullptr)
-        return;
-    
+    if (!t) return;
     t->Configurar(config);
     for (int i = 0; i < qtTiro; ++i)
-        if (arrTiro[i] == nullptr)
-        {
-            arrTiro[i] = t;
-            return;
-        }
+        if (arr[i] == nullptr) { arr[i] = t; return; }
     delete t;
 }
-void controlaTiros(GLfloat deltaT)
+
+static void controlaTiros(GLfloat dt)
 {
-
-    for (int i = 0; i < qtTiro; ++i)
-    {
-        // ==========================================
-        // Tiro inimigo
-        // ==========================================
-
-        if (tirosInimigo[i] != nullptr)
-        {
-
-            tirosInimigo[i]->Move(deltaT);
-
-            if (!tirosInimigo[i]->Valido())
-            {
-                delete tirosInimigo[i];
-                tirosInimigo[i] = nullptr;
-            }
-
-            if (tirosInimigo[i] != nullptr and tirosInimigo[i]->ColideCom(personagem))
-            {
+    for (int i = 0; i < qtTiro; ++i) {
+        if (tirosInimigo[i]) {
+            tirosInimigo[i]->Move(dt);
+            if (!tirosInimigo[i]->Valido()) {
+                delete tirosInimigo[i]; tirosInimigo[i] = nullptr;
+            } else if (tirosInimigo[i]->ColideCom(personagem)) {
                 gameUI.Atingido();
-                delete tirosInimigo[i];
-                tirosInimigo[i] = nullptr;
+                delete tirosInimigo[i]; tirosInimigo[i] = nullptr;
             }
         }
-        // ==========================================
-        // Tiro Aliado
-        // ==========================================
-        if (tiros[i] != nullptr)
-        {
-            tiros[i]->Move(deltaT);
-
-            for (int barril = qtBarril - 1; barril >= 0; barril--)
-            {
-                if (barris[barril] != nullptr && tiros[i]->ColideCom(*barris[barril]))
-                {
-                    barris[barril]->Atingido();
+        if (tiros[i]) {
+            tiros[i]->Move(dt);
+            for (int b = qtBarril - 1; b >= 0; --b) {
+                if (barris[b] && tiros[i]->ColideCom(*barris[b])) {
+                    barris[b]->Atingido();
                     gameUI.Ponto();
-                    if (!barris[barril]->Valido())
-                        gameUI.BarrilDestruido();
-                    delete tiros[i];
-                    tiros[i] = nullptr;
+                    if (!barris[b]->Valido()) gameUI.BarrilDestruido();
+                    delete tiros[i]; tiros[i] = nullptr;
                     break;
                 }
             }
-
-            if (tiros[i] != nullptr and !tiros[i]->Valido())
-            {
-                delete tiros[i];
-                tiros[i] = nullptr;
+            if (tiros[i] && !tiros[i]->Valido()) {
+                delete tiros[i]; tiros[i] = nullptr;
             }
         }
     }
 }
-void desenhaTiros()
+
+static void desenhaTiros()
 {
-    for (int i = 0; i < qtTiro; ++i)
-    {
-        if (tiros[i] != nullptr)
-        {
-            tiros[i]->Desenha();
-        }
-        if (tirosInimigo[i] != nullptr)
-        {
-            tirosInimigo[i]->Desenha();
-        }
+    for (int i = 0; i < qtTiro; ++i) {
+        if (tiros[i])        tiros[i]->Desenha();
+        if (tirosInimigo[i]) tirosInimigo[i]->Desenha();
     }
 }
-void controlaBarris(GLfloat deltaT)
+
+// ------------------------------------------------------------------
+// Barris
+// ------------------------------------------------------------------
+static void controlaBarris(GLfloat dt)
 {
-    GLfloat currentTime = glutGet(GLUT_ELAPSED_TIME);
-    GLfloat personX, personY;
+    GLfloat now = glutGet(GLUT_ELAPSED_TIME);
+    GLfloat px, py;
+    personagem.getPos(px, py);
 
-    personagem.getPos(personX, personY);
-
-    if (currentTime > tempoCriarBarril)
-    {
-        tempoCriarBarril = currentTime + FloatAleatorio(1000.0, 5000.0);
-        GLfloat y = (config.arena.altura / 2);
+    if (now > tempoCriarBarril) {
+        tempoCriarBarril = now + FloatAleatorio(1000.0, 5000.0);
+        GLfloat y = config.arena.altura / 2.0f;
         Barril *b = new Barril(ladoBarril, y, IntAleatorio(0, 1));
         b->Configurar(config);
-
-        for (int i = 0; i < qtBarril; ++i)
-        {
-            if (barris[i] == nullptr)
-            {
-                ladoBarril = ladoBarril * -1;
+        for (int i = 0; i < qtBarril; ++i) {
+            if (barris[i] == nullptr) {
+                ladoBarril *= -1;
                 barris[i] = b;
                 break;
             }
         }
     }
+    for (int i = 0; i < qtBarril; ++i) {
+        if (!barris[i]) continue;
+        barris[i]->Mirar(px, py);
+        criaTiros(barris[i]->Atirar(now, VelocidadeTiro), tirosInimigo);
+        barris[i]->Move(dt);
 
-    for (int i = 0; i < qtBarril; ++i)
-    {
-        if (barris[i] != nullptr)
-        {
-
-            barris[i]->Mirar(personX, personY);
-
-            // ==========================================
-            // Cria Tiro inimigo
-            // ==========================================
-            criaTiros(barris[i]->Atirar(currentTime, VelocidadeTiro), tirosInimigo);
-            // ==========================================
-            // Move inimigo
-            // ==========================================
-            barris[i]->Move(deltaT);
-
-            // ==========================================
-            // Testa colizao
-            // ==========================================
-            if (barris[i]->ColideCom(personagem))
-            {
-                gameUI.Atingido();
-                delete barris[i];
-                barris[i] = nullptr;
-                break;
-            }
-
-            if (barris[i] != nullptr && !barris[i]->Valido())
-            {
-                delete barris[i];
-                barris[i] = nullptr;
-            }
+        if (barris[i]->ColideCom(personagem)) {
+            gameUI.Atingido();
+            delete barris[i]; barris[i] = nullptr;
+            continue;
+        }
+        if (barris[i] && !barris[i]->Valido()) {
+            delete barris[i]; barris[i] = nullptr;
         }
     }
 }
 
-void desenhaBarris()
+static void desenhaBarris()
 {
     for (int i = 0; i < qtBarril; ++i)
-    {
-        if (barris[i] != nullptr)
-        {
-            barris[i]->Desenha();
-        }
-    }
+        if (barris[i]) barris[i]->Desenha();
 }
+
+// ------------------------------------------------------------------
+// HUD 2D (por cima da cena 3D)
+// ------------------------------------------------------------------
+static void desenhaUI2D()
+{
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, Width, Height, 0, -1, 1);
+
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_LIGHTING);
+    gameUI.Desenha();
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_LIGHTING);
+
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+}
+
+// ------------------------------------------------------------------
+// Cena
+// ------------------------------------------------------------------
 void renderScene(void)
 {
-    // Clear the screen.
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    camera_apply();     // 1) câmera
+    lighting_apply();   // 2) luzes (na MODELVIEW da câmera)
+
+    // 3) objetos 3D
     personagem.Desenha();
-
     desenhaTiros();
     desenhaBarris();
-    gameUI.Desenha();
 
-    glutSwapBuffers(); // Desenha the new frame of the game.
+    // 4) HUD por cima (troca de projeção e volta)
+    desenhaUI2D();
+
+    glutSwapBuffers();
 }
 
-void keyPress(unsigned char key, int x, int y)
+// ------------------------------------------------------------------
+// Callbacks
+// ------------------------------------------------------------------
+void keyPress(unsigned char key, int, int)
 {
-    switch (key)
-    {
-    case 'R':
-    case 'r':
-        // reset game
-        keyStatus[(int)('r')] = 1;
-        break;
-    case '1':
-        animate = !animate;
-        break;
-    case 'a':
-    case 'A':
-        keyStatus[(int)('a')] = 1; // Using keyStatus trick
-        break;
-    case 'd':
-    case 'D':
-        keyStatus[(int)('d')] = 1; // Using keyStatus trick
-        break;
-    case 'w':
-    case 'W':
-        keyStatus[(int)('w')] = 1; // Using keyStatus trick
-        break;
-    case 's':
-    case 'S':
-        keyStatus[(int)('s')] = 1; // Using keyStatus trick
-        break;
-    case 'q':
-    case 'Q':
-        keyStatus[(int)('q')] = 1; // Using keyStatus trick
-        break;
-    case 'E':
-    case 'e':
-        keyStatus[(int)('e')] = 1; // Using keyStatus trick
-        break;
-    case ' ':
-        keyStatus[(int)(' ')] = 1;
+    switch (key) {
+    case 'r': case 'R': keyStatus['r'] = 1; break;
+    case 'a': case 'A': keyStatus['a'] = 1; break;
+    case 'd': case 'D': keyStatus['d'] = 1; break;
+    case 'w': case 'W': keyStatus['w'] = 1; break;
+    case 's': case 'S': keyStatus['s'] = 1; break;
+    case 'q': case 'Q': keyStatus['q'] = 1; break;
+    case 'e': case 'E': keyStatus['e'] = 1; break;
+    case ' ':           keyStatus[' '] = 1; break;
 
-        break;
-    case 27:
-        exit(0);
+    case 'c': case 'C': camera_cycle_mode(); break;
+    case '+': case '=': camera_set_zoom(-50.0f); break;
+    case '-': case '_': camera_set_zoom( 50.0f); break;
+
+    // teclas 2/3/4 trocam preset de iluminação (útil para testar)
+    case '2': lighting_preset_jogo();    break;
+    case '3': lighting_preset_estudio(); break;
+    case '4': lighting_preset_sol();     break;
+
+    case 27: exit(0);
     }
-    x = x; // eliminando warning
-    y = y; // eliminando warning
     glutPostRedisplay();
 }
 
-void keyup(unsigned char key, int x, int y)
+void keyup(unsigned char key, int, int)
 {
-    x = x; // eliminando warning
-    y = y; // eliminando warning
-    keyStatus[(int)(key)] = 0;
+    keyStatus[(int)key] = 0;
     glutPostRedisplay();
 }
 
-void ResetKeyStatus()
+void mouseClick(int button, int state, int x, int y)
 {
-    int i;
-    // Initialize keyStatus
-    for (i = 0; i < 256; i++)
-        keyStatus[i] = 0;
+    if (button == GLUT_LEFT_BUTTON) {
+        if (state == GLUT_DOWN) mousePressionado = true;
+        if (state == GLUT_UP)   mousePressionado = false;
+    }
+    if (button == GLUT_RIGHT_BUTTON) {
+        if (state == GLUT_DOWN) { mouseBtnDown = 1; lastMouseX = x; lastMouseY = y; }
+        if (state == GLUT_UP)   mouseBtnDown = 0;
+    }
 }
 
+void mouseAtivo(int x, int y)
+{
+    if (!mouseBtnDown) return;
+    camera_orbit((float)(x - lastMouseX), (float)(y - lastMouseY));
+    lastMouseX = x;
+    lastMouseY = y;
+    glutPostRedisplay();
+}
+
+void mousePassivo(int x, int y)
+{
+    gMousePixelX = x;
+    gMousePixelY = y;
+    // A mira 3D real virá depois (gluUnProject); por ora só guarda o pixel.
+    glutPostRedisplay();
+}
+
+// ------------------------------------------------------------------
+// Init
+// ------------------------------------------------------------------
 void init(void)
 {
-    ResetKeyStatus();
-    // The color the windows will redraw. Its done to erase the previous frame.
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Black, no opacity(alpha).
+    for (int i = 0; i < 256; ++i) keyStatus[i] = 0;
 
-    glMatrixMode(GL_PROJECTION);  // Select the projection matrix
-    glOrtho(-(ViewingWidth / 2),  // X coordinate of left edge
-            (ViewingWidth / 2),   // X coordinate of right edge
-            -(ViewingHeight / 2), // Y coordinate of bottom edge
-            (ViewingHeight / 2),  // Y coordinate of top edge
-            -100,                 // Z coordinate of the “near” plane
-            100);                 // Z coordinate of the “far” plane
-    glMatrixMode(GL_MODELVIEW);   // Select the projection matrix
-    glLoadIdentity();
+    glClearColor(0.05f, 0.05f, 0.08f, 1.0f);
+
+    camera_init();
+    lighting_init();
+    lighting_preset_jogo();
+
+    // Projeção inicial (reshape também fará isso no primeiro frame)
+    camera_reshape(Width, Height);
 }
 
 void idle(void)
 {
-    GLfloat deltaT = deltaTime() / 1000;
+    GLfloat dt = deltaTime() / 1000.0f;
 
-    if (keyStatus[(int)('a')])
-    {
-        // personagem.MoverLado(-deltaT);
-        personagem.Girar(deltaT);
-    }
-    if (keyStatus[(int)('d')])
-    {
-        // personagem.MoverLado(deltaT);
-        personagem.Girar(-deltaT);
-    }
-    if (keyStatus[(int)('w')])
-    {
-        personagem.Mover(deltaT);
-    }
-    if (keyStatus[(int)('s')])
-    {
-        personagem.Mover(-deltaT);
-    }
-    if (keyStatus[(int)('q')])
-    {
-        //  personagem.Girar(deltaT);
-        personagem.MoverLado(-deltaT);
-    }
-    if (keyStatus[(int)('e')])
-    {
-        //   personagem.Girar(deltaT);
-        personagem.MoverLado(deltaT);
-    }
-    if (keyStatus[(int)(' ')] or mousePressionado)
-    {
-        GLdouble currentTime = glutGet(GLUT_ELAPSED_TIME);
-        if (currentTime > tempoTiro + tiroPorSegundo)
-        {
-            tempoTiro = currentTime;
+    if (keyStatus['a']) personagem.Girar(dt);
+    if (keyStatus['d']) personagem.Girar(-dt);
+    if (keyStatus['w']) personagem.Mover(dt);
+    if (keyStatus['s']) personagem.Mover(-dt);
+    if (keyStatus['q']) personagem.MoverLado(-dt);
+    if (keyStatus['e']) personagem.MoverLado(dt);
+
+    if (keyStatus[' '] || mousePressionado) {
+        GLdouble now = glutGet(GLUT_ELAPSED_TIME);
+        if (now > tempoTiro + tiroPorSegundo) {
+            tempoTiro = now;
             criaTiros(personagem.Atirar(VelocidadeTiro), tiros);
         }
     }
-    if (keyStatus[(int)('r')])
-        resetGame();
+    if (keyStatus['r']) resetGame();
 
     personagem.GirarArma(gMouseWorldX, gMouseWorldY);
-    controlaTiros(deltaT);
-    controlaBarris(deltaT);
+    controlaTiros(dt);
+    controlaBarris(dt);
 
     glutPostRedisplay();
 }
 
+// ------------------------------------------------------------------
+// Configuração via XML
+// ------------------------------------------------------------------
 void ConfigurarUsandoXML()
 {
-
     if (!CarregaConfiguracao("configuracoes.xml", config))
         fprintf(stderr, "Usando valores padrão.\n");
 
     personagem.Configurar(config);
     gameUI.Configurar(config);
-    if (config.tiro.tiroPorSegundo)
-        tiroPorSegundo = (1000.0 / config.tiro.tiroPorSegundo);
-    if (config.tiro.velocidade)
-        VelocidadeTiro = config.tiro.velocidade;
-    if (config.barril.velocidade)
-        velocidadeInimigo = config.barril.velocidade;
-    if (config.arena.largura)
-    {
-        ladoBarril = (config.arena.largura / 4);
-        Width = config.arena.largura;
-        ViewingWidth = config.arena.largura;
+
+    if (config.tiro.tiroPorSegundo) tiroPorSegundo = 1000.0 / config.tiro.tiroPorSegundo;
+    if (config.tiro.velocidade)     VelocidadeTiro = config.tiro.velocidade;
+    if (config.barril.velocidade)   velocidadeInimigo = config.barril.velocidade;
+
+    if (config.arena.largura) {
+        ladoBarril = config.arena.largura / 4;
+        Width      = config.arena.largura;
     }
-    if (config.arena.largura)
-    {
-        Height = config.arena.altura;
-        ViewingHeight = config.arena.altura;
-    }
-}
-void AtualizaMouse(int px, int py)
-{
-    gMousePixelX = px;
-    gMousePixelY = py;
-
-    // limites do glOrtho (devem coincidir com o init)
-    const GLfloat left = -ViewingWidth * 0.5f;
-    const GLfloat right = ViewingWidth * 0.5f;
-    const GLfloat bottom = -ViewingHeight * 0.5f;
-    const GLfloat top = ViewingHeight * 0.5f;
-
-    gMouseWorldX = left + (GLfloat)px / Width * (right - left);
-    gMouseWorldY = top - (GLfloat)py / Height * (top - bottom);
+    if (config.arena.altura) Height = config.arena.altura;
 }
 
-void mousePassivo(int x, int y)
-{
-    AtualizaMouse(x, y);
-    glutPostRedisplay();
-}
-void mouseAtivo(int x, int y)
-{
-    AtualizaMouse(x, y);
-    glutPostRedisplay();
-}
-void mouseClick(int button, int state, int px, int py)
-{
-    if (button == GLUT_LEFT_BUTTON)
-    {
-        if (state == GLUT_DOWN)
-            mousePressionado = true;
-
-        if (state == GLUT_UP)
-            mousePressionado = false;
-    }
-}
+// ------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
-    // Initialize openGL with Double buffer and RGB color without transparency.
-    // Its interesting to try GLUT_SINGLE instead of GLUT_DOUBLE.
-
     ConfigurarUsandoXML();
 
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-
-    // Create the window.
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(Width, Height);
     glutInitWindowPosition(150, 50);
-    glutCreateWindow("Tranformations 2D");
+    glutCreateWindow("Jogo 3D");
 
-    // Define callbacks.
     glutDisplayFunc(renderScene);
+    glutReshapeFunc(camera_reshape);
     glutKeyboardFunc(keyPress);
-    glutIdleFunc(idle);
     glutKeyboardUpFunc(keyup);
-
+    glutIdleFunc(idle);
     glutPassiveMotionFunc(mousePassivo);
     glutMotionFunc(mouseAtivo);
     glutMouseFunc(mouseClick);
+
     init();
-
     glutMainLoop();
-
     return 0;
 }

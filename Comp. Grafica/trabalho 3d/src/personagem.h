@@ -26,7 +26,6 @@ class Personagem : public Colidivel
 
 private:
     void DesenhaPersonagem(GLfloat x, GLfloat y);
-    void DesenhaArena();
     GLfloat CalculaBalancoPasso(GLfloat amplitude) const; 
     void AtualizaAnimacao();
 public:

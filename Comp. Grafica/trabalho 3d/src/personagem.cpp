@@ -8,43 +8,17 @@
 using namespace std;
 
 
-void Personagem::DesenhaArena()
-    {
-    // desenha somente a linha pontilhada no centro da arena
-    glEnable(GL_LINE_STIPPLE);
-    glLineStipple(1, 0x00FF);   // padrão: 8 bits acesos, 8 apagados
-
-    glColor3f(1.0f, 1.0f, 1.0f);
-    glLineWidth(1.0f);
-
-    glBegin(GL_LINES);
-        glVertex2f(-larguraArena  / 2.0f, 0.0f);
-        glVertex2f( larguraArena  / 2.0f, 0.0f);
-    glEnd();
-
-    glDisable(GL_LINE_STIPPLE);
-
-    //desenha retangulo na arena onde o personagem pode andar
-    glColor3f(0.2f, 0.2f, 0.2f);
-    glPushMatrix();
-        
-    glTranslatef(-larguraArena/2, -alturaArena/2, 0);
-    glRecti(0, 0, larguraArena, alturaArena/2);
-    glPopMatrix();
-    }
 void Personagem::DesenhaPersonagem(GLfloat x, GLfloat y)
 {
 
     vector<GLfloat> CorArma = {0.75, 0.156, 0.09};
     vector<GLfloat> CorCorpo  = {0.161, 0.6, 0.45};
     vector<GLfloat> CorPernas = {0.9, 0.9, 0.9};
-
-    DesenhaArena();
     
     GLfloat balanco = CalculaBalancoPasso(raioCabeca * 0.6f);
 
     glPushMatrix();
-    glTranslatef(x, y, 0);
+    glTranslatef(x, y, 0.5);
     glRotatef(theta, 0, 0, 1); // correções para centralizar no boneco
 
 

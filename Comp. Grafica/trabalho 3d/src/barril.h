@@ -47,13 +47,7 @@ public:
         this->vida = vida;
         this->inimigo = inimigo;
     };
-    void Desenha()
-    {
-        DesenhaBarril(gX, gY);
-        DesenhaVida();
-        if (inimigo)
-            DesenhaInimigo(gX + (width / 2), gY + (height / 2));
-    };
+    void Desenha();
     void Atingido()
     {
         vida -= 1;
@@ -101,28 +95,7 @@ public:
     };
     void Mirar(GLfloat x, GLfloat y)
     {
-        GLfloat dx = x - gX;
-        GLfloat dy = y - gY;
-        GLfloat angulo = atan2f(-dx, dy) * 180.0f / M_PI;
 
-        if (angulo < 0.0f)
-            angulo += 360.0f;
-
-        const GLfloat CENTRO = 180.0f;
-        const GLfloat MEIO = 30.0f;
-
-        GLfloat diff = angulo - CENTRO;
-        if (diff > 180.0f)
-            diff -= 360.0f;
-        if (diff < -180.0f)
-            diff += 360.0f;
-
-        if (diff > MEIO)
-            theta = CENTRO + MEIO; // 210°
-        else if (diff < -MEIO)
-            theta = CENTRO - MEIO; // 150°
-        else
-            theta = angulo;
     }
     bool getPossuiInimigo() { return this->inimigo; }
     void Configurar(Configuracao config)

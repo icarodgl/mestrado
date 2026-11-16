@@ -1,63 +1,56 @@
+#include "barril.h"
+#include "objloader.h"
+#include <GL/gl.h>
+#include <GL/glut.h>
 #include <math.h>
 #include <stdio.h>
-#include <vector>
 
-#include "barril.h"
-#include "tiro.h"
-#include "utils.h"
+static mesh  malhaBarril;
+static bool  malhaCarregada = false;
 
-using namespace std;
-
-void Barril::DesenhaBarril(GLfloat x, GLfloat y)
+static void garanteMalhaBarril()
 {
-    GLfloat cor[] = {0.24, 0.14, 0.0};
-    glPushMatrix();
-    glTranslatef(x, y, 0);
-    glColor3f(cor[0], cor[1], cor[2]);
-    glRecti(0, 0, width, height);
-    glPopMatrix();
+    if (malhaCarregada) return;
+
+    if (!malhaBarril.loadMesh("assets/barrel.obj"))
+        fprintf(stderr, "Falha ao carregar assets/barrel.obj\n");
+
+    // ---- Opcional: imprime bbox para você calibrar escala/origem ----
+    if (!malhaBarril.vertsPos.empty()) {
+        float mn[3] = { 1e30f, 1e30f, 1e30f};
+        float mx[3] = {-1e30f,-1e30f,-1e30f};
+        for (auto& v : malhaBarril.vertsPos) {
+            mn[0]=fminf(mn[0],v.x); mn[1]=fminf(mn[1],v.y); mn[2]=fminf(mn[2],v.z);
+            mx[0]=fmaxf(mx[0],v.x); mx[1]=fmaxf(mx[1],v.y); mx[2]=fmaxf(mx[2],v.z);
+        }
+        printf("barrel.obj bbox: X[%.3f..%.3f] Y[%.3f..%.3f] Z[%.3f..%.3f]\n",
+               mn[0],mx[0], mn[1],mx[1], mn[2],mx[2]);
+    }
+    malhaCarregada = true;
 }
-
-void Barril::DesenhaInimigo(GLfloat x, GLfloat y)
+void Barril::Desenha()
 {
-    vector<GLfloat> CorCorpo = {0.4, 0.156, 0.9};
-    vector<GLfloat> CorArma = {0.161, 0.6, 0.45};
-    vector<GLfloat> CorPernas = {0.7, 0.0, 0.7};
-    GLfloat tamanhoPerna = raioCabeca*1.4;
-
-    controlaPernas(tamanhoPerna, x, y);
+    garanteMalhaBarril();
 
     glPushMatrix();
-    glTranslatef(x, y, 0);
-    
 
+    // Posição da entidade no plano do jogo (x, y) — z = 0
+    glTranslatef(gX, gY, 0.0f);
 
-    glColor3f(CorPernas[0], CorPernas[1], CorPernas[2]);
-   // perna direita
-    glPushMatrix();
-    glTranslatef(raioCabeca*0.6, 0, 0);
-    glRecti(0, 0, raioCabeca/3, tamanhoPerna);
-    glPopMatrix();
+    // O Blender exporta Y-up. Para "deitar" o modelo no plano XY do jogo
+    // (de pé, olhando para +Z), gire -90° em X.
+    glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
 
-    // perna esquerda
-    glPushMatrix();
-    glTranslatef(-(raioCabeca*0.95), 0, 0);
-    glRecti(0, 0, raioCabeca/3, -tamanhoPerna);
-    glPopMatrix();
+    // Escala: ajuste após ver o bbox no console.
+    // Se o bbox for, digamos, ~2 unidades de altura e você quer um barril
+    // de ~60 unidades no jogo, use escala = 30.
+    const float escala = 30.0f;
+    glScalef(escala, escala, escala);
 
-    // corpo
-    glColor3f(CorCorpo[0], CorCorpo[1], CorCorpo[2]);
-    glPushMatrix();
-    DesenhaCirculo(0, 0,raioCabeca);
-    glPopMatrix();
+    // Rotação própria da entidade (opcional)
+    // glRotatef(anguloGraus, 0, 0, 1);
 
-    // arma
-    glColor3f(CorArma[0], CorArma[1], CorArma[2]);
-    glPushMatrix();
-    glRotatef(theta, 0, 0, 1);
-    glTranslatef(raioCabeca, 0, 0);
-    glRecti(0, 0, raioCabeca*0.4, raioCabeca*1.8);
-    glPopMatrix();
+    malhaBarril.draw();
 
     glPopMatrix();
 }
