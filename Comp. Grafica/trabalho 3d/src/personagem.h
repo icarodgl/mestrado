@@ -5,6 +5,8 @@
 #include "tiro.h"
 #include "colidivel.h"
 #include "configuracao.h"
+#include "animation.h"
+
 
 class Personagem : public Colidivel
 {
@@ -23,13 +25,21 @@ class Personagem : public Colidivel
     int larguraArena = 200;
     int alturaArena = 150;
     int CorrecaoArenaY = 200;
+    // 3d
+    Animation animParado;    // pode usar o "mirando.obj" como frame estático
+    Animation animAndando;   // assets/andando/passo%d.obj
+    bool  animCarregada = false;
+    bool  emMovimento   = false;
+    float tempoSemMover = 0.0f;
 
 private:
     void DesenhaPersonagem(GLfloat x, GLfloat y);
     GLfloat CalculaBalancoPasso(GLfloat amplitude) const; 
-    void AtualizaAnimacao();
+    void AtualizaAnimacao(GLfloat dt);
 public:
     Personagem() {};
+    void GaranteAnimacao();               // carrega lazily (primeira vez)
+    void AtualizaAnimacaoAnim(float dt);  // avança e troca estado
     void Configurar(Configuracao conf)
     {
         if (conf.jogador.raioCabeca)
@@ -54,6 +64,7 @@ public:
         {
             larguraArena = conf.arena.largura;
         }
+    GaranteAnimacao();
     }
 
     void Desenha()

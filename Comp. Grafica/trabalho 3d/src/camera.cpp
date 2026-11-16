@@ -20,10 +20,10 @@ static int        s_winH       = 700;
 
 void camera_init(void)
 {
-    s_mode     = CAM_ORBIT;
-    s_distance = 1700.0f;
-    s_angleXZ  = 90.0f;
-    s_angleXY  = 30.0f;
+    s_mode     = CAM_FIXED;    // frontal (não órbita)
+    s_distance = 700.0f;       // câmera em z=700
+    s_angleXZ  = 0.0f;         // azimute: +Z puro
+    s_angleXY  = 0.0f;         // elevação: no plano XY, olhando reto
     s_targetX  = s_targetY = s_targetZ = 0.0f;
 }
 

@@ -282,7 +282,7 @@ void init(void)
     for (int i = 0; i < 256; ++i) keyStatus[i] = 0;
 
     glClearColor(0.05f, 0.05f, 0.08f, 1.0f);
-
+    glDisable(GL_CULL_FACE); 
     camera_init();
     lighting_init();
     lighting_preset_jogo();
@@ -314,6 +314,7 @@ void idle(void)
     personagem.GirarArma(gMouseWorldX, gMouseWorldY);
     controlaTiros(dt);
     controlaBarris(dt);
+    personagem.AtualizaAnimacaoAnim(dt);
 
     glutPostRedisplay();
 }

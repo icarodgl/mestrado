@@ -83,24 +83,27 @@ bool mesh::loadMesh(string path){
     return true;
 }
 
-//desenha a malha
-void mesh::draw(){
-    int cont=0;
-    GLfloat materialEmission[] = { 0.10, 0.10, 0.10, 1};
-    GLfloat materialColorA[] = { 0.1, 0.1, 0.1, 0.1};
-    GLfloat materialColorD[] = { .90, .90, .90, 1};
-    glColor3f(1,1,1);
+void mesh::draw() const
+{
+    // 1. Define um material visível (cor de pele/roupa)
+    GLfloat materialEmission[] = { 0.0f, 0.0f, 0.0f, 1.0f }; // Sem brilho próprio
+    GLfloat materialColorA[]   = { 0.2f, 0.2f, 0.2f, 1.0f }; // Ambiente (sombra)
+    GLfloat materialColorD[]   = { 0.8f, 0.7f, 0.6f, 1.0f }; // Cor base (difusa)
 
-    glMaterialfv(GL_FRONT, GL_EMISSION, materialEmission);
-    glMaterialfv(GL_FRONT, GL_AMBIENT, materialColorA);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, materialColorD);
+    glColor3f(1.0f, 1.0f, 1.0f); // Garante que a cor não está "tingindo" o material
+    
+    // Aplica o material para FRENTE e VERSO
+    glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, materialEmission);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT,  materialColorA);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,  materialColorD);
 
-    for(unsigned int i=0; i<vertsS.size(); i=i+3){
-        glBegin(GL_TRIANGLE_STRIP);
-            for(int j=i; j<i+3; j++){
-                glNormal3f(vertsS[j].vNorm.x,vertsS[j].vNorm.y,vertsS[j].vNorm.z);
-                glVertex3f(vertsS[j].vPos.x,vertsS[j].vPos.y,vertsS[j].vPos.z);
-            }
-        glEnd();
+    // 2. A MÁGICA: Desenha os triângulos
+    glBegin(GL_TRIANGLES);
+    for (unsigned int i = 0; i + 2 < vertsS.size(); i += 3) {
+        for (int j = 0; j < 3; ++j) {
+            glNormal3f(vertsS[i+j].vNorm.x, vertsS[i+j].vNorm.y, vertsS[i+j].vNorm.z);
+            glVertex3f(vertsS[i+j].vPos.x,  vertsS[i+j].vPos.y,  vertsS[i+j].vPos.z);
+        }
     }
+    glEnd();
 }

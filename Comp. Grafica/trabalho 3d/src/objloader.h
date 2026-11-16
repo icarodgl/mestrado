@@ -39,6 +39,6 @@ class mesh{
     vector<verticeStrip> vertsS;//Lista ordenada de vertices das faces para o desenho do modelo via trangle strip
     mesh(){};
     bool loadMesh(string path);//Path é o caminho para o arquivo .obj e deve conter o nome do arquivo.obj
-    void draw();
+    void draw() const;
 };
 #endif

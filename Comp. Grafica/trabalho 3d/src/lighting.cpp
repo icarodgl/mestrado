@@ -32,7 +32,7 @@ void lighting_init(void)
     glShadeModel(GL_SMOOTH);
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, s_globalAmbient);
     glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, GL_TRUE);  // reflexo mais bonito
-    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
+    glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 }
 
 void lighting_enable_global_ambient(GLfloat r, GLfloat g, GLfloat b)
