@@ -16,7 +16,6 @@ bool Animation::load(const char* pathPattern, int firstIdx, int lastIdx)
         mesh m;
         if (!m.loadMesh(path)) {
             fprintf(stderr, "Animation: falha ao carregar %s\n", path);
-            // Nao aborta: se pelo menos 1 frame carregou, ainda da pra usar.
             continue;
         }
         m_frames.push_back(std::move(m));

@@ -79,8 +79,14 @@ public:
         theta += dir*velocidade;
     }
     void getPos(GLfloat &x, GLfloat &y){
-        x = gX-raioCabeca;
-        y = gY-raioCabeca;
+        x = gX;
+        y = gY;
+    }
+    GLfloat getAngulo() const { return theta; }
+    void getDirecao(GLfloat &dx, GLfloat &dy) const {
+        GLfloat rad = theta * M_PI / 180.0f;
+        dx = -sinf(rad);
+        dy = cosf(rad);
     }
     Tiro *Atirar(GLfloat velocidade);
     virtual void GetColider(GLfloat &x, GLfloat &y, GLfloat &w, GLfloat &h) const override
