@@ -177,7 +177,7 @@ static void controlaBarris(GLfloat dt)
         if (!barris[i])
             continue;
         barris[i]->Mirar(px, py);
-        criaTiros(barris[i]->Atirar(now, VelocidadeTiro), tirosInimigo);
+        //criaTiros(barris[i]->Atirar(now, VelocidadeTiro), tirosInimigo);
         barris[i]->Move(dt);
 
         if (barris[i]->ColideCom(personagem))
@@ -391,7 +391,7 @@ void init(void)
     for (int i = 0; i < 256; ++i)
         keyStatus[i] = 0;
 
-    glClearColor(0.05f, 0.05f, 0.08f, 1.0f);
+    glClearColor(0.4f, 0.6f, 0.9f, 1.0f);
         // ---- Estado de textura ----
     glEnable(GL_TEXTURE_2D);        // habilitar
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
@@ -491,7 +491,7 @@ int main(int argc, char *argv[])
     glutCreateWindow("Jogo 3D");
 
     arena.CarregarTexturas();
-    
+
     glutDisplayFunc(renderScene);
     glutReshapeFunc(camera_reshape);
     glutKeyboardFunc(keyPress);

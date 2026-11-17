@@ -1,5 +1,5 @@
 <jogo>
-  <arena  altura="900" largura="900"/>
+  <arena  altura="2000" largura="1000"/>
   <jogador raioCabeca="30" velocidade="150" vida="1"/>
   <inimigo raioCabeca="30" tirosPorSegundo="2" velocidadeTiro="500"/>
   <barril altura="80.0" largura="160.0" nParaGanhar="10" velocidade="100.0" vida="2"/>
