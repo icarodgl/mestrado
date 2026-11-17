@@ -4,8 +4,9 @@
 #include <GL/glu.h>
 #include "colidivel.h"
 #include "configuracao.h"
+#include "objloader.h"
 
-#define radiusTiro 5
+#define radiusTiro 5 // Ainda pode ser usado para a colisão
 
 class Tiro : public Colidivel
 {
@@ -18,35 +19,38 @@ class Tiro : public Colidivel
     GLfloat gDirectionAng;
     GLfloat gVel;
 
-private:
-    void DesenhaCirc(GLint radius, GLfloat R, GLfloat G, GLfloat B);
-    void DesenhaTiro(GLfloat x, GLfloat y);
+    // Variáveis estáticas para carregar o .obj apenas uma vez
+    static mesh  malhaBala;
+    static bool  malhaCarregada;
+    static float escalaMalha;
+    static float minYMalha;
+    
+    void garanteMalha();
 
 public:
-    Tiro(GLfloat x, GLfloat y, GLfloat directionAng,GLfloat velocidade)
+    Tiro(GLfloat x, GLfloat y, GLfloat directionAng, GLfloat velocidade)
     {
         gX = x;
         gY = y;
         gDirectionAng = directionAng;
         gVel = velocidade;
+        garanteMalha(); // Garante que a malha seja carregada
     };
-    void Desenha()
-    {
-        DesenhaTiro(gX, gY);
-    };
-    void Move(GLfloat deltaTime);
     
+    void Desenha();
+    void Move(GLfloat deltaTime);
     bool Valido();
 
-    virtual void GetColider(GLfloat& x, GLfloat& y, GLfloat& w,GLfloat& h) const override {
+    virtual void GetColider(GLfloat& x, GLfloat& y, GLfloat& w, GLfloat& h) const override {
         x = gX - (width/4);
         y = gY - (height/4);
         w = gX + (width/4);
         h = gY + (height/4);
     };
-void Configurar(Configuracao conf){
-    alturaMax = conf.arena.altura;
-    larguraMax = conf.arena.largura;
-}
+
+    void Configurar(Configuracao conf) {
+        alturaMax = conf.arena.altura;
+        larguraMax = conf.arena.largura;
+    }
 };
 #endif /* TIRO_H */

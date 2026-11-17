@@ -1,37 +1,71 @@
 #include "tiro.h"
 #include <math.h>
+#include <stdio.h>
 
+// Inicialização das variáveis estáticas
+mesh Tiro::malhaBala;
+bool Tiro::malhaCarregada = false;
+float Tiro::escalaMalha = 1.0f;
+float Tiro::minYMalha = 0.0f;
 
+void Tiro::garanteMalha() {
+    if (malhaCarregada) return;
 
-void Tiro::DesenhaCirc(GLint radius, GLfloat R, GLfloat G, GLfloat B)
-{   
-    int segmentos = 8;
+    // ATENÇÃO: Ajuste o caminho se necessário
+    if (!malhaBala.loadMesh("src/assets/bala.obj")) {
+        fprintf(stderr, "Falha ao carregar bala.obj\n");
+    }
 
-    glColor3f(R, G, B);
-    glBegin(GL_TRIANGLE_FAN);
-        glVertex2f(0, 0); // centro
-        for (int i = 0; i <= segmentos; i++) {
-            float angulo = 2.0f * M_PI * i / segmentos;
-            float x = 0 + radius * cosf(angulo);
-            float y = 0 + radius * sinf(angulo);
-            glVertex2f(x, y);
+    if (!malhaBala.vertsPos.empty()) {
+        // Calcula bounding box
+        float mn[3] = { 1e30f, 1e30f, 1e30f};
+        float mx[3] = {-1e30f,-1e30f,-1e30f};
+        for (auto& v : malhaBala.vertsPos) {
+            mn[0]=fminf(mn[0],v.x); mn[1]=fminf(mn[1],v.y); mn[2]=fminf(mn[2],v.z);
+            mx[0]=fmaxf(mx[0],v.x); mx[1]=fmaxf(mx[1],v.y); mx[2]=fmaxf(mx[2],v.z);
         }
-    glEnd();
+        minYMalha = mn[1];
+
+        // Escala para a bala ficar com ~15 unidades de comprimento
+        // Ajuste esse valor para deixar a bala maior ou menor
+        float altura = mx[1] - mn[1];
+        float maior = fmaxf(altura, fmaxf(mx[0]-mn[0], mx[2]-mn[2]));
+        escalaMalha = (maior > 1e-4f) ? (15.0f / maior) : 1.0f;
+    }
+    malhaCarregada = true;
 }
 
-void Tiro::DesenhaTiro(GLfloat x, GLfloat y)
-{
-    glPushMatrix();
-        glTranslatef(x,y, 0);
-        DesenhaCirc(radiusTiro,0.5,1.0,0.5);
-    glPopMatrix();
+void Tiro::Desenha() {
+    if (malhaBala.vertsPos.empty()) return;
 
+    glPushMatrix();
+
+    // 1. Translada para a posição atual da bala no plano 2D
+    glTranslatef(gX, gY, 50.0f);
+
+    // 2. Gira a bala no plano XY para apontar na direção correta do tiro
+    glRotatef(gDirectionAng, 0.0f, 0.0f, 1.0f);
+
+    // 3. Deita o modelo do Blender (Y-up) no plano XY do jogo
+    glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+
+    // 4. Escala e ajuste para o centro da bala
+    glScalef(escalaMalha, escalaMalha, escalaMalha);
+    glTranslatef(0.0f, -minYMalha, 0.0f);
+
+    // 5. Material da bala (amarelo/dourado, por exemplo)
+    GLfloat matBala[] = { 1.0f, 0.8f, 0.2f, 1.0f }; 
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, matBala);
+
+    // 6. Desenha a malha
+    malhaBala.draw();
+
+    glPopMatrix();
 }
 
 void Tiro::Move(GLfloat delta) 
 {   
-
-    GLfloat rad = this->gDirectionAng * M_PI / 180.0f;  // Tranforma graus em radiano
+    GLfloat rad = this->gDirectionAng * M_PI / 180.0f;
     GLfloat vx = -sinf(rad) * this->gVel * delta;
     GLfloat vy = cosf(rad) * this->gVel * delta;
 

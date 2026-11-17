@@ -6,7 +6,7 @@
 
 
 Arena::Arena() {
-    largura = 200.0f;
+    largura = 500.0f;
     profundidade = 150.0f;
     alturaParede = 30.0f;
 }
@@ -23,6 +23,7 @@ void Arena::Configurar(const Configuracao& conf) {
         alturaParede = (float)conf.jogador.raioCabeca;
     else
         alturaParede = 30.0f;
+    raioAreaCentral = largura * 0.20f; 
 }
 
 void Arena::CarregarTexturas() {
@@ -40,13 +41,74 @@ void Arena::CarregarTexturas() {
         else
             printf("Arena: chao OK texId=%u\n", texturaChao);
     }
+    GaranteMalhaCone();
 }
 
+void Arena::GaranteMalhaCone() {
+    if (coneCarregado) return;
+
+    // Ajuste o caminho para o local real do seu cone.obj
+    if (!malhaCone.loadMesh("src/assets/cone.obj")) {
+        fprintf(stderr, "Arena: falha ao carregar cone.obj\n");
+    }
+
+    if (!malhaCone.vertsPos.empty()) {
+        float mn[3] = { 1e30f, 1e30f, 1e30f};
+        float mx[3] = {-1e30f,-1e30f,-1e30f};
+        for (auto& v : malhaCone.vertsPos) {
+            mn[0]=fminf(mn[0],v.x); mn[1]=fminf(mn[1],v.y); mn[2]=fminf(mn[2],v.z);
+            mx[0]=fmaxf(mx[0],v.x); mx[1]=fmaxf(mx[1],v.y); mx[2]=fmaxf(mx[2],v.z);
+        }
+        minYMalhaCone = mn[1];
+
+        // Define a escala para o cone ter uns 25 unidades de altura
+        float altura = mx[1] - mn[1];
+        float maior = fmaxf(altura, fmaxf(mx[0]-mn[0], mx[2]-mn[2]));
+        escalaCone = (maior > 1e-4f) ? (25.0f / maior) : 1.0f;
+    }
+    coneCarregado = true;
+}
+void Arena::DesenhaCone(float x, float y) {
+    if (malhaCone.vertsPos.empty()) return;
+
+    glPushMatrix();
+    
+    // 1) Posiciona no plano XY
+    glTranslatef(x, y, 0.0f);
+
+    // 2) Deita o modelo do Blender (Y-up) para o plano XY do jogo
+    glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+
+    // 3) Escala e apoio no chão
+    glScalef(escalaCone, escalaCone, escalaCone);
+    glTranslatef(0.0f, -minYMalhaCone, 0.0f);
+
+    // 4) Cor (caso não tenha textura)
+    GLfloat matCone[] = { 1.0f, 0.5f, 0.0f, 1.0f }; // Laranja
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, matCone);
+
+    // 5) Desenha
+    malhaCone.draw();
+
+    glPopMatrix();
+}
+
+void Arena::DesenhaLinhaDeConesArena()const{
+if (!malhaCone.vertsPos.empty()) {
+            float cx = -largura/2;
+            float cy = 0;
+        for (int i = 0; i < numCones; ++i) {
+            const_cast<Arena*>(this)->DesenhaCone(cx, cy);
+            cx += largura/numCones;
+        }
+    }
+}
 void Arena::Desenha() const {
     float w = largura / 2.0f;
     float d = profundidade / 2.0f;
     float h = 256.0;
 
+    this->DesenhaLinhaDeConesArena();
     // ---- Chão ----
     GLfloat matChao[] = { 0.2f, 0.6f, 0.0f, 1.0f };
     glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, matChao);
