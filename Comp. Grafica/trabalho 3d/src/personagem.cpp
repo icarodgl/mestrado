@@ -30,8 +30,6 @@ static void garanteMalhaPersonagem()
             mn[0]=fminf(mn[0],v.x); mn[1]=fminf(mn[1],v.y); mn[2]=fminf(mn[2],v.z);
             mx[0]=fmaxf(mx[0],v.x); mx[1]=fmaxf(mx[1],v.y); mx[2]=fmaxf(mx[2],v.z);
         }
-        printf("mirando.obj bbox: X[%.2f..%.2f] Y[%.2f..%.2f] Z[%.2f..%.2f]\n",
-               mn[0],mx[0], mn[1],mx[1], mn[2],mx[2]);
 
         malhaMinY = mn[1];
 
@@ -53,7 +51,7 @@ void Personagem::GaranteAnimacao()
     animParado.setFPS(1.0f);
     animParado.setLoop(false);
 
-    animAndando.load("src/assets/andando/passo%d.obj", 1, 10);
+    animAndando.load("src/assets/andando/passo%d.obj", 1, 11);
     animAndando.setFPS(12.0f);
     animAndando.setLoop(true);
 

@@ -399,7 +399,7 @@ void init(void)
     for (int i = 0; i < 256; ++i)
         keyStatus[i] = 0;
 
-    glClearColor(0.4f, 0.6f, 0.9f, 1.0f);
+    glClearColor(0.298f, 0.675f, 0.635f, 1.0f);
     // ---- Estado de textura ----
     glEnable(GL_TEXTURE_2D); // habilitar
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
