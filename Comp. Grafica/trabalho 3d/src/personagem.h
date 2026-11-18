@@ -8,8 +8,11 @@
 #include "animation.h"
 #include "colidivel_cilindro.h"
 
+
+
 class Personagem : public ColidivelCilindro
 {
+    enum DirecaoMovimento { DIR_NENHUMA, DIR_FRENTE, DIR_TRAS, DIR_ESQ, DIR_DIR };
     int vida;
     GLfloat gX = 0;
     GLfloat gY = -180;
@@ -26,8 +29,14 @@ class Personagem : public ColidivelCilindro
     int alturaArena = 150;
     int CorrecaoArenaY = 200;
     // 3d
-    Animation animParado;    // pode usar o "mirando.obj" como frame estático
-    Animation animAndando;   // assets/andando/passo%d.obj
+    Animation animAndandoFrente;
+    Animation animAndandoTras;
+    Animation animAndandoEsq;
+    Animation animAndandoDir;
+    Animation animParado;
+
+    
+    DirecaoMovimento direcaoAtual = DIR_NENHUMA;
     bool  animCarregada = false;
     bool  emMovimento   = false;
     float tempoSemMover = 0.0f;
@@ -40,6 +49,7 @@ public:
     Personagem(): ColidivelCilindro(0, -180, 10, 80) {};
     void GaranteAnimacao();               // carrega lazily (primeira vez)
     void AtualizaAnimacaoAnim(float dt);  // avança e troca estado
+    void SetDirecaoMovimento(int dx, int dy);  // dx/dy em {-1, 0, 1}
     void Configurar(Configuracao conf)
     {
         if (conf.jogador.raioCabeca)

@@ -51,71 +51,79 @@ void Personagem::GaranteAnimacao()
     animParado.setFPS(1.0f);
     animParado.setLoop(false);
 
-    animAndando.load("src/assets/andando/passo%d.obj", 1, 11);
-    animAndando.setFPS(12.0f);
-    animAndando.setLoop(true);
+    animAndandoFrente.load("src/assets/andando_frente/passo%d.obj", 1, 11);
+    animAndandoFrente.setFPS(12.0f);
+    animAndandoFrente.setLoop(true);
 
+    animAndandoTras.load("src/assets/andando_tras/passo%d.obj", 1, 11);
+    animAndandoTras.setFPS(12.0f);
+    animAndandoTras.setLoop(true);
 
-    const mesh* ref = nullptr;
- 
+    animAndandoEsq.load("src/assets/andando_esq/passo%d.obj", 1, 5);
+    animAndandoEsq.setFPS(12.0f);
+    animAndandoEsq.setLoop(true);
+
+    animAndandoDir.load("src/assets/andando_dir/passo%d.obj", 1, 5);
+    animAndandoDir.setFPS(12.0f);
+    animAndandoDir.setLoop(true);
+
     animCarregada = true;
 }
 void Personagem::AtualizaAnimacaoAnim(float dt)
 {
     if (!animCarregada) return;
 
-    // ---- Detecta movimento comparando posição atual com a última ----
-    const GLfloat dx = gX - ultimoX;
-    const GLfloat dy = gY - ultimoY;
-    const float dist = sqrtf(dx*dx + dy*dy);
-
-    if (dist > 0.01f) {
-        emMovimento = true;
-        tempoSemMover = 0.0f;
-    } else {
-        tempoSemMover += dt;
-        if (tempoSemMover > 0.1f) emMovimento = false;
+    // Atualiza todas as animações ativas (só a "atual" precisa de dt,
+    // mas resetar as outras evita saltos ao trocar de direção)
+    switch (direcaoAtual) {
+        case DIR_FRENTE: animAndandoFrente.update(dt); break;
+        case DIR_TRAS:   animAndandoTras.update(dt);   break;
+        case DIR_ESQ:    animAndandoEsq.update(dt);    break;
+        case DIR_DIR:    animAndandoDir.update(dt);    break;
+        case DIR_NENHUMA:
+        default:
+            animParado.update(dt);
+            // reseta as outras para começarem do frame 0 ao retomar
+            animAndandoFrente.reset();
+            animAndandoTras.reset();
+            animAndandoEsq.reset();
+            animAndandoDir.reset();
+            break;
     }
 
-    // ---- Atualiza o frame atual ----
-    if (emMovimento) {
-        animAndando.update(dt);
-    } else {
-        animParado.update(dt);
-        animAndando.reset();
-    }
+    emMovimento = (direcaoAtual != DIR_NENHUMA);
 
-    // ---- Guarda posição para o próximo frame ----
+    // guarda posição para o próximo frame (não mais usado para decidir animação)
     ultimoX = gX;
     ultimoY = gY;
-
-    // (balanço 2D antigo, se quiser manter para a arma)
-    fasePasso += dist * 0.05f;
 }
 void Personagem::DesenhaPersonagem(GLfloat x, GLfloat y)
 {
-
-    garanteMalhaPersonagem();   // preenche malhaEscala e malhaMinY
-    if (animParado.empty() && animAndando.empty()) return;
+    garanteMalhaPersonagem();
+    
+    // Verifica se há animação carregada
+    if (animParado.empty() && animAndandoFrente.empty()) return;
 
     glPushMatrix();
-
     glTranslatef(x, y, 0.0f);
     glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
     glRotatef(theta + 180, 0.0f, 1.0f, 0.0f);
     glScalef(malhaEscala, malhaEscala, malhaEscala);
     glTranslatef(0.0f, -malhaMinY, 0.0f);
 
-    if (emMovimento)
-        animAndando.draw();
-    else
-        animParado.draw();
+    switch (direcaoAtual) {
+        case DIR_FRENTE: animAndandoFrente.draw(); break;
+        case DIR_TRAS:   animAndandoTras.draw();   break;
+        case DIR_ESQ:    animAndandoEsq.draw();    break;
+        case DIR_DIR:    animAndandoDir.draw();    break;
+        case DIR_NENHUMA:
+        default:         animParado.draw();        break;
+    }
 
     glPopMatrix();
 
-    // Adicione o desenho de debug DEPOIS de desenhar o personagem
-    SetPosColisor(gX, gY,0.0); // Atualiza o colisor
-    DesenhaDebug(); 
+    SetPosColisor(gX, gY, 0.0);
+    DesenhaDebug();
 }
 void Personagem::GirarArma(int x, int y)
 {   
@@ -206,4 +214,13 @@ void Personagem::AtualizaAnimacao(GLfloat dt)
     fasePasso += dist * 0.05f;   // balanço 2D antigo (pode manter para a arma)
     ultimoX = gX;
     ultimoY = gY;
+}
+
+void Personagem::SetDirecaoMovimento(int dx, int dy)
+{
+    if (dx == 0 && dy == 0)      direcaoAtual = DIR_NENHUMA;
+    else if (dy > 0)             direcaoAtual = DIR_FRENTE;
+    else if (dy < 0)             direcaoAtual = DIR_TRAS;
+    else if (dx < 0)             direcaoAtual = DIR_ESQ;
+    else if (dx > 0)             direcaoAtual = DIR_DIR;
 }

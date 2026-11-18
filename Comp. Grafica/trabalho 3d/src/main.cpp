@@ -418,19 +418,31 @@ void init(void)
 void idle(void)
 {
     GLfloat dt = deltaTime() / 1000.0f;
-
+    int dx = 0, dy = 0;
     if (keyStatus['a'])
         personagem.Girar(dt);
     if (keyStatus['d'])
         personagem.Girar(-dt);
     if (keyStatus['w'])
+    {
         personagem.Mover(dt);
+        dy += 1;
+    }
     if (keyStatus['s'])
+    {
         personagem.Mover(-dt);
+        dy -= 1;
+    }
     if (keyStatus['q'])
+    {
         personagem.MoverLado(-dt);
+        dx += 1;
+    }
     if (keyStatus['e'])
+    {
         personagem.MoverLado(dt);
+        dx -= 1;
+    }
 
     if (keyStatus[' '] || mousePressionado)
     {
@@ -447,6 +459,7 @@ void idle(void)
     personagem.GirarArma(gMouseWorldX, gMouseWorldY);
     controlaTiros(dt);
     controlaBarris(dt);
+    personagem.SetDirecaoMovimento(dx, dy);
     personagem.AtualizaAnimacaoAnim(dt);
 
     GLfloat px, py;
