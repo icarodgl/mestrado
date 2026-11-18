@@ -122,7 +122,7 @@ void Personagem::DesenhaPersonagem(GLfloat x, GLfloat y)
 
     glPopMatrix();
 
-    SetPosColisor(gX, gY, 0.0);
+    // SetPosColisor(gX, gY, 0.0);
     DesenhaDebug();
 }
 void Personagem::GirarArma(int x, int y)
@@ -167,23 +167,33 @@ void Personagem::MoverLado(GLfloat dir)
 }
 Tiro *Personagem::Atirar(GLfloat VelocidadeTiro)
 {
+    const GLfloat lx = raioCabeca + (raioCabeca*0.4) - ((raioCabeca*0.4)/2);
+    const GLfloat ly = raioCabeca*1.8;
 
-    const GLfloat lx = raioCabeca + (raioCabeca*0.4) - ((raioCabeca*0.4)/2); // braco + centro canhao
-    const GLfloat ly = raioCabeca*1.8; // ponta canhao
+    const GLfloat DegToRad = M_PI / 180.0f;
+    const GLfloat yawRad   = (thetaArma + theta) * DegToRad;
+    const GLfloat pitchRad =  thetaArmaPitch     * DegToRad;
 
-    const GLfloat DegToRad = M_PI / 180.0f; // Graus pra Radiano
-    const GLfloat rad = (thetaArma + theta )* DegToRad;
+    const GLfloat cp = cosf(pitchRad);
+    const GLfloat c  = cosf(yawRad);
+    const GLfloat s  = sinf(yawRad);
 
-    const GLfloat c = cosf(rad);
-    const GLfloat s = sinf(rad);
+    // Posição da "boca do cano" (deslocamento horizontal no plano XY)
+    // O deslocamento em X,Y usa cos(pitch) para considerar que o cano
+    // aponta levemente pra cima/baixo.
+    const GLfloat x = gX + (lx * c - ly * s) * cp;
+    const GLfloat y = gY + (lx * s + ly * c) * cp;
 
-    const GLfloat x = gX + lx * c - ly * s;
-    const GLfloat y = gY + lx * s + ly * c;
+    // Altura de saída: base do personagem + altura aproximada do cano
+    // (ajuste esse offset conforme onde o cano fica no seu modelo)
+    const GLfloat zSaida = 45.0f + sinf(pitchRad) * ly;
 
-    Tiro *t = new Tiro(x, y, (thetaArma + theta ), VelocidadeTiro);
-
-    return t;
+    return new Tiro(x, y, zSaida,
+                    thetaArma + theta,
+                    thetaArmaPitch,
+                    VelocidadeTiro);
 }
+
 
 bool Personagem::Atingido(Colidivel *obj)
 {

@@ -24,7 +24,7 @@ private:
     void garanteMalha();
 
 public:
-    Barril(GLfloat _x, GLfloat _y, int _tipo) : ColidivelCilindro(_x, _y, 50.0f, 140.0f){
+    Barril(GLfloat _x, GLfloat _y, int _tipo) : ColidivelCilindro(_x, _y,0, 50.0f, 140.0f){
     x = _x; y = _y; 
     z = 45.0;
     tipo = _tipo;

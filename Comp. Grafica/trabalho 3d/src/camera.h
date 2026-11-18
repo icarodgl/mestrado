@@ -25,5 +25,6 @@ void camera_orbit(float dxPixels, float dyPixels);
 void camera_set_target(float x, float y, float z);
 void camera_set_base_height(float h);
 float camera_get_base_height();
+void camera_set_pitch(float anguloGraus);
 
 #endif

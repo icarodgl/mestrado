@@ -5,20 +5,22 @@
 #include <math.h>
 #include <GL/glut.h>
 
-class ColidivelCilindro : public Colidivel {
+class ColidivelCilindro : public Colidivel
+{
 protected:
-    float cx, cy, cz;     // Centro no plano XY
+    float cx, cy, cz; // Centro no plano XY
     float raio;       // Raio do cilindro
     float altura;     // Altura (eixo Z)
-    float anguloX,anguloY, anguloZ;
+    float anguloX, anguloY, anguloZ;
 
 public:
-    ColidivelCilindro(float x = 0, float y = 0, float r = 10, float h = 20)
-        : cx(x), cy(y), raio(r), altura(h) {}
+    ColidivelCilindro(float x = 0, float y = 0, float z = 0, float r = 10, float h = 20)
+        : cx(x), cy(y), cz(z), raio(r), altura(h) {}
 
     // Implementação padrão da interface: retorna o AABB que envolve o cilindro
     // (útil se você ainda quiser usar a sua função ColideCom antiga em algum lugar)
-    virtual void GetColider(GLfloat& x, GLfloat& y, GLfloat& w, GLfloat& h) const override {
+    virtual void GetColider(GLfloat &x, GLfloat &y, GLfloat &w, GLfloat &h) const override
+    {
         x = cx - raio;
         y = cy - raio;
         w = cx + raio;
@@ -27,15 +29,21 @@ public:
 
     // Nova função de colisão real (Círculo vs Círculo)
     // Usamos static para poder chamar sem um objeto específico
-    static bool ColideCilindro(const ColidivelCilindro& a, const ColidivelCilindro& b) {
+    static bool ColideCilindro(const ColidivelCilindro &a, const ColidivelCilindro &b)
+    {
         float dx = a.cx - b.cx;
         float dy = a.cy - b.cy;
-        float dist = sqrtf(dx*dx + dy*dy);
+        float dist = sqrtf(dx * dx + dy * dy);
         return dist < (a.raio + b.raio);
     }
 
     // Funções para atualizar a posição do colisor
-    void SetPosColisor(float x, float y, float z) { cx = x; cy = y; cz=z;}
+    void SetPosColisor(float x, float y, float z)
+    {
+        cx = x;
+        cy = y;
+        cz = z;
+    }
     void SetRaio(float r) { raio = r; }
     void SetAltura(float h) { altura = h; }
     void SetRotateColisorX(float angGraus) { anguloX = angGraus; }
@@ -43,19 +51,21 @@ public:
     void SetRotateColisorZ(float angGraus) { anguloZ = angGraus; }
     // --- MODO DEBUG ---
     bool debugMode = false;
+    void setDebug(bool d = false){debugMode = d;}
     void ToggleDebug() { debugMode = !debugMode; }
 
-    void DesenhaDebug() const {
-        if (!debugMode) return;
+    void DesenhaDebug() const
+    {
+        if (!debugMode)
+            return;
 
         glPushMatrix();
         // roda sobre Y
         glTranslatef(cx, cy, cz);
-        glRotatef(anguloX, 1.0f, 0.0f, 0.0f); 
-        glRotatef(anguloY, 0.0f, 1.0f, 0.0f); 
-        glRotatef(anguloZ, 0.0f, 0.0f, 1.0f); 
+        glRotatef(anguloX, 1.0f, 0.0f, 0.0f);
+        glRotatef(anguloY, 0.0f, 1.0f, 0.0f);
+        glRotatef(anguloZ, 0.0f, 0.0f, 1.0f);
 
-        
         // Desabilita iluminação e textura para o debug ficar visível
         glDisable(GL_LIGHTING);
         glDisable(GL_TEXTURE_2D);
@@ -64,7 +74,7 @@ public:
 
         // Desenha um cilindro wireframe verde translúcido
         glColor4f(0.0f, 1.0f, 0.0f, 0.5f); // Verde com 50% de opacidade
-        GLUquadric* quad = gluNewQuadric();
+        GLUquadric *quad = gluNewQuadric();
         gluQuadricDrawStyle(quad, GLU_LINE); // Wireframe
         gluCylinder(quad, raio, raio, altura, 16, 4);
         gluDeleteQuadric(quad);
@@ -72,6 +82,26 @@ public:
         glDisable(GL_BLEND);
         glEnable(GL_LIGHTING);
         glPopMatrix();
+    }
+    static bool ColideCilindro3D(const ColidivelCilindro& a, const ColidivelCilindro& b) {
+        // 1) Teste no plano XY (círculo vs círculo)
+        const float dx = a.cx - b.cx;
+        const float dy = a.cy - b.cy;
+        const float somaR = a.raio + b.raio;
+        const float dist2 = dx*dx + dy*dy;
+
+        // Otimização: se dist2 > somaR^2, nem precisa checar Z
+        if (dist2 > somaR * somaR) return false;
+
+        // 2) Teste no eixo Z (intervalo vs intervalo)
+        const float aMin = a.cz,        aMax = a.cz + a.altura;
+        const float bMin = b.cz,        bMax = b.cz + b.altura;
+
+        // Colisão Z: intervalos se sobrepõem?
+        // (aMin < bMax) && (bMin < aMax)
+        if (aMin >= bMax || bMin >= aMax) return false;
+
+        return true;
     }
 };
 

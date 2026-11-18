@@ -2,55 +2,49 @@
 #define TIRO_H
 #include <GL/gl.h>
 #include <GL/glu.h>
-#include "colidivel.h"
+#include "colidivel_cilindro.h"   // ← troca de colidivel.h
 #include "configuracao.h"
 #include "objloader.h"
 
-#define radiusTiro 5 // Ainda pode ser usado para a colisão
-
-class Tiro : public Colidivel
+class Tiro : public ColidivelCilindro
 {
-    GLfloat height = 10;
-    GLfloat width = 10;
-    GLfloat alturaMax = 500;
+    GLfloat alturaMax  = 500;
     GLfloat larguraMax = 500;
-    GLfloat gX;
-    GLfloat gY;
-    GLfloat gDirectionAng;
+    GLfloat gYaw;                // ângulo no plano XY
+    GLfloat gPitch;              // inclinação vertical (graus)
     GLfloat gVel;
 
-    // Variáveis estáticas para carregar o .obj apenas uma vez
     static mesh  malhaBala;
     static bool  malhaCarregada;
     static float escalaMalha;
     static float minYMalha;
-    
+
     void garanteMalha();
 
 public:
-    Tiro(GLfloat x, GLfloat y, GLfloat directionAng, GLfloat velocidade)
+    // Construtor novo: recebe também o Z inicial e o pitch
+    Tiro(GLfloat x, GLfloat y, GLfloat z,           // posição inicial (base do cilindro)
+         GLfloat yaw, GLfloat pitch,                // direção
+         GLfloat velocidade)
+        : ColidivelCilindro(x, y,z,/*r=*/5.0f, /*h=*/5.0f)
     {
-        gX = x;
-        gY = y;
-        gDirectionAng = directionAng;
-        gVel = velocidade;
-        garanteMalha(); // Garante que a malha seja carregada
-    };
-    
+        gYaw   = yaw;
+        gPitch = pitch;
+        gVel   = velocidade;
+        garanteMalha();
+    }
+
     void Desenha();
     void Move(GLfloat deltaTime);
     bool Valido();
-
-    virtual void GetColider(GLfloat& x, GLfloat& y, GLfloat& w, GLfloat& h) const override {
-        x = gX - (width/4);
-        y = gY - (height/4);
-        w = gX + (width/4);
-        h = gY + (height/4);
-    };
-
     void Configurar(Configuracao conf) {
-        alturaMax = conf.arena.altura;
+        alturaMax  = conf.arena.altura;
         larguraMax = conf.arena.largura;
     }
+
+    virtual void GetColider(GLfloat& x, GLfloat& y, GLfloat& w, GLfloat& h) const override {
+        x = cx - raio; y = cy - raio;
+        w = cx + raio; h = cy + raio;
+    }
 };
-#endif /* TIRO_H */
+#endif

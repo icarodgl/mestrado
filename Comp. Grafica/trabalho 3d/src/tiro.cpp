@@ -35,47 +35,56 @@ void Tiro::garanteMalha() {
     malhaCarregada = true;
 }
 
-void Tiro::Desenha() {
+void Tiro::Desenha()
+{
     if (malhaBala.vertsPos.empty()) return;
 
     glPushMatrix();
 
-    // 1. Translada para a posição atual da bala no plano 2D
-    glTranslatef(gX, gY, 50.0f);
+    // Centro do cilindro: cz + altura/2
+    glTranslatef(cx, cy, cz + altura * 0.5f);
 
-    // 2. Gira a bala no plano XY para apontar na direção correta do tiro
-    glRotatef(gDirectionAng, 0.0f, 0.0f, 1.0f);
+    // 1) Yaw em torno de Z
+    glRotatef(gYaw, 0.0f, 0.0f, 1.0f);
 
-    // 3. Deita o modelo do Blender (Y-up) no plano XY do jogo
+    // 2) Pitch em torno do eixo X local (após o yaw)
+    //    Se seu modelo "olha" para -Y após o yaw, o pitch correto é:
+    glRotatef(gPitch, 1.0f, 0.0f, 0.0f);
+
+    // 3) Deita o modelo Blender (Y-up) no plano XY do jogo
     glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
 
-    // 4. Escala e ajuste para o centro da bala
     glScalef(escalaMalha, escalaMalha, escalaMalha);
     glTranslatef(0.0f, -minYMalha, 0.0f);
 
-    // 5. Material da bala (amarelo/dourado, por exemplo)
-    GLfloat matBala[] = { 1.0f, 0.8f, 0.2f, 1.0f }; 
+    GLfloat matBala[] = { 1.0f, 0.8f, 0.2f, 1.0f };
     glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, matBala);
-
-    // 6. Desenha a malha
     malhaBala.draw();
-
     glPopMatrix();
 }
 
-void Tiro::Move(GLfloat delta) 
-{   
-    GLfloat rad = this->gDirectionAng * M_PI / 180.0f;
-    GLfloat vx = -sinf(rad) * this->gVel * delta;
-    GLfloat vy = cosf(rad) * this->gVel * delta;
+void Tiro::Move(GLfloat delta)
+{
+    const GLfloat DegToRad = M_PI / 180.0f;
+    const GLfloat yawRad   = gYaw   * DegToRad;
+    const GLfloat pitchRad = gPitch * DegToRad;
+    const GLfloat cp = cosf(pitchRad);
 
-    this->gX += vx;
-    this->gY += vy;
+    const GLfloat vx = -sinf(yawRad) * cp * gVel * delta;
+    const GLfloat vy =  cosf(yawRad) * cp * gVel * delta;
+    const GLfloat vz =  sinf(pitchRad)       * gVel * delta;
+
+    cx += vx;
+    cy += vy;
+    cz += vz;   // ← NOVO: agora o tiro sobe/desce
+
+    SetPosColisor(cx,cy,cz);
 }
 
 bool Tiro::Valido()
 {
-    if (gX > larguraMax or gX < -larguraMax or gY > alturaMax or gY < -alturaMax)
-        return false;
+    if (cx > larguraMax || cx < -larguraMax) return false;
+    if (cy > alturaMax  || cy < -alturaMax)  return false;
+    if (cz > 500.0f || cz + altura < 0.0f)   return false;
     return true;
 }

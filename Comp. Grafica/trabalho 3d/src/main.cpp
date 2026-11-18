@@ -21,6 +21,10 @@ GLint Width = 700;
 GLint Height = 700;
 
 // Mouse
+static GLdouble s_modelview[16];
+static GLdouble s_projection[16];
+static GLint s_viewport[4];
+
 int gMousePixelX = 0, gMousePixelY = 0;
 GLfloat gMouseWorldX = 0.0f, gMouseWorldY = 0.0f;
 bool mousePressionado = false;
@@ -28,6 +32,9 @@ int mouseBtnDown = 0;
 int lastMouseX = 0, lastMouseY = 0;
 
 static GLdouble previousTime = glutGet(GLUT_ELAPSED_TIME);
+
+bool debugColisor = false;
+bool pause = false;
 
 Personagem personagem;
 MyGameUI gameUI;
@@ -54,7 +61,45 @@ static GLdouble deltaTime()
     previousTime = now;
     return dt;
 }
+// ------------------------------------------------------------------
+// Mirando com mouse
+static void capturaMatrizesCamera()
+{
+    glGetDoublev(GL_MODELVIEW_MATRIX, s_modelview);
+    glGetDoublev(GL_PROJECTION_MATRIX, s_projection);
+    glGetIntegerv(GL_VIEWPORT, s_viewport);
+}
+// Converte um pixel (x,y) num raio 3D no mundo.
+// Retorna origem (no plano near) e direção normalizada.
+static bool pixelParaRaio(int mx, int my,
+                          float &ox, float &oy, float &oz,
+                          float &dx, float &dy, float &dz)
+{
+    // GLUT tem Y invertido em relação ao OpenGL
+    GLdouble nearX, nearY, nearZ, farX, farY, farZ;
+    if (!gluUnProject(mx, s_viewport[3] - my, 0.0,
+                      s_modelview, s_projection, s_viewport,
+                      &nearX, &nearY, &nearZ))
+        return false;
+    if (!gluUnProject(mx, s_viewport[3] - my, 1.0,
+                      s_modelview, s_projection, s_viewport,
+                      &farX, &farY, &farZ))
+        return false;
 
+    ox = (float)nearX;
+    oy = (float)nearY;
+    oz = (float)nearZ;
+    dx = (float)(farX - nearX);
+    dy = (float)(farY - nearY);
+    dz = (float)(farZ - nearZ);
+    float len = sqrtf(dx * dx + dy * dy + dz * dz);
+    if (len < 1e-6f)
+        return false;
+    dx /= len;
+    dy /= len;
+    dz /= len;
+    return true;
+}
 // ------------------------------------------------------------------
 // Reset
 // ------------------------------------------------------------------
@@ -94,17 +139,21 @@ static void criaTiros(Tiro *t, Tiro *arr[])
 
 static void controlaTiros(GLfloat dt)
 {
+    if (pause)
+        return;
+
     for (int i = 0; i < qtTiro; ++i)
     {
         if (tirosInimigo[i])
         {
             tirosInimigo[i]->Move(dt);
+            tirosInimigo[i]->setDebug(debugColisor);
             if (!tirosInimigo[i]->Valido())
             {
                 delete tirosInimigo[i];
                 tirosInimigo[i] = nullptr;
             }
-            else if (tirosInimigo[i]->ColideCom(personagem))
+            else if (tirosInimigo[i]->ColideCilindro3D(*tirosInimigo[i], personagem))
             {
                 gameUI.Atingido();
                 delete tirosInimigo[i];
@@ -116,7 +165,7 @@ static void controlaTiros(GLfloat dt)
             tiros[i]->Move(dt);
             for (int b = qtBarril - 1; b >= 0; --b)
             {
-                if (barris[b] && tiros[i]->ColideCom(*barris[b]))
+                if (barris[b] && tiros[i]->ColideCilindro3D(*tiros[i], *barris[b]))
                 {
                     barris[b]->Atingido();
                     gameUI.Ponto();
@@ -152,6 +201,8 @@ static void desenhaTiros()
 // ------------------------------------------------------------------
 static void controlaBarris(GLfloat dt)
 {
+    if (pause)
+        return;
     GLfloat now = glutGet(GLUT_ELAPSED_TIME);
     GLfloat px, py;
     personagem.getPos(px, py);
@@ -176,11 +227,13 @@ static void controlaBarris(GLfloat dt)
     {
         if (!barris[i])
             continue;
+
+        barris[i]->setDebug(debugColisor);
         barris[i]->Mirar(px, py);
         // criaTiros(barris[i]->Atirar(now, VelocidadeTiro), tirosInimigo);
         barris[i]->Move(dt);
 
-        if (barris[i]->ColideCom(personagem))
+        if (barris[i]->ColideCilindro3D(*barris[i], personagem))
         {
             gameUI.Atingido();
             delete barris[i];
@@ -234,7 +287,8 @@ void renderScene(void)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    camera_apply();   // 1) câmera
+    camera_apply(); // 1) câmera
+    capturaMatrizesCamera();
     lighting_apply(); // 2) luzes (na MODELVIEW da câmera)
 
     // 3) objetos 3D
@@ -332,12 +386,12 @@ void keyPress(unsigned char key, int, int)
         break;
     case 'v':
     case 'V':
-        personagem.ToggleDebug();
-        for (int i = 0; i < qtBarril; ++i)
-        {
-            if (barris[i])
-                barris[i]->ToggleDebug();
-        }
+        debugColisor = !debugColisor;
+        personagem.setDebug(debugColisor);
+        break;
+    case 'p':
+    case 'P':
+        pause = !pause;
         break;
     case 27:
         exit(0);
@@ -414,7 +468,74 @@ void init(void)
     // Projeção inicial (reshape também fará isso no primeiro frame)
     camera_reshape(Width, Height);
 }
+void MirarComMouse()
+{
+    // ---- MIRA COM MOUSE ----
+    if (camera_get_mode() == CAM_FIRST_PERSON)
+    {
+        // 1ª pessoa: o raio do mouse define a direção do tiro
+        float ox, oy, oz, dx, dy, dz;
+        if (pixelParaRaio(gMousePixelX, gMousePixelY,
+                          ox, oy, oz, dx, dy, dz))
+        {
+            // A câmera está atrás do personagem, olhando na direção dele.
+            // O que queremos é o vetor (dx,dy,dz) — ele já É a direção do tiro.
+            // Precisamos extrair pitch e yaw e passar para o personagem.
 
+            // yaw: mesmo sistema do personagem (0 => +Y, frente)
+            float yaw = atan2f(-dx, dy) * 180.0f / M_PI;
+            // pitch: + sobe, - desce
+            float pitch = asinf(dz) * 180.0f / M_PI;
+
+            // Normaliza yaw para [-180, 180]
+            while (yaw > 180.0f)
+                yaw -= 360.0f;
+            while (yaw < -180.0f)
+                yaw += 360.0f;
+
+            // Atualiza a orientação do personagem e a câmera
+            personagem.SetMira3D(yaw, pitch);
+
+            camera_set_direcao(personagem.getAngulo());
+            camera_set_pitch(personagem.getPitchArma());
+        }
+    }
+    else
+    {
+        // Outras câmeras: pitch = 0, mira só no plano XY.
+        // Usa unproject num plano z = alturaDoCano para obter o alvo 2D.
+        float ox, oy, oz, dx, dy, dz;
+        if (pixelParaRaio(gMousePixelX, gMousePixelY,
+                          ox, oy, oz, dx, dy, dz))
+        {
+            // Altura do "cano" — a mesma que zSaida em Atirar
+            const float zAlvo = 45.0f;
+
+            // Intersecção do raio com o plano z = zAlvo
+            float t = 1e30f;
+            if (fabsf(dz) > 1e-6f)
+                t = (zAlvo - oz) / dz;
+
+            float mx, my;
+            if (t > 0.0f && t < 1e6f)
+            {
+                mx = ox + dx * t;
+                my = oy + dy * t;
+            }
+            else
+            {
+                // Raio paralelo ao plano: usa o personagem como pivô e o
+                // próprio raio sem Z (visão top-down projeta bem).
+                mx = ox + dx * 1000.0f;
+                my = oy + dy * 1000.0f;
+            }
+
+            // Atualiza só o yaw; zera o pitch
+            personagem.SetMira3D(mx, my, 0.0f); // sobrecarga 2D
+            camera_set_pitch(0.0f);
+        }
+    }
+}
 void idle(void)
 {
     GLfloat dt = deltaTime() / 1000.0f;
@@ -456,7 +577,8 @@ void idle(void)
     if (keyStatus['r'])
         resetGame();
 
-    personagem.GirarArma(gMouseWorldX, gMouseWorldY);
+    MirarComMouse();
+    // personagem.GirarArma(gMouseWorldX, gMouseWorldY);
     controlaTiros(dt);
     controlaBarris(dt);
     personagem.SetDirecaoMovimento(dx, dy);

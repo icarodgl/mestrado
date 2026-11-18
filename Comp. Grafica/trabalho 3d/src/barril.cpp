@@ -106,7 +106,7 @@ Tiro* Barril::Atirar(GLfloat tempo, GLfloat velocidadeTiro) {
         ultimoTiro = tempo;
         // Calcula o ângulo para o jogador (assumindo que ele esteja em 0,-180)
         float angulo = atan2f(-180.0f - y, 0.0f - x) * 180.0f / M_PI;
-        return new Tiro(x, y, angulo, velocidadeTiro);
+        return new Tiro(x, y,50, angulo,0.0, velocidadeTiro);
     }
     return nullptr;
 }
