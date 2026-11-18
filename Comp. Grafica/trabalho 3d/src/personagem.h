@@ -6,9 +6,9 @@
 #include "colidivel.h"
 #include "configuracao.h"
 #include "animation.h"
+#include "colidivel_cilindro.h"
 
-
-class Personagem : public Colidivel
+class Personagem : public ColidivelCilindro
 {
     int vida;
     GLfloat gX = 0;
@@ -37,7 +37,7 @@ private:
     GLfloat CalculaBalancoPasso(GLfloat amplitude) const; 
     void AtualizaAnimacao(GLfloat dt);
 public:
-    Personagem() {};
+    Personagem(): ColidivelCilindro(0, -180, 10, 80) {};
     void GaranteAnimacao();               // carrega lazily (primeira vez)
     void AtualizaAnimacaoAnim(float dt);  // avança e troca estado
     void Configurar(Configuracao conf)
@@ -77,6 +77,7 @@ public:
     void MoverLado(GLfloat dir);
     void Girar(GLfloat dir){
         theta += dir*velocidade;
+        SetRotateColisorZ(theta);
     }
     void getPos(GLfloat &x, GLfloat &y){
         x = gX;

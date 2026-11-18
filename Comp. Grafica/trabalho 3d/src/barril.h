@@ -2,14 +2,14 @@
 #define BARRIL_H
 
 #include <GL/gl.h>
-#include "colidivel.h"
 #include "configuracao.h"
 #include "objloader.h"
 #include "tiro.h"
+#include "colidivel_cilindro.h"
 
-class Barril : public Colidivel {
+class Barril : public ColidivelCilindro {
 private:
-    GLfloat x, y;
+    GLfloat x, y, z;
     GLfloat velocidade;
     GLfloat anguloRotacao; // NOVO: para fazer o barril girar
     int vida;
@@ -24,7 +24,16 @@ private:
     void garanteMalha();
 
 public:
-    Barril(GLfloat _x, GLfloat _y, int _tipo);
+    Barril(GLfloat _x, GLfloat _y, int _tipo) : ColidivelCilindro(_x, _y, 50.0f, 140.0f){
+    x = _x; y = _y; 
+    z = 45.0;
+    tipo = _tipo;
+    vida = 3;
+    velocidade = 1.0f;
+    anguloRotacao = 0.0f;
+    garanteMalha();
+    // SetRotateColisor(90.0f);
+    }
     void Configurar(Configuracao conf);
     void Mirar(GLfloat px, GLfloat py);
     void Move(GLfloat dt);

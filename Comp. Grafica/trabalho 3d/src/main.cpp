@@ -177,7 +177,7 @@ static void controlaBarris(GLfloat dt)
         if (!barris[i])
             continue;
         barris[i]->Mirar(px, py);
-        //criaTiros(barris[i]->Atirar(now, VelocidadeTiro), tirosInimigo);
+        // criaTiros(barris[i]->Atirar(now, VelocidadeTiro), tirosInimigo);
         barris[i]->Move(dt);
 
         if (barris[i]->ColideCom(personagem))
@@ -238,7 +238,7 @@ void renderScene(void)
     lighting_apply(); // 2) luzes (na MODELVIEW da câmera)
 
     // 3) objetos 3D
-    arena.Desenha();     // <-- Adicione isso AQUI
+    arena.Desenha(); // <-- Adicione isso AQUI
     personagem.Desenha();
     desenhaTiros();
     desenhaBarris();
@@ -330,7 +330,15 @@ void keyPress(unsigned char key, int, int)
     case '0':
         lighting_preset_sol();
         break;
-
+    case 'v':
+    case 'V':
+        personagem.ToggleDebug();
+        for (int i = 0; i < qtBarril; ++i)
+        {
+            if (barris[i])
+                barris[i]->ToggleDebug();
+        }
+        break;
     case 27:
         exit(0);
     }
@@ -392,12 +400,12 @@ void init(void)
         keyStatus[i] = 0;
 
     glClearColor(0.4f, 0.6f, 0.9f, 1.0f);
-        // ---- Estado de textura ----
-    glEnable(GL_TEXTURE_2D);        // habilitar
+    // ---- Estado de textura ----
+    glEnable(GL_TEXTURE_2D); // habilitar
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     // glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);  // corrige distorção em 3D
-        // ---- Estado de textura ----
+    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST); // corrige distorção em 3D
+                                                       // ---- Estado de textura ----
     glDisable(GL_CULL_FACE);
     camera_init();
     lighting_init();
@@ -483,7 +491,7 @@ void ConfigurarUsandoXML()
 int main(int argc, char *argv[])
 {
     ConfigurarUsandoXML();
-    
+
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(Width, Height);

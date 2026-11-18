@@ -114,6 +114,10 @@ void Personagem::DesenhaPersonagem(GLfloat x, GLfloat y)
         animParado.draw();
 
     glPopMatrix();
+
+    // Adicione o desenho de debug DEPOIS de desenhar o personagem
+    SetPosColisor(gX, gY,0.0); // Atualiza o colisor
+    DesenhaDebug(); 
 }
 void Personagem::GirarArma(int x, int y)
 {   
@@ -143,6 +147,8 @@ void Personagem::Mover(GLfloat dir)
 
     this->gX += vx;
     this->gY += vy;
+
+    SetPosColisor(gX, gY,0.0); // Atualiza o colisor
     
 }
 void Personagem::MoverLado(GLfloat dir)
@@ -150,6 +156,8 @@ void Personagem::MoverLado(GLfloat dir)
     if ((gX > larguraArena-raioCabeca and dir > 0) or (gX < -larguraArena+raioCabeca and dir < 0))
         return;
     gX += dir*velocidade;
+
+    SetPosColisor(gX, gY,0.0); // Atualiza o colisor
 }
 Tiro *Personagem::Atirar(GLfloat VelocidadeTiro)
 {

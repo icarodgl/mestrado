@@ -35,14 +35,6 @@ void Barril::garanteMalha() {
     malhaCarregada = true;
 }
 
-Barril::Barril(GLfloat _x, GLfloat _y, int _tipo) {
-    x = _x; y = _y;
-    tipo = _tipo;
-    vida = 3;
-    velocidade = 1.0f;
-    anguloRotacao = 0.0f;
-    garanteMalha();
-}
 
 void Barril::Configurar(Configuracao conf) {
     if (conf.barril.velocidade) {
@@ -61,6 +53,13 @@ void Barril::Move(GLfloat dt) {
     // Gira o barril continuamente (velocidade do giro em graus/segundo)
     anguloRotacao += 150.0f * dt; 
     if (anguloRotacao > 360.0f) anguloRotacao -= 360.0f;
+    
+    SetPosColisor(x-140.0, y, z); // Atualiza colisor
+    SetRotateColisorY(90);
+        // Atualiza a rotação do colisor
+    // O barril "deitado" gira no eixo Z do mundo (que equivale a rolar no eixo Y do modelo)
+    // Como o barril é simétrico, a rotação dele no plano XY faz ele parecer maior ou menor na tela.
+    SetRotateColisorZ(anguloRotacao); 
 }
 
 void Barril::Desenha() {
@@ -69,7 +68,7 @@ void Barril::Desenha() {
     glPushMatrix();
 
     // 1) Posição na arena
-    glTranslatef(x, y, 45.0);
+    glTranslatef(x, y, z);
 
     // 2) O Blender exporta Y-up. Deitamos o modelo no plano XY do jogo (-90 em X).
     glRotatef(90.0f, 0.0f, 0.0f, 1.0f);
@@ -86,6 +85,9 @@ void Barril::Desenha() {
     malhaBarril.draw();
 
     glPopMatrix();
+    // Desenho do colisor (debug)
+    // SetPosColisor(x, y);
+    DesenhaDebug();
 }
 
 bool Barril::Valido() {

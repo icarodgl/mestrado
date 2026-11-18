@@ -7,7 +7,7 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-static CameraMode s_mode       = CAM_TOP_DOWN;
+static CameraMode s_mode       = CAM_FIRST_PERSON;
 static float    s_distance   = 1000.0f;
 static float    s_angleXZ    = 90.0f;   
 static float    s_angleXY    = 30.0f;   
@@ -18,7 +18,7 @@ static float    s_baseHeight = 100.0f; // Altura regulável para a câmera 4
 static float    s_personagemAngulo = 0.0f;
 void camera_init(void)
 {
-    s_mode     = CAM_TOP_DOWN;
+    s_mode     = CAM_FIRST_PERSON;
     s_distance = 900.0f;
     s_angleXZ  = 90.0f;
     s_angleXY  = 30.0f;
