@@ -8,27 +8,204 @@
 #include <GL/gl.h>
 #include <GL/glut.h>
 #include "animation.h"
+
 using namespace std;
 
-static mesh  malhaPersonagem;
-static bool  malhaCarregada = false;
-static float malhaEscala    = 1.0f;
-static float malhaOffsetY   = 0.0f;   // para apoiar a base em y=0 do modelo
-static float malhaMinY      = 0.0f;
+static mesh malhaPersonagem;
+static bool malhaCarregada = false;
+static float malhaEscala = 1.0f;
+static float malhaOffsetY = 0.0f; // para apoiar a base em y=0 do modelo
+static float malhaMinY = 0.0f;
+// arma
+static mesh malhaArma;
+static bool malhaArmaCarregada = false;
+static float escalaArma = 1.0;
 
+// Constrói a matriz que leva um ponto local da arma ao espaço do mundo.
+// Deve replicar EXATAMENTE a cadeia do DesenhaArma().
+static void constroiMatrizArma(
+    float gX, float gY,
+    float thetaCorpo,
+    float thetaArma, float thetaArmaPitch,
+    float malhaEscala, float malhaMinY,
+    float maoX, float maoY, float maoZ,
+    float armaMinY, float escalaArma,
+    mat4 &out)
+{
+    mat4 t, r, s;
+
+    mat4_identity(out);
+
+    // Translate(gX, gY, 0)
+    mat4_translate(t, gX, gY, 0.0f);
+    mat4_mul(out, t, out);
+    // Rotate(90, X)
+    mat4_rotateX(r, 90.0f);
+    mat4_mul(out, r, out);
+    // Rotate(theta+180, Y)
+    mat4_rotateY(r, thetaCorpo + 180.0f);
+    mat4_mul(out, r, out);
+    // Scale(malhaEscala)
+    mat4_scale(s, malhaEscala);
+    mat4_mul(out, s, out);
+    // Translate(0, -malhaMinY, 0)
+    mat4_translate(t, 0.0f, -malhaMinY, 0.0f);
+    mat4_mul(out, t, out);
+    // Translate(mao)
+    mat4_translate(t, maoX, maoY, maoZ);
+    mat4_mul(out, t, out);
+    // Rotate(thetaArma, Z)
+    mat4_rotateZ(r, thetaArma);
+    mat4_mul(out, r, out);
+    // Rotate(thetaArmaPitch, X)
+    mat4_rotateX(r, thetaArmaPitch);
+    mat4_mul(out, r, out);
+    // Translate(0, -armaMinY, 0)
+    mat4_translate(t, 0.0f, -armaMinY, 0.0f);
+    mat4_mul(out, t, out);
+    // Scale(escalaArma)
+    mat4_scale(s, escalaArma);
+    mat4_mul(out, s, out);
+}
+void Personagem::ChangeCoordSys(
+    GLdouble ax, GLdouble ay, GLdouble az,
+    GLdouble bx, GLdouble by, GLdouble bz,
+    GLdouble upx, GLdouble upy, GLdouble upz)
+{
+    float x[3], y[3], z[3];
+
+    // Y = A - B (direção da arma)
+    y[0] = ax - bx;
+    y[1] = ay - by;
+    y[2] = az - bz;
+    normalize(y);
+
+    // Z = up projetado perpendicular a Y
+    z[0] = upx;
+    z[1] = upy;
+    z[2] = upz;
+    float t = z[0] * y[0] + z[1] * y[1] + z[2] * y[2];
+    z[0] -= t * y[0];
+    z[1] -= t * y[1];
+    z[2] -= t * y[2];
+    normalize(z);
+
+    // X = Y × Z
+    cross3(y, z, x);
+    normalize(x);
+
+    GLfloat m[4][4] = {
+        x[0], x[1], x[2], 0.0f,
+        y[0], y[1], y[2], 0.0f,
+        z[0], z[1], z[2], 0.0f,
+        (GLfloat)bx, (GLfloat)by, (GLfloat)bz, 1.0f};
+    glMultMatrixf(&m[0][0]);
+}
+static void garanteMalhaArma()
+{
+    if (malhaArmaCarregada)
+        return;
+
+    if (!malhaArma.loadMesh("src/assets/arma.obj"))
+        fprintf(stderr, "Falha ao carregar arma.obj\n");
+
+    if (!malhaArma.vertsPos.empty())
+    {
+        float mn[3] = {1e30f, 1e30f, 1e30f};
+        float mx[3] = {-1e30f, -1e30f, -1e30f};
+        for (auto &v : malhaArma.vertsPos)
+        {
+            mn[0] = fminf(mn[0], v.x);
+            mn[1] = fminf(mn[1], v.y);
+            mn[2] = fminf(mn[2], v.z);
+            mx[0] = fmaxf(mx[0], v.x);
+            mx[1] = fmaxf(mx[1], v.y);
+            mx[2] = fmaxf(mx[2], v.z);
+        }
+    }
+    malhaArmaCarregada = true;
+}
+void Personagem::DesenhaArma()
+{
+    garanteMalhaArma();
+    if (malhaArma.vertsPos.empty())
+        return;
+
+    // ---- Malha ativa da animação ----
+    const mesh *malhaAtiva = nullptr;
+    switch (direcaoAtual)
+    {
+    case DIR_FRENTE:
+        malhaAtiva = animAndandoFrente.getCurrentMesh();
+        break;
+    case DIR_TRAS:
+        malhaAtiva = animAndandoTras.getCurrentMesh();
+        break;
+    case DIR_ESQ:
+        malhaAtiva = animAndandoEsq.getCurrentMesh();
+        break;
+    case DIR_DIR:
+        malhaAtiva = animAndandoDir.getCurrentMesh();
+        break;
+    default:
+        malhaAtiva = animParado.getCurrentMesh();
+        break;
+    }
+    if (!malhaAtiva || malhaAtiva->vertsPos.size() < 100)
+        return;
+
+    // ---- Vértice 100 = posição da mão (1-based no .obj) ----
+    // ombro  face# 1014 : vert# (196 201 202)
+
+    const pos &mao = malhaAtiva->vertsPos[196 - 1];
+
+    // ---- Mesma transformação do corpo ----
+    glPushMatrix();
+
+    glTranslatef(gX, gY, 0.0f);
+    glRotatef(90.0f, 1.0f, 0.0f, 0.0f);       // deita Blender Y-up
+    glRotatef(theta + 180, 0.0f, 1.0f, 0.0f); // gira com o corpo
+    glScalef(malhaEscala, malhaEscala, malhaEscala);
+    glTranslatef(0.0f, -malhaMinY, 0.0f);
+
+    // ---- Ancora no vértice 100 (coordenadas Blender) ----
+    glTranslatef(mao.x, mao.y, mao.z);
+
+    // ---- Mira do mouse ----
+    glRotatef(thetaArma, 0.0f, 0.0f, 1.0f);      // yaw
+    glRotatef(thetaArmaPitch, 1.0f, 0.0f, 0.0f); // pitch
+
+    // ---- Corrige pivô da arma + escala ----
+    glTranslatef(0.0f, 0.0f, 0.0f); // põe o cabo (minY) na mão
+    glScalef(escalaArma, escalaArma, escalaArma);
+
+    // ---- Material ----
+    GLfloat matArma[] = {0.25f, 0.25f, 0.28f, 1.0f};
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, matArma);
+
+    malhaArma.draw();
+    glPopMatrix();
+}
 static void garanteMalhaPersonagem()
 {
-    if (malhaCarregada) return;
+    if (malhaCarregada)
+        return;
 
     if (!malhaPersonagem.loadMesh("./src/assets/mirando.obj"))
         fprintf(stderr, "Falha ao carregar assets/mirando.obj\n");
 
-    if (!malhaPersonagem.vertsPos.empty()) {
-        float mn[3] = { 1e30f, 1e30f, 1e30f};
-        float mx[3] = {-1e30f,-1e30f,-1e30f};
-        for (auto& v : malhaPersonagem.vertsPos) {
-            mn[0]=fminf(mn[0],v.x); mn[1]=fminf(mn[1],v.y); mn[2]=fminf(mn[2],v.z);
-            mx[0]=fmaxf(mx[0],v.x); mx[1]=fmaxf(mx[1],v.y); mx[2]=fmaxf(mx[2],v.z);
+    if (!malhaPersonagem.vertsPos.empty())
+    {
+        float mn[3] = {1e30f, 1e30f, 1e30f};
+        float mx[3] = {-1e30f, -1e30f, -1e30f};
+        for (auto &v : malhaPersonagem.vertsPos)
+        {
+            mn[0] = fminf(mn[0], v.x);
+            mn[1] = fminf(mn[1], v.y);
+            mn[2] = fminf(mn[2], v.z);
+            mx[0] = fmaxf(mx[0], v.x);
+            mx[1] = fmaxf(mx[1], v.y);
+            mx[2] = fmaxf(mx[2], v.z);
         }
 
         malhaMinY = mn[1];
@@ -36,16 +213,16 @@ static void garanteMalhaPersonagem()
         // Altura do modelo no Blender (Y-up). Queremos que a altura visual
         // no jogo seja ~ 2 * raioCabeca = 60 unidades (ou ajuste o fator).
         float altura = mx[1] - mn[1];
-        float maior  = fmaxf(altura, fmaxf(mx[0]-mn[0], mx[2]-mn[2]));
+        float maior = fmaxf(altura, fmaxf(mx[0] - mn[0], mx[2] - mn[2]));
         malhaEscala = (maior > 1e-4f) ? (90.0f / maior) : 1.0f;
     }
     malhaCarregada = true;
 }
 
-
 void Personagem::GaranteAnimacao()
 {
-    if (animCarregada) return;
+    if (animCarregada)
+        return;
 
     animParado.load("src/assets/mirando.obj", 0, 0);
     animParado.setFPS(1.0f);
@@ -71,24 +248,34 @@ void Personagem::GaranteAnimacao()
 }
 void Personagem::AtualizaAnimacaoAnim(float dt)
 {
-    if (!animCarregada) return;
+    if (!animCarregada)
+        return;
 
     // Atualiza todas as animações ativas (só a "atual" precisa de dt,
     // mas resetar as outras evita saltos ao trocar de direção)
-    switch (direcaoAtual) {
-        case DIR_FRENTE: animAndandoFrente.update(dt); break;
-        case DIR_TRAS:   animAndandoTras.update(dt);   break;
-        case DIR_ESQ:    animAndandoEsq.update(dt);    break;
-        case DIR_DIR:    animAndandoDir.update(dt);    break;
-        case DIR_NENHUMA:
-        default:
-            animParado.update(dt);
-            // reseta as outras para começarem do frame 0 ao retomar
-            animAndandoFrente.reset();
-            animAndandoTras.reset();
-            animAndandoEsq.reset();
-            animAndandoDir.reset();
-            break;
+    switch (direcaoAtual)
+    {
+    case DIR_FRENTE:
+        animAndandoFrente.update(dt);
+        break;
+    case DIR_TRAS:
+        animAndandoTras.update(dt);
+        break;
+    case DIR_ESQ:
+        animAndandoEsq.update(dt);
+        break;
+    case DIR_DIR:
+        animAndandoDir.update(dt);
+        break;
+    case DIR_NENHUMA:
+    default:
+        animParado.update(dt);
+        // reseta as outras para começarem do frame 0 ao retomar
+        animAndandoFrente.reset();
+        animAndandoTras.reset();
+        animAndandoEsq.reset();
+        animAndandoDir.reset();
+        break;
     }
 
     emMovimento = (direcaoAtual != DIR_NENHUMA);
@@ -100,9 +287,10 @@ void Personagem::AtualizaAnimacaoAnim(float dt)
 void Personagem::DesenhaPersonagem(GLfloat x, GLfloat y)
 {
     garanteMalhaPersonagem();
-    
+
     // Verifica se há animação carregada
-    if (animParado.empty() && animAndandoFrente.empty()) return;
+    if (animParado.empty() && animAndandoFrente.empty())
+        return;
 
     glPushMatrix();
     glTranslatef(x, y, 0.0f);
@@ -111,26 +299,36 @@ void Personagem::DesenhaPersonagem(GLfloat x, GLfloat y)
     glScalef(malhaEscala, malhaEscala, malhaEscala);
     glTranslatef(0.0f, -malhaMinY, 0.0f);
 
-    switch (direcaoAtual) {
-        case DIR_FRENTE: animAndandoFrente.draw(); break;
-        case DIR_TRAS:   animAndandoTras.draw();   break;
-        case DIR_ESQ:    animAndandoEsq.draw();    break;
-        case DIR_DIR:    animAndandoDir.draw();    break;
-        case DIR_NENHUMA:
-        default:         animParado.draw();        break;
+    switch (direcaoAtual)
+    {
+    case DIR_FRENTE:
+        animAndandoFrente.draw();
+        break;
+    case DIR_TRAS:
+        animAndandoTras.draw();
+        break;
+    case DIR_ESQ:
+        animAndandoEsq.draw();
+        break;
+    case DIR_DIR:
+        animAndandoDir.draw();
+        break;
+    case DIR_NENHUMA:
+    default:
+        animParado.draw();
+        break;
     }
 
     glPopMatrix();
 
     // SetPosColisor(gX, gY, 0.0);
-    DesenhaDebug();
 }
 void Personagem::GirarArma(int x, int y)
-{   
+{
     GLfloat dx = x - gX;
     GLfloat dy = y - gY;
-    GLfloat angulo = (atan2f(dy, dx) * 180.0f / M_PI)-90;
-    if (angulo > 30 or  angulo < -30)
+    GLfloat angulo = (atan2f(dy, dx) * 180.0f / M_PI) - 90;
+    if (angulo > 30 or angulo < -30)
         return;
     thetaArma = angulo;
 }
@@ -142,58 +340,82 @@ void Personagem::Mover(GLfloat dir)
     GLfloat vx = -sinf(rad) * (dir * velocidade);
     GLfloat vy = cosf(rad) * (dir * velocidade);
 
-    
     // arena Altura
-    if ((gY > ((0 - raioCabeca)) and vy > 0) or (gY < -((alturaArena/2)-raioCabeca)  and vy < 0))
+    if ((gY > ((0 - raioCabeca)) and vy > 0) or (gY < -((alturaArena / 2) - raioCabeca) and vy < 0))
         return;
 
     // arena Largura
-    if ((gX > ((larguraArena/2)-raioCabeca) and vx > 0) or (gX < -((larguraArena/2) - raioCabeca) and vx < 0))
+    if ((gX > ((larguraArena / 2) - raioCabeca) and vx > 0) or (gX < -((larguraArena / 2) - raioCabeca) and vx < 0))
         return;
 
     this->gX += vx;
     this->gY += vy;
 
-    SetPosColisor(gX, gY,0.0); // Atualiza o colisor
-    
+    SetPosColisor(gX, gY, 0.0); // Atualiza o colisor
 }
 void Personagem::MoverLado(GLfloat dir)
 {
-    if ((gX > larguraArena-raioCabeca and dir > 0) or (gX < -larguraArena+raioCabeca and dir < 0))
+    if ((gX > larguraArena - raioCabeca and dir > 0) or (gX < -larguraArena + raioCabeca and dir < 0))
         return;
-    gX += dir*velocidade;
+    gX += dir * velocidade;
 
-    SetPosColisor(gX, gY,0.0); // Atualiza o colisor
+    SetPosColisor(gX, gY, 0.0); // Atualiza o colisor
 }
 Tiro *Personagem::Atirar(GLfloat VelocidadeTiro)
 {
-    const GLfloat lx = raioCabeca + (raioCabeca*0.4) - ((raioCabeca*0.4)/2);
-    const GLfloat ly = raioCabeca*1.8;
+    // ---- Malha ativa ----
+    const mesh *malhaAtiva = nullptr;
+    switch (direcaoAtual)
+    {
+    case DIR_FRENTE: malhaAtiva = animAndandoFrente.getCurrentMesh(); break;
+    case DIR_TRAS:   malhaAtiva = animAndandoTras.getCurrentMesh();   break;
+    case DIR_ESQ:    malhaAtiva = animAndandoEsq.getCurrentMesh();    break;
+    case DIR_DIR:    malhaAtiva = animAndandoDir.getCurrentMesh();    break;
+    default:         malhaAtiva = animParado.getCurrentMesh();        break;
+    }
 
-    const GLfloat DegToRad = M_PI / 180.0f;
-    const GLfloat yawRad   = (thetaArma + theta) * DegToRad;
-    const GLfloat pitchRad =  thetaArmaPitch     * DegToRad;
+    // ---- Altura de saída do tiro (ombro/cano) ----
+    // Ajuste esse valor conforme a altura visual da arma (~50 no seu modelo).
+    const float zSaida = 50.0f;
 
-    const GLfloat cp = cosf(pitchRad);
-    const GLfloat c  = cosf(yawRad);
-    const GLfloat s  = sinf(yawRad);
+    // ---- Fallback 1: sem malha → sai do personagem ----
+    if (!malhaAtiva || malhaAtiva->vertsPos.size() < 196)
+    {
+        return new Tiro(gX, gY, zSaida,
+                        theta + thetaArma, thetaArmaPitch,
+                        VelocidadeTiro);
+    }
 
-    // Posição da "boca do cano" (deslocamento horizontal no plano XY)
-    // O deslocamento em X,Y usa cos(pitch) para considerar que o cano
-    // aponta levemente pra cima/baixo.
-    const GLfloat x = gX + (lx * c - ly * s) * cp;
-    const GLfloat y = gY + (lx * s + ly * c) * cp;
+    // ---- Fallback 2 (SE você realmente quiser usar a ponta da arma) ----
+    // Se malhaArma tem o vértice 85, calcula a ponta com a matriz.
+    // Se a bala ainda sair errada, comente este bloco e use só o fallback 1.
+    if (malhaArmaCarregada && malhaArma.vertsPos.size() >= 85)
+    {
+        const pos &mao   = malhaAtiva->vertsPos[196 - 1];  // ombro
+        const pos &ponta = malhaArma.vertsPos[85 - 1];     // ponta do cano
 
-    // Altura de saída: base do personagem + altura aproximada do cano
-    // (ajuste esse offset conforme onde o cano fica no seu modelo)
-    const GLfloat zSaida = 45.0f + sinf(pitchRad) * ly;
+        mat4 M;
+        constroiMatrizArma(
+            gX, gY, theta,
+            thetaArma, thetaArmaPitch,
+            malhaEscala, malhaMinY,
+            mao.x, mao.y, mao.z,
+            0.0f, escalaArma,
+            M);
 
-    return new Tiro(x, y, zSaida,
-                    thetaArma + theta,
-                    thetaArmaPitch,
+        float px, py, pz;
+        mat4_transformPoint(M, ponta.x, ponta.y, ponta.z, px, py, pz);
+
+        return new Tiro(px, py, pz,
+                        theta + thetaArma, thetaArmaPitch,
+                        VelocidadeTiro);
+    }
+
+    // ---- Fallback 3: sem arma válida → sai do personagem ----
+    return new Tiro(gX, gY, zSaida,
+                    theta + thetaArma, thetaArmaPitch,
                     VelocidadeTiro);
 }
-
 
 bool Personagem::Atingido(Colidivel *obj)
 {
@@ -204,33 +426,49 @@ bool Personagem::Atingido(Colidivel *obj)
 
 GLfloat Personagem::CalculaBalancoPasso(GLfloat amplitude) const
 {
-    return sinf(fasePasso) * amplitude *0.06;
+    return sinf(fasePasso) * amplitude * 0.06;
 }
 
-void Personagem::AtualizaAnimacao(GLfloat dt)  
+void Personagem::AtualizaAnimacao(GLfloat dt)
 {
     const GLfloat dx = gX - ultimoX;
     const GLfloat dy = gY - ultimoY;
-    const float dist = sqrtf(dx*dx + dy*dy);
+    const float dist = sqrtf(dx * dx + dy * dy);
 
-    if (dist > 0.01f) {
+    if (dist > 0.01f)
+    {
         emMovimento = true;
         tempoSemMover = 0.0f;
-    } else {
-        tempoSemMover += dt*1000;
-        if (tempoSemMover > 0.1f) emMovimento = false;   // histerese de 100ms
+    }
+    else
+    {
+        tempoSemMover += dt * 1000;
+        if (tempoSemMover > 0.1f)
+            emMovimento = false; // histerese de 100ms
     }
 
-    fasePasso += dist * 0.05f;   // balanço 2D antigo (pode manter para a arma)
+    fasePasso += dist * 0.05f; // balanço 2D antigo (pode manter para a arma)
     ultimoX = gX;
     ultimoY = gY;
 }
 
 void Personagem::SetDirecaoMovimento(int dx, int dy)
 {
-    if (dx == 0 && dy == 0)      direcaoAtual = DIR_NENHUMA;
-    else if (dy > 0)             direcaoAtual = DIR_FRENTE;
-    else if (dy < 0)             direcaoAtual = DIR_TRAS;
-    else if (dx < 0)             direcaoAtual = DIR_ESQ;
-    else if (dx > 0)             direcaoAtual = DIR_DIR;
+    if (dx == 0 && dy == 0)
+        direcaoAtual = DIR_NENHUMA;
+    else if (dy > 0)
+        direcaoAtual = DIR_FRENTE;
+    else if (dy < 0)
+        direcaoAtual = DIR_TRAS;
+    else if (dx < 0)
+        direcaoAtual = DIR_ESQ;
+    else if (dx > 0)
+        direcaoAtual = DIR_DIR;
+}
+
+void Personagem::Desenha()
+{
+    DesenhaPersonagem(gX, gY);
+    DesenhaArma();
+    DesenhaDebug();
 }

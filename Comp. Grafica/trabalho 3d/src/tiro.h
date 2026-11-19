@@ -2,7 +2,7 @@
 #define TIRO_H
 #include <GL/gl.h>
 #include <GL/glu.h>
-#include "colidivel_cilindro.h"   // ← troca de colidivel.h
+#include "colidivel_cilindro.h"
 #include "configuracao.h"
 #include "objloader.h"
 
@@ -10,8 +10,8 @@ class Tiro : public ColidivelCilindro
 {
     GLfloat alturaMax  = 500;
     GLfloat larguraMax = 500;
-    GLfloat gYaw;                // ângulo no plano XY
-    GLfloat gPitch;              // inclinação vertical (graus)
+    GLfloat gYaw;      // ângulo no plano XY (graus)
+    GLfloat gPitch;    // inclinação vertical (graus)
     GLfloat gVel;
 
     static mesh  malhaBala;
@@ -22,11 +22,10 @@ class Tiro : public ColidivelCilindro
     void garanteMalha();
 
 public:
-    // Construtor novo: recebe também o Z inicial e o pitch
-    Tiro(GLfloat x, GLfloat y, GLfloat z,           // posição inicial (base do cilindro)
-         GLfloat yaw, GLfloat pitch,                // direção
+    Tiro(GLfloat x, GLfloat y, GLfloat z,
+         GLfloat yaw, GLfloat pitch,
          GLfloat velocidade)
-        : ColidivelCilindro(x, y,z,/*r=*/5.0f, /*h=*/5.0f)
+        : ColidivelCilindro(x, y, z, /*r=*/10.0f, /*h=*/10.0f)
     {
         gYaw   = yaw;
         gPitch = pitch;

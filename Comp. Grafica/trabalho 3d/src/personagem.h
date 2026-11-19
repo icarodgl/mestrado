@@ -25,8 +25,6 @@ class Personagem : public ColidivelCilindro
     GLfloat ultimoY = 0.0f;
     GLfloat fasePasso = 0.0f;
     GLfloat theta = 0;
-    GLfloat thetaArma = 0;
-    GLfloat thetaArmaPitch = 0.0f; // pitch da arma (graus, -90..+90)
     GLfloat pernas = 40;
     GLfloat velocidade = 5.0;
     GLfloat raioCabeca = 30.0;
@@ -41,6 +39,17 @@ class Personagem : public ColidivelCilindro
     Animation animAndandoDir;
     Animation animParado;
 
+    // sensibilidade da mira
+    GLfloat sensibilidadeMouseYaw = 0.15f; // graus por pixel
+    GLfloat sensibilidadeMousePitch = 0.10f;
+    // limites do pitch
+    GLfloat thetaArma = 0;
+    GLfloat thetaArmaPitch = 0.0f; // pitch da arma (graus, -90..+90)
+    GLfloat pitchMin = -45.0f;
+    GLfloat pitchMax = 60.0f;
+    static const int PONTO_MAO = 1234;
+    static const int PONTO_APONTA = 5678;
+
     DirecaoMovimento direcaoAtual = DIR_NENHUMA;
     bool animCarregada = false;
     bool emMovimento = false;
@@ -50,6 +59,26 @@ private:
     void DesenhaPersonagem(GLfloat x, GLfloat y);
     GLfloat CalculaBalancoPasso(GLfloat amplitude) const;
     void AtualizaAnimacao(GLfloat dt);
+    void DesenhaArma();
+    static void normalize(float a[3])
+    {
+        float n = sqrtf(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]);
+        if (n < 1e-8f)
+            return;
+        a[0] /= n;
+        a[1] /= n;
+        a[2] /= n;
+    }
+    static void cross3(const float a[3], const float b[3], float out[3])
+    {
+        out[0] = a[1] * b[2] - a[2] * b[1];
+        out[1] = a[2] * b[0] - a[0] * b[2];
+        out[2] = a[0] * b[1] - a[1] * b[0];
+    }
+    static void ChangeCoordSys(
+        GLdouble ax, GLdouble ay, GLdouble az,
+        GLdouble bx, GLdouble by, GLdouble bz,
+        GLdouble upx, GLdouble upy, GLdouble upz);
 
 public:
     Personagem() : ColidivelCilindro(0, -180, 0, 10, 80) {};
@@ -58,34 +87,16 @@ public:
     void SetDirecaoMovimento(int dx, int dy); // dx/dy em {-1, 0, 1}
     void Configurar(Configuracao conf)
     {
-        if (conf.jogador.raioCabeca)
-        {
-            raioCabeca = conf.jogador.raioCabeca;
-            pernas = raioCabeca * 1.4;
-        }
-        if (conf.jogador.velocidade)
-        {
-            velocidade = conf.jogador.velocidade;
-        }
-        if (conf.jogador.vida)
-        {
-            vida = conf.jogador.vida;
-        }
-        if (conf.arena.altura and conf.arena.altura >= 100)
-        {
-            alturaArena = conf.arena.altura;
-        }
-        if (conf.arena.largura and conf.arena.largura >= 100)
-        {
-            larguraArena = conf.arena.largura;
-        }
+        raioCabeca = conf.jogador.raioCabeca;
+        pernas = raioCabeca * 1.4;
+        velocidade = conf.jogador.velocidade;
+        vida = conf.jogador.vida;
+        alturaArena = conf.arena.altura;
+        larguraArena = conf.arena.largura;
         GaranteAnimacao();
     }
 
-    void Desenha()
-    {
-        DesenhaPersonagem(gX, gY);
-    };
+    void Desenha();
     bool Atingido(Colidivel *obj);
     void GirarArma(int x, int y);
     void Mover(GLfloat dir);
@@ -150,6 +161,26 @@ public:
     }
 
     float getPitchArma() const { return thetaArmaPitch; }
-};
+    float getYawArma() const { return thetaArma; }
+    void ResetarMiraArma()
+    {
+        thetaArma = 0.0f;
+        thetaArmaPitch = 0.0f;
+    }
+    void GirarArmaComMouse(float dxPixels, float dyPixels)
+    {
+        thetaArma += dxPixels * sensibilidadeMouseYaw;
+        thetaArmaPitch -= dyPixels * sensibilidadeMousePitch;
 
+        if (thetaArmaPitch > pitchMax)
+            thetaArmaPitch = pitchMax;
+        if (thetaArmaPitch < pitchMin)
+            thetaArmaPitch = pitchMin;
+
+        while (thetaArma > 180.0f)
+            thetaArma -= 360.0f;
+        while (thetaArma < -180.0f)
+            thetaArma += 360.0f;
+    }
+};
 #endif

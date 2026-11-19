@@ -32,7 +32,10 @@ public:
     int  frameCount() const        { return (int)m_frames.size(); }
     int  currentFrame() const      { return m_current; }
     bool empty() const             { return m_frames.empty(); }
-
+    const mesh* getCurrentMesh() const {
+        if (m_frames.empty()) return nullptr;
+        return &m_frames[m_current];
+    }
 private:
     std::vector<mesh> m_frames;
     float m_time    = 0.0f;

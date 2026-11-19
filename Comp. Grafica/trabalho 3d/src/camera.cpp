@@ -110,36 +110,32 @@ void camera_apply(void)
                   0.0, 1.0, 0.0);       // Up: Y do mundo
         break;
 
-    case CAM_FIRST_PERSON:
-    {
-        float px = s_targetX;
-        float py = s_targetY;
-        float pz = s_targetZ;
+case CAM_FIRST_PERSON:
+{
+    float px = s_targetX;
+    float py = s_targetY;
+    float pz = s_targetZ;
 
-        float yawRad = s_personagemAngulo * (float)M_PI / 180.0f;
-        float pitchRad = s_pitch * (float)M_PI / 180.0f;
+    float yawRad = s_personagemAngulo * (float)M_PI / 180.0f;
+    float dirX = -sinf(yawRad);
+    float dirY =  cosf(yawRad);
 
-        // direção do olhar (unitária)
-        float dirX = -sinf(yawRad) * cosf(pitchRad);
-        float dirY = cosf(yawRad) * cosf(pitchRad);
-        float dirZ = sinf(pitchRad);
+    float distanciaAtras = 120.0f;
+    float alturaCamera   = 100.0f;
 
-        float distanciaAtras = 120.0f;
-        float alturaCamera = 100.0f;
+    float eyeX = px - dirX * distanciaAtras;
+    float eyeY = py - dirY * distanciaAtras;
+    float eyeZ = pz + alturaCamera;
 
-        float eyeX = px - dirX * distanciaAtras;
-        float eyeY = py - dirY * distanciaAtras;
-        float eyeZ = pz + alturaCamera + dirZ * distanciaAtras;
+    float lookAtX = px + dirX * 100.0f;
+    float lookAtY = py + dirY * 100.0f;
+    float lookAtZ = pz + alturaCamera;
 
-        float lookAtX = px + dirX * 100.0f;
-        float lookAtY = py + dirY * 100.0f;
-        float lookAtZ = pz + alturaCamera + dirZ * 100.0f;
-
-        gluLookAt(eyeX, eyeY, eyeZ,
-                  lookAtX, lookAtY, lookAtZ,
-                  0.0f, 0.0f, 1.0f);
-    }
-    break;
+    gluLookAt(eyeX, eyeY, eyeZ,
+              lookAtX, lookAtY, lookAtZ,
+              0.0f, 0.0f, 1.0f);
+}
+break;
 
     case CAM_ENEMY_VIEW: // Tecla 3: Vista do inimigo para o personagem
         // Inimigo no topo da arena (Y positivo), olhando para baixo (Y negativo)

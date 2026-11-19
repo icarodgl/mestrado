@@ -35,33 +35,7 @@ void Tiro::garanteMalha() {
     malhaCarregada = true;
 }
 
-void Tiro::Desenha()
-{
-    if (malhaBala.vertsPos.empty()) return;
 
-    glPushMatrix();
-
-    // Centro do cilindro: cz + altura/2
-    glTranslatef(cx, cy, cz + altura * 0.5f);
-
-    // 1) Yaw em torno de Z
-    glRotatef(gYaw, 0.0f, 0.0f, 1.0f);
-
-    // 2) Pitch em torno do eixo X local (após o yaw)
-    //    Se seu modelo "olha" para -Y após o yaw, o pitch correto é:
-    glRotatef(gPitch, 1.0f, 0.0f, 0.0f);
-
-    // 3) Deita o modelo Blender (Y-up) no plano XY do jogo
-    glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-
-    glScalef(escalaMalha, escalaMalha, escalaMalha);
-    glTranslatef(0.0f, -minYMalha, 0.0f);
-
-    GLfloat matBala[] = { 1.0f, 0.8f, 0.2f, 1.0f };
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, matBala);
-    malhaBala.draw();
-    glPopMatrix();
-}
 
 void Tiro::Move(GLfloat delta)
 {
@@ -70,15 +44,31 @@ void Tiro::Move(GLfloat delta)
     const GLfloat pitchRad = gPitch * DegToRad;
     const GLfloat cp = cosf(pitchRad);
 
-    const GLfloat vx = -sinf(yawRad) * cp * gVel * delta;
-    const GLfloat vy =  cosf(yawRad) * cp * gVel * delta;
-    const GLfloat vz =  sinf(pitchRad)       * gVel * delta;
+    cx += -sinf(yawRad) * cp * gVel * delta;
+    cy +=  cosf(yawRad) * cp * gVel * delta;
+    cz +=  sinf(pitchRad)       * gVel * delta;
 
-    cx += vx;
-    cy += vy;
-    cz += vz;   // ← NOVO: agora o tiro sobe/desce
+    SetPosColisor(cx, cy, cz);
+}
 
-    SetPosColisor(cx,cy,cz);
+void Tiro::Desenha()
+{
+    if (malhaBala.vertsPos.empty()) return;
+
+    glPushMatrix();
+    glTranslatef(cx, cy, cz + altura * 0.5f);
+
+    glRotatef(gYaw,   0.0f, 0.0f, 1.0f);
+    glRotatef(gPitch, 1.0f, 0.0f, 0.0f);
+    glRotatef(90.0f,  0.0f, 1.0f, 0.0f);
+
+    glScalef(escalaMalha, escalaMalha, escalaMalha);
+    glTranslatef(0.0f, -minYMalha, 0.0f);
+
+    GLfloat matBala[] = { 1.0f, 0.8f, 0.2f, 1.0f };
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, matBala);
+    malhaBala.draw();
+    glPopMatrix();
 }
 
 bool Tiro::Valido()
