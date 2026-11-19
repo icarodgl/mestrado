@@ -39,15 +39,9 @@ void Tiro::garanteMalha() {
 
 void Tiro::Move(GLfloat delta)
 {
-    const GLfloat DegToRad = M_PI / 180.0f;
-    const GLfloat yawRad   = gYaw   * DegToRad;
-    const GLfloat pitchRad = gPitch * DegToRad;
-    const GLfloat cp = cosf(pitchRad);
-
-    cx += -sinf(yawRad) * cp * gVel * delta;
-    cy +=  cosf(yawRad) * cp * gVel * delta;
-    cz +=  sinf(pitchRad)       * gVel * delta;
-
+    cx += dirX * gVel * delta;
+    cy += dirY * gVel * delta;
+    cz += dirZ * gVel * delta;
     SetPosColisor(cx, cy, cz);
 }
 
@@ -55,12 +49,19 @@ void Tiro::Desenha()
 {
     if (malhaBala.vertsPos.empty()) return;
 
+    // Reconstrói yaw/pitch a partir da direção (para orientar a malha)
+    float yawRad   = atan2f(-dirX, dirY);
+    float pitchRad = asinf(fmaxf(-1.0f, fminf(1.0f, dirZ)));
+
+    float yawDeg   = yawRad   * 180.0f / M_PI;
+    float pitchDeg = pitchRad * 180.0f / M_PI;
+
     glPushMatrix();
     glTranslatef(cx, cy, cz + altura * 0.5f);
 
-    glRotatef(gYaw,   0.0f, 0.0f, 1.0f);
-    glRotatef(gPitch, 1.0f, 0.0f, 0.0f);
-    glRotatef(90.0f,  0.0f, 1.0f, 0.0f);
+    glRotatef(yawDeg,   0.0f, 0.0f, 1.0f);
+    glRotatef(pitchDeg, 1.0f, 0.0f, 0.0f);
+    glRotatef(90.0f,    0.0f, 1.0f, 0.0f);
 
     glScalef(escalaMalha, escalaMalha, escalaMalha);
     glTranslatef(0.0f, -minYMalha, 0.0f);
@@ -70,6 +71,7 @@ void Tiro::Desenha()
     malhaBala.draw();
     glPopMatrix();
 }
+
 
 bool Tiro::Valido()
 {

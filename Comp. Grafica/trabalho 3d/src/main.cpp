@@ -283,6 +283,63 @@ static void desenhaUI2D()
     glMatrixMode(GL_MODELVIEW);
 }
 
+// debug d etiro
+void debugTiro()
+{
+    if (debugColisor && personagem.debugTiroValido())
+    {
+        glDisable(GL_LIGHTING);
+        glDisable(GL_DEPTH_TEST);
+        glLineWidth(3.0f);
+
+        // Direção normalizada × 200 unidades
+        float _debugTiroSX, _debugTiroSY, _debugTiroSZ,
+            _debugTiroDX, _debugTiroDY, _debugTiroDZ,
+            _debugTiroPX, _debugTiroPY, _debugTiroPZ;
+        personagem.debugTiro(_debugTiroSX, _debugTiroSY, _debugTiroSZ,
+                             _debugTiroDX, _debugTiroDY, _debugTiroDZ,
+                             _debugTiroPX, _debugTiroPY, _debugTiroPZ);
+        float len = sqrtf(_debugTiroDX * _debugTiroDX + _debugTiroDY * _debugTiroDY + _debugTiroDZ * _debugTiroDZ);
+        if (len > 1e-6f)
+        {
+            _debugTiroDX /= len;
+            _debugTiroDY /= len;
+            _debugTiroDZ /= len;
+        }
+
+        // Linha amarela: saída → saída + 200 * dir
+        glColor3f(1, 1, 0); // amarelo
+        glBegin(GL_LINES);
+        glVertex3f(_debugTiroSX,
+                   _debugTiroSY,
+                   _debugTiroSZ);
+        glVertex3f(_debugTiroSX + _debugTiroDX * 200,
+                   _debugTiroSY + _debugTiroDY * 200,
+                   _debugTiroSZ + _debugTiroDZ * 200);
+        glEnd();
+
+        // Ponto vermelho: saída
+        glPointSize(12);
+        glColor3f(1, 0, 0); // vermelho
+        glBegin(GL_POINTS);
+        glVertex3f(_debugTiroSX,
+                   _debugTiroSY,
+                   _debugTiroSZ);
+        glEnd();
+
+        // Ponto azul: ponta calculada
+        glColor3f(0, 0.5f, 1); // azul
+        glBegin(GL_POINTS);
+        glVertex3f(_debugTiroPX,
+                   _debugTiroPY,
+                   _debugTiroPZ);
+        glEnd();
+
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_LIGHTING);
+    }
+}
+
 // ------------------------------------------------------------------
 // Cena
 // ------------------------------------------------------------------
@@ -300,6 +357,7 @@ void renderScene(void)
     desenhaTiros();
     desenhaBarris();
 
+    debugTiro();
     // 4) HUD por cima (troca de projeção e volta)
     desenhaUI2D();
 
@@ -440,8 +498,6 @@ void mouseAtivo(int x, int y)
     glutPostRedisplay();
 }
 
-
-
 // ------------------------------------------------------------------
 // Init
 // ------------------------------------------------------------------
@@ -462,7 +518,7 @@ void init(void)
     lighting_init();
     lighting_preset_jogo();
 
-    lastMouseX = Width  / 2;
+    lastMouseX = Width / 2;
     lastMouseY = Height / 2;
     // Projeção inicial (reshape também fará isso no primeiro frame)
     camera_reshape(Width, Height);
@@ -476,7 +532,8 @@ void mousePassivo(int x, int y)
     lastMouseY = y;
 
     // Só gira a arma se houve movimento real
-    if (dx != 0.0f || dy != 0.0f) {
+    if (dx != 0.0f || dy != 0.0f)
+    {
         personagem.GirarArmaComMouse(dx, dy);
     }
 

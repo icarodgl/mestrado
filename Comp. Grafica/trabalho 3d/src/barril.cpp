@@ -102,11 +102,11 @@ void Barril::Atingido() {
 Tiro* Barril::Atirar(GLfloat tempo, GLfloat velocidadeTiro) {
     // O barril pode atirar na direção do jogador, mas com um cooldown
     static float ultimoTiro = 0.0f;
-    if (tempo - ultimoTiro > 2000.0f) { // Atira a cada 2 segundos
-        ultimoTiro = tempo;
-        // Calcula o ângulo para o jogador (assumindo que ele esteja em 0,-180)
-        float angulo = atan2f(-180.0f - y, 0.0f - x) * 180.0f / M_PI;
-        return new Tiro(x, y,50, angulo,0.0, velocidadeTiro);
-    }
+    // if (tempo - ultimoTiro > 2000.0f) { // Atira a cada 2 segundos
+    //     ultimoTiro = tempo;
+    //     // Calcula o ângulo para o jogador (assumindo que ele esteja em 0,-180)
+    //     float angulo = atan2f(-180.0f - y, 0.0f - x) * 180.0f / M_PI;
+    //     return new Tiro(x, y,50, angulo,0.0, velocidadeTiro);
+    // }
     return nullptr;
 }

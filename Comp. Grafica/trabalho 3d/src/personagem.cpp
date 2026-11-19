@@ -363,58 +363,54 @@ void Personagem::MoverLado(GLfloat dir)
 }
 Tiro *Personagem::Atirar(GLfloat VelocidadeTiro)
 {
-    // ---- Malha ativa ----
+    const float zFallback = 50.0f;
+
+    if (!malhaArmaCarregada || malhaArma.vertsPos.size() < 85) {
+        return new Tiro(gX, gY, zFallback, 0, 1, 0, VelocidadeTiro);
+    }
+
+    // Mesmo ponto de ancoragem do DesenhaArma (ombro do personagem)
     const mesh *malhaAtiva = nullptr;
-    switch (direcaoAtual)
-    {
-    case DIR_FRENTE: malhaAtiva = animAndandoFrente.getCurrentMesh(); break;
-    case DIR_TRAS:   malhaAtiva = animAndandoTras.getCurrentMesh();   break;
-    case DIR_ESQ:    malhaAtiva = animAndandoEsq.getCurrentMesh();    break;
-    case DIR_DIR:    malhaAtiva = animAndandoDir.getCurrentMesh();    break;
-    default:         malhaAtiva = animParado.getCurrentMesh();        break;
+    switch (direcaoAtual) {
+        case DIR_FRENTE: malhaAtiva = animAndandoFrente.getCurrentMesh(); break;
+        case DIR_TRAS:   malhaAtiva = animAndandoTras.getCurrentMesh();   break;
+        case DIR_ESQ:    malhaAtiva = animAndandoEsq.getCurrentMesh();    break;
+        case DIR_DIR:    malhaAtiva = animAndandoDir.getCurrentMesh();    break;
+        default:         malhaAtiva = animParado.getCurrentMesh();        break;
+    }
+    if (!malhaAtiva || malhaAtiva->vertsPos.size() < 196) {
+        return new Tiro(gX, gY, zFallback, 0, 1, 0, VelocidadeTiro);
     }
 
-    // ---- Altura de saída do tiro (ombro/cano) ----
-    // Ajuste esse valor conforme a altura visual da arma (~50 no seu modelo).
-    const float zSaida = 50.0f;
+    const pos &mao   = malhaAtiva->vertsPos[196 - 1]; // âncora (ombro)
+    const pos &ponta = malhaArma.vertsPos[85 - 1];    // ponta do cano
 
-    // ---- Fallback 1: sem malha → sai do personagem ----
-    if (!malhaAtiva || malhaAtiva->vertsPos.size() < 196)
-    {
-        return new Tiro(gX, gY, zSaida,
-                        theta + thetaArma, thetaArmaPitch,
-                        VelocidadeTiro);
-    }
+    mat4 M;
+    constroiMatrizArma(gX, gY, theta,
+                       thetaArma, thetaArmaPitch,
+                       malhaEscala, malhaMinY,
+                       mao.x, mao.y, mao.z,   // ← âncora correta
+                       0.0f, escalaArma, M);
 
-    // ---- Fallback 2 (SE você realmente quiser usar a ponta da arma) ----
-    // Se malhaArma tem o vértice 85, calcula a ponta com a matriz.
-    // Se a bala ainda sair errada, comente este bloco e use só o fallback 1.
-    if (malhaArmaCarregada && malhaArma.vertsPos.size() >= 85)
-    {
-        const pos &mao   = malhaAtiva->vertsPos[196 - 1];  // ombro
-        const pos &ponta = malhaArma.vertsPos[85 - 1];     // ponta do cano
+    // Scope (âncora) no mundo = M * (0,0,0)
+    float sX, sY, sZ;
+    mat4_transformPoint(M, 0, 0, 0, sX, sY, sZ);
 
-        mat4 M;
-        constroiMatrizArma(
-            gX, gY, theta,
-            thetaArma, thetaArmaPitch,
-            malhaEscala, malhaMinY,
-            mao.x, mao.y, mao.z,
-            0.0f, escalaArma,
-            M);
+    // Ponta no mundo
+    float pX, pY, pZ;
+    mat4_transformPoint(M, ponta.x, ponta.y, ponta.z, pX, pY, pZ);
 
-        float px, py, pz;
-        mat4_transformPoint(M, ponta.x, ponta.y, ponta.z, px, py, pz);
+    // Direção real
+    float dx = pX - sX, dy = pY - sY, dz = pZ - sZ;
 
-        return new Tiro(px, py, pz,
-                        theta + thetaArma, thetaArmaPitch,
-                        VelocidadeTiro);
-    }
+    // debug
+    m_debugTiroSX = sX; m_debugTiroSY = sY; m_debugTiroSZ = sZ;
+    m_debugTiroDX = dx; m_debugTiroDY = dy; m_debugTiroDZ = dz;
+    m_debugTiroPX = pX; m_debugTiroPY = pY; m_debugTiroPZ = pZ;
+    m_debugTiroValido = true;
 
-    // ---- Fallback 3: sem arma válida → sai do personagem ----
-    return new Tiro(gX, gY, zSaida,
-                    theta + thetaArma, thetaArmaPitch,
-                    VelocidadeTiro);
+
+    return new Tiro(sX, sY, sZ, dx, dy, dz, VelocidadeTiro);
 }
 
 bool Personagem::Atingido(Colidivel *obj)
