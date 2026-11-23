@@ -303,8 +303,8 @@ void renderScene(void)
     lighting_apply(); // 2) luzes (na MODELVIEW da câmera)
 
     // 3) objetos 3D
-    arena.Desenha(); // <-- Adicione isso AQUI
     personagem.Desenha();
+    arena.Desenha(); // <-- Adicione isso AQUI
     desenhaTiros();
     desenhaBarris();
 
@@ -381,13 +381,13 @@ void keyPress(unsigned char key, int, int)
         break;
 
     // teclas 2/3/4 trocam preset de iluminação (útil para testar)
-    case '8':
+    case '2':
         lighting_preset_jogo();
         break;
-    case '9':
+    case '3':
         lighting_preset_estudio();
         break;
-    case '0':
+    case '4':
         lighting_preset_sol();
         break;
     case 'v':
@@ -398,6 +398,10 @@ void keyPress(unsigned char key, int, int)
     case 'p':
     case 'P':
         pause = !pause;
+        break;
+    case 'f':
+    case 'F':
+        personagem.AlternarLanterna();
         break;
     case 27:
         exit(0);
@@ -544,14 +548,14 @@ void idle(void)
         {
             float bx, by, bz;
             barris[InimigoCamera]->GetPosition(bx, by, bz);
-            camera_instance().setPosition(bx, by, bz+100);
+            camera_instance().setPosition(bx, by, bz + 100);
             float pxp, pyp;
             personagem.getPos(pxp, pyp);
-            camera_instance().setTarget(pxp,pyp,100);
+            camera_instance().setTarget(pxp, pyp, 100);
         }
         else
         {
-            
+
             // fallback: olha pro personagem com a câmera de cima
             personagem.getPos(px, py);
             camera_instance().setPosition(px, py - 300.0f, 250.0f);

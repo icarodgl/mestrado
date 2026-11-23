@@ -108,7 +108,7 @@ void Arena::Desenha() const {
     float d = profundidade / 2.0f;
     float h = 256.0;
 
-    this->DesenhaLinhaDeConesArena();
+    DesenhaLinhaDeConesArena();
     // ---- Chão ----
     GLfloat matChao[] = { 0.2f, 0.6f, 0.0f, 1.0f };
     glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, matChao);
@@ -138,13 +138,17 @@ void Arena::Desenha() const {
     }
 
     // ---- Paredes ----
-    GLfloat matParede[] = { 0.9f, 0.9f, 0.9f, 1.0f };
+    GLfloat matParede[] = { 1.0f, 1.0f, 1.0f, 1.1f };
     glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, matParede);
+
+   
+
 
     bool usaTextura = (texturaParede != 0);
     if (usaTextura) {
         texture_enable();
         glBindTexture(GL_TEXTURE_2D, texturaParede);
+        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     }
 
     // Repetições horizontais/verticais por parede

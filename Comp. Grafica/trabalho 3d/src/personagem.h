@@ -55,11 +55,13 @@ class Personagem : public ColidivelCilindro
     bool emMovimento = false;
     float tempoSemMover = 0.0f;
 
+    bool lanternaAcesa = false;
+
     // debug
     float m_debugTiroSX = 0, m_debugTiroSY = 0, m_debugTiroSZ = 0;
     float m_debugTiroDX = 0, m_debugTiroDY = 0, m_debugTiroDZ = 0;
     float m_debugTiroPX = 0, m_debugTiroPY = 0, m_debugTiroPZ = 0;
-    bool  m_debugTiroValido = false;
+    bool m_debugTiroValido = false;
 
 private:
     void desenhaDebugTiro();
@@ -189,13 +191,24 @@ public:
         while (thetaArma < -180.0f)
             thetaArma += 360.0f;
     }
-    bool debugTiroValido(){return m_debugTiroValido;}
+    bool debugTiroValido() { return m_debugTiroValido; }
     void getdebugTiro(float &sx, float &sy, float &sz,
-                   float &dx, float &dy, float &dz,
-                   float &px, float &py, float &pz) const {
-        sx = m_debugTiroSX; sy = m_debugTiroSY; sz = m_debugTiroSZ;
-        dx = m_debugTiroDX; dy = m_debugTiroDY; dz = m_debugTiroDZ;
-        px = m_debugTiroPX; py = m_debugTiroPY; pz = m_debugTiroPZ;
+                      float &dx, float &dy, float &dz,
+                      float &px, float &py, float &pz) const
+    {
+        sx = m_debugTiroSX;
+        sy = m_debugTiroSY;
+        sz = m_debugTiroSZ;
+        dx = m_debugTiroDX;
+        dy = m_debugTiroDY;
+        dz = m_debugTiroDZ;
+        px = m_debugTiroPX;
+        py = m_debugTiroPY;
+        pz = m_debugTiroPZ;
     }
+    void AlternarLanterna() { lanternaAcesa = !lanternaAcesa; }
+    bool LanternaAcesa() const { return lanternaAcesa; }
+    void AtualizaLanterna();
 };
+
 #endif

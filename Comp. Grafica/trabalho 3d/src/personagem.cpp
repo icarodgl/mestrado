@@ -21,7 +21,93 @@ static mesh malhaArma;
 static bool malhaArmaCarregada = false;
 static float escalaArma = 1.0;
 
+void Personagem::AtualizaLanterna()
+{
+    // Se a malha da arma ainda não foi carregada, não há pose válida.
+    if (malhaArma.vertsPos.empty())
+        return;
 
+    // ---------- 1) Descobre a malha ativa (igual ao Atirar/DesenhaArma) ----------
+    const mesh *malhaAtiva = nullptr;
+    switch (direcaoAtual) {
+        case DIR_FRENTE: malhaAtiva = animAndandoFrente.getCurrentMesh(); break;
+        case DIR_TRAS:   malhaAtiva = animAndandoTras.getCurrentMesh();   break;
+        case DIR_ESQ:    malhaAtiva = animAndandoEsq.getCurrentMesh();    break;
+        case DIR_DIR:    malhaAtiva = animAndandoDir.getCurrentMesh();    break;
+        default:         malhaAtiva = animParado.getCurrentMesh();        break;
+    }
+    if (!malhaAtiva || malhaAtiva->vertsPos.size() < 196)
+        return;
+
+    const pos &mao = malhaAtiva->vertsPos[196 - 1];
+
+    // ---------- 2) Empilha a MESMA cadeia do Atirar/DesenhaArma ----------
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    glTranslatef(gX, gY, 0.0f);
+    glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+    glRotatef(theta + 180.0f, 0.0f, 1.0f, 0.0f);
+    glScalef(malhaEscala, malhaEscala, malhaEscala);
+    glTranslatef(0.0f, -malhaMinY, 0.0f);
+
+    glTranslatef(mao.x, mao.y, mao.z);
+
+    glRotatef(thetaArma,      0.0f, 0.0f, 1.0f);
+    glRotatef(thetaArmaPitch, 1.0f, 0.0f, 0.0f);
+
+    glScalef(escalaArma, escalaArma, escalaArma);
+    glTranslatef(0.0f, 0.0f, 1.2f);
+
+    GLfloat mv[16];
+    glGetFloatv(GL_MODELVIEW_MATRIX, mv);
+    glPopMatrix();
+
+    // ---------- 3) Extrai posição e direção do cano ----------
+    GLfloat posX = mv[12], posY = mv[13], posZ = mv[14];
+
+    GLfloat dirX = mv[8], dirY = mv[9], dirZ = mv[10];
+    float len = sqrtf(dirX*dirX + dirY*dirY + dirZ*dirZ);
+    if (len > 1e-6f) { dirX /= len; dirY /= len; dirZ /= len; }
+    else             { dirX = 0; dirY = 1; dirZ = 0; }
+
+    // ---------- 4) Configura GL_LIGHT7 como spot do cano ----------
+    const GLenum L = GL_LIGHT7;
+
+    GLfloat pos[4]      = { posX, posY, posZ, 1.0f }; // w=1 => spot/point
+    GLfloat spotDir[3]  = { dirX, dirY, dirZ };
+    GLfloat spotCutoff  = 22.0f;   // abertura do facho (graus)
+    GLfloat spotExp     = 12.0f;   // concentração do facho
+
+    GLfloat ambient[4]  = { 0.00f, 0.00f, 0.00f, 1.0f };
+    GLfloat diffuse[4]  = { 1.00f, 0.97f, 0.82f, 1.0f }; // tom levemente amarelado
+    GLfloat specular[4] = { 1.00f, 1.00f, 1.00f, 1.0f };
+
+    if (lanternaAcesa)
+    {
+        glEnable(L);
+
+        glLightfv(L, GL_POSITION, pos);
+        glLightfv(L, GL_AMBIENT,  ambient);
+        glLightfv(L, GL_DIFFUSE,  diffuse);
+        glLightfv(L, GL_SPECULAR, specular);
+
+        // atenuação: alcance moderado (ajuste ao seu mundo)
+        glLightf(L, GL_CONSTANT_ATTENUATION,  1.0f);
+        glLightf(L, GL_LINEAR_ATTENUATION,    0.0025f);
+        glLightf(L, GL_QUADRATIC_ATTENUATION, 0.0f);
+
+        // forma de spot
+        glLightfv(L, GL_SPOT_DIRECTION, spotDir);
+        glLightf (L, GL_SPOT_CUTOFF,    spotCutoff);
+        glLightf (L, GL_SPOT_EXPONENT,  spotExp);
+    }
+    else
+    {
+        glDisable(L);
+    }
+}
 static void garanteMalhaArma()
 {
     if (malhaArmaCarregada)
@@ -408,6 +494,7 @@ void Personagem::Desenha()
     DesenhaArma();
     DesenhaDebug();
     desenhaDebugTiro();
+    AtualizaLanterna();
 }
 
 void Personagem::desenhaDebugTiro()
