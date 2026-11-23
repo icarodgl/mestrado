@@ -67,40 +67,7 @@ static void constroiMatrizArma(
     mat4_scale(s, escalaArma);
     mat4_mul(out, s, out);
 }
-void Personagem::ChangeCoordSys(
-    GLdouble ax, GLdouble ay, GLdouble az,
-    GLdouble bx, GLdouble by, GLdouble bz,
-    GLdouble upx, GLdouble upy, GLdouble upz)
-{
-    float x[3], y[3], z[3];
 
-    // Y = A - B (direção da arma)
-    y[0] = ax - bx;
-    y[1] = ay - by;
-    y[2] = az - bz;
-    normalize(y);
-
-    // Z = up projetado perpendicular a Y
-    z[0] = upx;
-    z[1] = upy;
-    z[2] = upz;
-    float t = z[0] * y[0] + z[1] * y[1] + z[2] * y[2];
-    z[0] -= t * y[0];
-    z[1] -= t * y[1];
-    z[2] -= t * y[2];
-    normalize(z);
-
-    // X = Y × Z
-    cross3(y, z, x);
-    normalize(x);
-
-    GLfloat m[4][4] = {
-        x[0], x[1], x[2], 0.0f,
-        y[0], y[1], y[2], 0.0f,
-        z[0], z[1], z[2], 0.0f,
-        (GLfloat)bx, (GLfloat)by, (GLfloat)bz, 1.0f};
-    glMultMatrixf(&m[0][0]);
-}
 static void garanteMalhaArma()
 {
     if (malhaArmaCarregada)
@@ -226,7 +193,7 @@ void Personagem::GaranteAnimacao()
 
     animParado.load("src/assets/mirando.obj", 0, 0);
     animParado.setFPS(1.0f);
-    animParado.setLoop(false);
+    animParado.setLoop(true);
 
     animAndandoFrente.load("src/assets/andando_frente/passo%d.obj", 1, 11);
     animAndandoFrente.setFPS(12.0f);
