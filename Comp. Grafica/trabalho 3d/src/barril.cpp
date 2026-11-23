@@ -6,7 +6,7 @@
 // Inicialização das variáveis estáticas
 mesh Barril::malhaBarril;
 bool Barril::malhaCarregada = false;
-float Barril::escalaMalha = 1.0f;
+float Barril::escalaMalha = 0.6f;
 float Barril::minYMalha = 0.0f;
 
 void Barril::garanteMalha() {
@@ -38,8 +38,9 @@ void Barril::garanteMalha() {
 
 void Barril::Configurar(Configuracao conf) {
     if (conf.barril.velocidade) {
-        velocidade = conf.barril.velocidade * 1.0f; // Ajuste o multiplicador
+        velocidade = conf.barril.velocidade; // Ajuste o multiplicador
     }
+    maxDistBarril = conf.arena.altura;
 }
 
 void Barril::Mirar(GLfloat px, GLfloat py) {
@@ -92,7 +93,7 @@ void Barril::Desenha() {
 
 bool Barril::Valido() {
     // Se sair da tela ou a vida acabar, ele deixa de ser válido
-    return (vida > 0 && y > -200.0f);
+    return (vida > 0 && y > -(maxDistBarril)/2);
 }
 
 void Barril::Atingido() {

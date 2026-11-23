@@ -27,7 +27,7 @@ public:
     Tiro(GLfloat x, GLfloat y, GLfloat z,
          GLfloat dx, GLfloat dy, GLfloat dz,
          GLfloat velocidade)
-        : ColidivelCilindro(x, y, z, /*r=*/10.0f, /*h=*/10.0f)
+        : ColidivelCilindro(x, y, z, /*r=*/2.0f, /*h=*/5.0f)
     {
         float len = sqrtf(dx*dx + dy*dy + dz*dz);
         if (len < 1e-6f) { dx = 0; dy = 1; dz = 0; len = 1; }

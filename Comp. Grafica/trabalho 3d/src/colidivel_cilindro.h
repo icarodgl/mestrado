@@ -82,6 +82,7 @@ public:
         glDisable(GL_BLEND);
         glEnable(GL_LIGHTING);
         glPopMatrix();
+        
     }
     static bool ColideCilindro3D(const ColidivelCilindro& a, const ColidivelCilindro& b) {
         // 1) Teste no plano XY (círculo vs círculo)

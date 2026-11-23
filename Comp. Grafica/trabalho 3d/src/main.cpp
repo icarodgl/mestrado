@@ -50,6 +50,7 @@ GLfloat tempoTiro = 0.0;
 Tiro *tiros[qtTiro] = {};
 Tiro *tirosInimigo[qtTiro] = {};
 Barril *barris[qtBarril] = {};
+int InimigoCamera = -1;
 
 // ------------------------------------------------------------------
 // Tempo
@@ -202,6 +203,12 @@ static void desenhaTiros()
 // ------------------------------------------------------------------
 // Barris
 // ------------------------------------------------------------------
+static int barrilAlvoIdx()
+{
+    for (int i = 0; i < qtBarril; ++i)
+        if (barris[i] != nullptr) return i;
+    return -1;
+}
 static void controlaBarris(GLfloat dt)
 {
     if (pause)
@@ -230,6 +237,7 @@ static void controlaBarris(GLfloat dt)
     {
         if (!barris[i])
             continue;
+
 
         barris[i]->setDebug(debugColisor);
         barris[i]->Mirar(px, py);
@@ -283,63 +291,6 @@ static void desenhaUI2D()
     glMatrixMode(GL_MODELVIEW);
 }
 
-// debug d etiro
-void debugTiro()
-{
-    if (debugColisor && personagem.debugTiroValido())
-    {
-        glDisable(GL_LIGHTING);
-        glDisable(GL_DEPTH_TEST);
-        glLineWidth(3.0f);
-
-        // Direção normalizada × 200 unidades
-        float _debugTiroSX, _debugTiroSY, _debugTiroSZ,
-            _debugTiroDX, _debugTiroDY, _debugTiroDZ,
-            _debugTiroPX, _debugTiroPY, _debugTiroPZ;
-        personagem.debugTiro(_debugTiroSX, _debugTiroSY, _debugTiroSZ,
-                             _debugTiroDX, _debugTiroDY, _debugTiroDZ,
-                             _debugTiroPX, _debugTiroPY, _debugTiroPZ);
-        float len = sqrtf(_debugTiroDX * _debugTiroDX + _debugTiroDY * _debugTiroDY + _debugTiroDZ * _debugTiroDZ);
-        if (len > 1e-6f)
-        {
-            _debugTiroDX /= len;
-            _debugTiroDY /= len;
-            _debugTiroDZ /= len;
-        }
-
-        // Linha amarela: saída → saída + 200 * dir
-        glColor3f(1, 1, 0); // amarelo
-        glBegin(GL_LINES);
-        glVertex3f(_debugTiroSX,
-                   _debugTiroSY,
-                   _debugTiroSZ);
-        glVertex3f(_debugTiroSX + _debugTiroDX * 200,
-                   _debugTiroSY + _debugTiroDY * 200,
-                   _debugTiroSZ + _debugTiroDZ * 200);
-        glEnd();
-
-        // Ponto vermelho: saída
-        glPointSize(12);
-        glColor3f(1, 0, 0); // vermelho
-        glBegin(GL_POINTS);
-        glVertex3f(_debugTiroSX,
-                   _debugTiroSY,
-                   _debugTiroSZ);
-        glEnd();
-
-        // Ponto azul: ponta calculada
-        glColor3f(0, 0.5f, 1); // azul
-        glBegin(GL_POINTS);
-        glVertex3f(_debugTiroPX,
-                   _debugTiroPY,
-                   _debugTiroPZ);
-        glEnd();
-
-        glEnable(GL_DEPTH_TEST);
-        glEnable(GL_LIGHTING);
-    }
-}
-
 // ------------------------------------------------------------------
 // Cena
 // ------------------------------------------------------------------
@@ -357,7 +308,7 @@ void renderScene(void)
     desenhaTiros();
     desenhaBarris();
 
-    debugTiro();
+    // debugTiro();
     // 4) HUD por cima (troca de projeção e volta)
     desenhaUI2D();
 
@@ -420,19 +371,13 @@ void keyPress(unsigned char key, int, int)
         camera_set_base_height(camera_get_base_height() - 10.0f);
         break;
     case ']':
+
         camera_set_base_height(camera_get_base_height() + 10.0f);
         break;
-    case '1':
-        camera_set_mode(CAM_TOP_DOWN);
-        break;
-    case '2':
-        camera_set_mode(CAM_FIRST_PERSON);
-        break;
-    case '3':
-        camera_set_mode(CAM_ENEMY_VIEW);
-        break;
-    case '4':
-        camera_set_mode(CAM_ARENA_BASE);
+
+    case '\t': // Tab (ASCII 9)
+        camera_cycle_mode();
+        camera_reshape(glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
         break;
 
     // teclas 2/3/4 trocam preset de iluminação (útil para testar)
@@ -590,11 +535,39 @@ void idle(void)
     controlaBarris(dt);
     personagem.SetDirecaoMovimento(dx, dy);
     personagem.AtualizaAnimacaoAnim(dt);
+    InimigoCamera = barrilAlvoIdx();
+    GLfloat px, py, pz;
+    switch (camera_get_mode())
+    {
+    case CAM_ENEMY_VIEW:
+        if (InimigoCamera >= 0)
+        {
+           barris[InimigoCamera]->GetPosition(px, py, pz);
+            camera_instance().setPosition( px, py, 200.0);
+            personagem.getPos(px, py);
+            camera_instance().setTarget(0.0, -1000.0, 10.0f);
+        }
+        else
+        {
+            personagem.getPos(px, py);
+            camera_set_target(px, py, 0.0f);
+        }
+        break;
 
-    GLfloat px, py;
-    personagem.getPos(px, py);
-    camera_set_target(px, py, 5.0);
-    camera_set_direcao(personagem.getAngulo());
+    case CAM_FIRST_PERSON:
+    case CAM_THERD_PERSON:
+        personagem.getPos(px, py);
+        camera_set_target(px, py, 5.0f);
+        camera_set_direcao(personagem.getAngulo());
+        break;
+
+    default:
+        personagem.getPos(px, py);
+        camera_set_target(px, py, 5.0f);
+        camera_use_explicit_pose(false);
+        // camera_set_direcao(personagem.getAngulo());
+        break;
+    }
 
     glutPostRedisplay();
 }

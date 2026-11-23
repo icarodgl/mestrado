@@ -1,5 +1,4 @@
 #include "camera.h"
-#include <GL/gl.h>
 #include <GL/glu.h>
 #include <math.h>
 
@@ -7,167 +6,229 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-static CameraMode s_mode = CAM_FIRST_PERSON;
-static float s_distance = 1000.0f;
-static float s_angleXZ = 90.0f;
-static float s_angleXY = 30.0f;
-static float s_targetX = 0.0f;
-static float s_targetY = 0.0f;
-static float s_targetZ = 0.0f;
-static float s_baseHeight = 100.0f; // Altura regulável para a câmera 4
-static float s_personagemAngulo = 0.0f;
-static float s_pitch = 0.0f; // pitch em graus (-89..+89)
+// -------------------------------------------------------------------
+// Camera
+// -------------------------------------------------------------------
+Camera::Camera() { init(); }
 
-void camera_init(void)
+void Camera::init()
 {
-    s_mode = CAM_FIRST_PERSON;
-    s_distance = 900.0f;
-    s_angleXZ = 90.0f;
-    s_angleXY = 30.0f;
-    s_targetX = s_targetY = s_targetZ = 0.0f;
-    s_baseHeight = 100.0f;
-}
-void camera_set_pitch(float anguloGraus)
-{
-    if (anguloGraus > 89.0f)
-        anguloGraus = 89.0f;
-    if (anguloGraus < -89.0f)
-        anguloGraus = -89.0f;
-    s_pitch = anguloGraus;
-}
-void camera_set_target(float x, float y, float z)
-{
-    s_targetX = x;
-    s_targetY = y;
-    s_targetZ = z;
-}
-void camera_set_direcao(float anguloGraus)
-{
-    s_personagemAngulo = anguloGraus;
+    mode = CAM_FIRST_PERSON;
+    distance = 1200.0f;
+    angleXZ  = 0.0f;
+    angleXY  = 30.0f;
+    target   = {0, 0, 0};
+    position = {0, 0, 0};
+    up       = {0, 0, 1};
+    baseHeight = 100.0f;
+    pitch = 0.0f;
+    personagemAngulo = 0.0f;
+    useExplicitPose = false;
 }
 
-void camera_set_base_height(float h) { s_baseHeight = h; }
-float camera_get_base_height()
+void Camera::setPitch(float graus)
 {
-    return s_baseHeight;
-};
-void camera_set_mode(CameraMode m) { s_mode = m; }
-CameraMode camera_get_mode(void) { return s_mode; }
-
-void camera_cycle_mode(void) { s_mode = (CameraMode)((s_mode + 1) % CAM_COUNT); }
-
-void camera_set_zoom(float delta)
-{
-    s_distance += delta;
-    if (s_distance < 50.0f)
-        s_distance = 50.0f;
-    if (s_distance > 5000.0f)
-        s_distance = 5000.0f;
+    if (graus >  89.0f) graus =  89.0f;
+    if (graus < -89.0f) graus = -89.0f;
+    pitch = graus;
 }
 
-void camera_orbit(float dxPixels, float dyPixels)
+void Camera::setZoom(float delta)
 {
-    s_angleXZ -= dxPixels * 0.5f;
-    s_angleXY += dyPixels * 0.5f;
-    if (s_angleXY > 89.0f)
-        s_angleXY = 89.0f;
-    if (s_angleXY < -89.0f)
-        s_angleXY = -89.0f;
-    while (s_angleXZ >= 360.0f)
-        s_angleXZ -= 360.0f;
-    while (s_angleXZ < 0.0f)
-        s_angleXZ += 360.0f;
+    distance += delta;
+    if (distance < 50.0f)   distance = 50.0f;
+    if (distance > 5000.0f) distance = 5000.0f;
 }
 
-void camera_reshape(int w, int h)
+void Camera::orbit(float dxPixels, float dyPixels)
 {
-    if (h == 0)
-        h = 1;
+    angleXZ -= dxPixels * 0.5f;
+    angleXY += dyPixels * 0.5f;
+    if (angleXY >  89.0f) angleXY =  89.0f;
+    if (angleXY < -89.0f) angleXY = -89.0f;
+    while (angleXZ >= 360.0f) angleXZ -= 360.0f;
+    while (angleXZ <    0.0f) angleXZ += 360.0f;
+}
+
+void Camera::setMode(CameraMode m)
+{
+    if (m == mode) return;
+    mode = m;
+    // ao trocar de modo, volta a usar o cálculo interno
+    useExplicitPose = false;
+}
+
+void Camera::cycleMode()
+{
+    setMode((CameraMode)((mode + 1) % CAM_COUNT));
+}
+
+void Camera::setNearFarForMode()
+{
+    switch (mode)
+    {
+    case CAM_FIRST_PERSON:
+        nearPlane = 0.5;  farPlane = 5000.0;
+        break;
+    case CAM_THERD_PERSON:
+        nearPlane = 1.0;  farPlane = 5000.0;
+        break;
+    case CAM_ENEMY_VIEW:
+    case CAM_ARENA_BASE:
+    case CAM_TOP_DOWN:
+    case CAM_ORBIT:
+    default:
+        nearPlane = 1.0;  farPlane = 10000.0;
+        break;
+    }
+}
+
+Vec3 Camera::computeEye() const    { Vec3 e, l, u; computePose(e, l, u); return e; }
+Vec3 Camera::computeLookAt() const { Vec3 e, l, u; computePose(e, l, u); return l; }
+
+// Calcula eye/look/up por modo. Se useExplicitPose==true, retorna
+// position/target/up diretamente (controle manual).
+void Camera::computePose(Vec3 &eye, Vec3 &look, Vec3 &upv) const
+{
+    if (useExplicitPose)
+    {
+        eye  = position;
+        look = target;
+        upv  = up;
+        return;
+    }
+
+    const float axz = angleXZ * (float)M_PI / 180.0f;
+    const float axy = angleXY * (float)M_PI / 180.0f;
+    const float yawRad = personagemAngulo * (float)M_PI / 180.0f;
+    const float dirX = -sinf(yawRad);
+    const float dirY =  cosf(yawRad);
+
+    switch (mode)
+    {
+    case CAM_TOP_DOWN:
+        eye  = {0, 0, distance};
+        look = {0, 0, 0};
+        upv  = {0, 1, 0};
+        break;
+
+    case CAM_THERD_PERSON:
+    {
+        float px = target.x;
+        float py = target.y;
+        float pz = target.z + 80.0f;
+
+        float dist = distance * thirdPersonFactor;
+        float alt  = thirdPersonHeight;
+
+        eye  = { px - dirX * dist, py - dirY * dist, pz + alt };
+        look = { px, py, pz };
+        upv  = { 0, 0, 1 };
+        break;
+    }
+
+    case CAM_FIRST_PERSON:
+    {
+        float px = target.x;
+        float py = target.y + firstPersonEyeY;
+        float pz = target.z + firstPersonEyeZ;
+
+        eye = { px + dirX * firstPersonAdvance,
+                py + dirY * firstPersonAdvance,
+                pz };
+
+        float pitchRad = pitch * (float)M_PI / 180.0f;
+        float cp = cosf(pitchRad), sp = sinf(pitchRad);
+        float lookX = dirX * cp;
+        float lookY = dirY * cp;
+        float lookZ = sp;
+
+        look = { eye.x + lookX, eye.y + lookY, eye.z + lookZ };
+
+        upv = { 0, 0, 1 };
+        if (fabsf(sp) > 0.999f) upv = { -dirX, -dirY, 0.0f };
+        break;
+    }
+
+    case CAM_ENEMY_VIEW:
+        eye  = { target.x, 250.0f, 150.0f };
+        look = { target.x, 0.0f,   0.0f };
+        upv  = { 0, 0, 1 };
+        break;
+
+    case CAM_ARENA_BASE:
+        eye  = { target.x, 800.0f, baseHeight + 50.0f };
+        look = { target.x, 300.0f, baseHeight };
+        upv  = { 0, 0, 1 };
+        break;
+
+    case CAM_ORBIT:
+    default:
+        eye  = { target.x + distance * sinf(axz) * cosf(axy),
+                 target.y + distance * sinf(axy),
+                 target.z + distance * cosf(axz) * cosf(axy) };
+        look = { target.x, target.y, target.z };
+        upv  = { 0, 1, 0 };
+        break;
+    }
+}
+
+void Camera::reshape(int w, int h)
+{
+    if (h == 0) h = 1;
     glViewport(0, 0, w, h);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    // FOV de 45 graus, plano de corte perto e longe
     gluPerspective(45.0, (double)w / (double)h, 1.0, 10000.0);
     glMatrixMode(GL_MODELVIEW);
+    setNearFarForMode();
 }
 
-void camera_apply(void)
+void Camera::apply()
 {
+    setNearFarForMode();
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    GLint vp[4];
+    glGetIntegerv(GL_VIEWPORT, vp);
+    gluPerspective(45.0,
+                   (double)vp[2] / (double)vp[3],
+                   nearPlane, farPlane);
+
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    float axz = s_angleXZ * (float)M_PI / 180.0f;
-    float axy = s_angleXY * (float)M_PI / 180.0f;
+    Vec3 eye, look, upv;
+    computePose(eye, look, upv);
 
-    // Supondo que a arena tenha 150 de altura (Y) e 200 de largura (X)
-    // O centro da arena é (0,0,0)
-
-    switch (s_mode)
-    {
-    case CAM_TOP_DOWN:                  // Tecla 1: Vista de cima
-        gluLookAt(0.0, 0.0, s_distance, // Eye: cima no eixo Z
-                  0.0, 0.0, 0.0,        // Center: centro da arena
-                  0.0, 1.0, 0.0);       // Up: Y do mundo
-        break;
-
-case CAM_FIRST_PERSON:
-{
-    float px = s_targetX;
-    float py = s_targetY;
-    float pz = s_targetZ;
-
-    float yawRad = s_personagemAngulo * (float)M_PI / 180.0f;
-    float dirX = -sinf(yawRad);
-    float dirY =  cosf(yawRad);
-
-    float distanciaAtras = 120.0f;
-    float alturaCamera   = 100.0f;
-
-    float eyeX = px - dirX * distanciaAtras;
-    float eyeY = py - dirY * distanciaAtras;
-    float eyeZ = pz + alturaCamera;
-
-    float lookAtX = px + dirX * 100.0f;
-    float lookAtY = py + dirY * 100.0f;
-    float lookAtZ = pz + alturaCamera;
-
-    gluLookAt(eyeX, eyeY, eyeZ,
-              lookAtX, lookAtY, lookAtZ,
-              0.0f, 0.0f, 1.0f);
+    gluLookAt(eye.x, eye.y, eye.z,
+              look.x, look.y, look.z,
+              upv.x, upv.y, upv.z);
 }
-break;
 
-    case CAM_ENEMY_VIEW: // Tecla 3: Vista do inimigo para o personagem
-        // Inimigo no topo da arena (Y positivo), olhando para baixo (Y negativo)
-        {
-            float px = s_targetX;         // Pega a posição X do personagem para "seguir"
-            gluLookAt(px, 250.0f, 150.0f, // Eye: topo da arena, um pouco elevado
-                      px, 0.0f, 0.0f,     // Center: olhando para o centro/baixo
-                      0.0, 0.0, 1.0);     // Up: Z para cima
-        }
-        break;
+// -------------------------------------------------------------------
+// Instância global + wrappers legados
+// -------------------------------------------------------------------
+static Camera g_camera;
 
-    case CAM_ARENA_BASE: // Tecla 4: Base olhando para o fundo
-    {
-        // s_baseHeight regula a altura (Y) da câmera na base
-        float h = s_baseHeight;
-        float px = s_targetX;          // Segue o personagem no eixo X
-        gluLookAt(px, -800.0f, h + 50, // Eye: fundo da arena (Y negativo)
-                  px, 300.0f, h,       // Center: olhando para o topo
-                  0.0, 0.0, 1.0);      // Up: Z é a altura na tela
-    }
-    break;
+Camera &camera_instance() { return g_camera; }
 
-    case CAM_ORBIT: // Extra: Órbita livre
-    default:
-    {
-        float ex = s_targetX + s_distance * sinf(axz) * cosf(axy);
-        float ey = s_targetY + s_distance * sinf(axy);
-        float ez = s_targetZ + s_distance * cosf(axz) * cosf(axy);
-        gluLookAt(ex, ey, ez,
-                  s_targetX, s_targetY, s_targetZ,
-                  0.0, 1.0, 0.0);
-    }
-    break;
-    }
-}
+void camera_init(void)              { g_camera.init(); }
+void camera_reshape(int w, int h)   { g_camera.reshape(w, h); }
+void camera_apply(void)             { g_camera.apply(); }
+
+void camera_set_mode(CameraMode m)  { g_camera.setMode(m); }
+void camera_set_direcao(float a)    { g_camera.setDirection(a); }
+CameraMode camera_get_mode(void)    { return g_camera.getMode(); }
+void camera_cycle_mode(void)        { g_camera.cycleMode(); }
+void camera_set_zoom(float d)       { g_camera.setZoom(d); }
+void camera_orbit(float dx, float dy){ g_camera.orbit(dx, dy); }
+void camera_set_target(float x, float y, float z) { g_camera.setTarget(x, y, z); }
+void camera_set_base_height(float h){ g_camera.setBaseHeight(h); }
+float camera_get_base_height()      { return g_camera.getBaseHeight(); }
+void camera_set_pitch(float a)      { g_camera.setPitch(a); }
+void set_near_plane(float np)       { g_camera.setNearPlane(np); }
+
+void camera_set_position(float x, float y, float z) { g_camera.setPosition(x, y, z); }
+void camera_use_explicit_pose(bool on)              { g_camera.useExplicitPose = on; }

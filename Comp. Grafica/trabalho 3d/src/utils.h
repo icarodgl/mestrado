@@ -96,5 +96,86 @@ inline void mat4_transformPoint(const mat4 m,
     oy = m[1]*x + m[5]*y + m[9]*z  + m[13];
     oz = m[2]*x + m[6]*y + m[10]*z + m[14];
 }
+// ---------- helpers de cone ----------
+static void normalize3(float &x, float &y, float &z)
+{
+    float n = sqrtf(x*x + y*y + z*z);
+    if (n < 1e-8f) { x = 0; y = 1; z = 0; return; }
+    x /= n; y /= n; z /= n;
+}
+
+// Constrói base ortonormal (U,V) perpendicular a D
+static void basePerpendicular(float Dx, float Dy, float Dz,
+                              float &Ux, float &Uy, float &Uz,
+                              float &Vx, float &Vy, float &Vz)
+{
+    // escolhe um "up" que NÃO seja paralelo a D
+    float ax, ay, az;
+    if (fabsf(Dz) < 0.9f) { ax = 0; ay = 0; az = 1; }
+    else                  { ax = 1; ay = 0; az = 0; }
+
+    // U = normalize(up × D)
+    Ux = ay*Dz - az*Dy;
+    Uy = az*Dx - ax*Dz;
+    Uz = ax*Dy - ay*Dx;
+    normalize3(Ux, Uy, Uz);
+
+    // V = D × U
+    Vx = Dy*Uz - Dz*Uy;
+    Vy = Dz*Ux - Dx*Uz;
+    Vz = Dx*Uy - Dy*Ux;
+    normalize3(Vx, Vy, Vz);
+}
+
+// Gera direção dentro de um cone de semiângulo halfAngleGraus em torno de D
+static void direcaoNoCone(float Dx, float Dy, float Dz,
+                          float halfAngleGraus,
+                          float &ox, float &oy, float &oz)
+{
+    normalize3(Dx, Dy, Dz);
+    float Ux, Uy, Uz, Vx, Vy, Vz;
+    basePerpendicular(Dx, Dy, Dz, Ux, Uy, Uz, Vx, Vy, Vz);
+
+    // cos(phi) uniforme na calota esférica -> densidade uniforme no cone
+    float halfRad = halfAngleGraus * (float)M_PI / 180.0f;
+    float cosMin  = cosf(halfRad);
+    float cosPhi  = cosMin + (1.0f - cosMin) * ((float)rand() / RAND_MAX);
+    float sinPhi  = sqrtf(fmaxf(0.0f, 1.0f - cosPhi * cosPhi));
+
+    float theta = ((float)rand() / RAND_MAX) * 2.0f * (float)M_PI;
+    float cs = cosf(theta), sn = sinf(theta);
+
+    // direção final = cosPhi*D + sinPhi*(cs*U + sn*V)
+    ox = cosPhi * Dx + sinPhi * (cs * Ux + sn * Vx);
+    oy = cosPhi * Dy + sinPhi * (cs * Uy + sn * Vy);
+    oz = cosPhi * Dz + sinPhi * (cs * Uz + sn * Vz);
+    normalize3(ox, oy, oz);
+}
+// ---------- helpers para desenhar o cone no debug ----------
+static void norm3(float &x, float &y, float &z)
+{
+    float n = sqrtf(x*x + y*y + z*z);
+    if (n < 1e-8f) { x = 0; y = 1; z = 0; return; }
+    x /= n; y /= n; z /= n;
+}
+
+static void basePerp(float Dx, float Dy, float Dz,
+                     float &Ux, float &Uy, float &Uz,
+                     float &Vx, float &Vy, float &Vz)
+{
+    float ax, ay, az;
+    if (fabsf(Dz) < 0.9f) { ax = 0; ay = 0; az = 1; }
+    else                  { ax = 1; ay = 0; az = 0; }
+
+    Ux = ay*Dz - az*Dy;
+    Uy = az*Dx - ax*Dz;
+    Uz = ax*Dy - ay*Dx;
+    norm3(Ux, Uy, Uz);
+
+    Vx = Dy*Uz - Dz*Uy;
+    Vy = Dz*Ux - Dx*Uz;
+    Vz = Dx*Uy - Dy*Ux;
+    norm3(Vx, Vy, Vz);
+}
 
 #endif

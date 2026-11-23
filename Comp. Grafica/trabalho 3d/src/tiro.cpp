@@ -42,6 +42,8 @@ void Tiro::Move(GLfloat delta)
     cx += dirX * gVel * delta;
     cy += dirY * gVel * delta;
     cz += dirZ * gVel * delta;
+
+
     SetPosColisor(cx, cy, cz);
 }
 
@@ -70,6 +72,8 @@ void Tiro::Desenha()
     glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, matBala);
     malhaBala.draw();
     glPopMatrix();
+
+    DesenhaDebug();
 }
 
 

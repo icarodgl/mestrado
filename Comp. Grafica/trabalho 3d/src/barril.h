@@ -14,6 +14,7 @@ private:
     GLfloat anguloRotacao; // NOVO: para fazer o barril girar
     int vida;
     int tipo; // 0 ou 1 (usado para textura/cor, se quiser diferenciar)
+    float maxDistBarril = 2000;
 
     // Variáveis estáticas para carregar a malha apenas uma vez
     static mesh malhaBarril;
@@ -47,6 +48,14 @@ public:
         y = this->y - 20.0f;
         w = this->x + 20.0f;
         h = this->y + 20.0f;
+    }
+    void GetPosition(GLfloat &outX, GLfloat &outY, GLfloat &outZ){
+    
+        outX = x;
+        outY = y;
+        outZ = z;
+
+        printf("x %f , y %f , z %f \n",x,y,z);
     }
 };
 

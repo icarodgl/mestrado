@@ -21,52 +21,6 @@ static mesh malhaArma;
 static bool malhaArmaCarregada = false;
 static float escalaArma = 1.0;
 
-// Constrói a matriz que leva um ponto local da arma ao espaço do mundo.
-// Deve replicar EXATAMENTE a cadeia do DesenhaArma().
-static void constroiMatrizArma(
-    float gX, float gY,
-    float thetaCorpo,
-    float thetaArma, float thetaArmaPitch,
-    float malhaEscala, float malhaMinY,
-    float maoX, float maoY, float maoZ,
-    float armaMinY, float escalaArma,
-    mat4 &out)
-{
-    mat4 t, r, s;
-
-    mat4_identity(out);
-
-    // Translate(gX, gY, 0)
-    mat4_translate(t, gX, gY, 0.0f);
-    mat4_mul(out, t, out);
-    // Rotate(90, X)
-    mat4_rotateX(r, 90.0f);
-    mat4_mul(out, r, out);
-    // Rotate(theta+180, Y)
-    mat4_rotateY(r, thetaCorpo + 180.0f);
-    mat4_mul(out, r, out);
-    // Scale(malhaEscala)
-    mat4_scale(s, malhaEscala);
-    mat4_mul(out, s, out);
-    // Translate(0, -malhaMinY, 0)
-    mat4_translate(t, 0.0f, -malhaMinY, 0.0f);
-    mat4_mul(out, t, out);
-    // Translate(mao)
-    mat4_translate(t, maoX, maoY, maoZ);
-    mat4_mul(out, t, out);
-    // Rotate(thetaArma, Z)
-    mat4_rotateZ(r, thetaArma);
-    mat4_mul(out, r, out);
-    // Rotate(thetaArmaPitch, X)
-    mat4_rotateX(r, thetaArmaPitch);
-    mat4_mul(out, r, out);
-    // Translate(0, -armaMinY, 0)
-    mat4_translate(t, 0.0f, -armaMinY, 0.0f);
-    mat4_mul(out, t, out);
-    // Scale(escalaArma)
-    mat4_scale(s, escalaArma);
-    mat4_mul(out, s, out);
-}
 
 static void garanteMalhaArma()
 {
@@ -332,11 +286,10 @@ Tiro *Personagem::Atirar(GLfloat VelocidadeTiro)
 {
     const float zFallback = 50.0f;
 
-    if (!malhaArmaCarregada || malhaArma.vertsPos.size() < 85) {
+    if (!malhaArmaCarregada || malhaArma.vertsPos.empty())
         return new Tiro(gX, gY, zFallback, 0, 1, 0, VelocidadeTiro);
-    }
 
-    // Mesmo ponto de ancoragem do DesenhaArma (ombro do personagem)
+    // malha ativa (igual ao DesenhaArma)
     const mesh *malhaAtiva = nullptr;
     switch (direcaoAtual) {
         case DIR_FRENTE: malhaAtiva = animAndandoFrente.getCurrentMesh(); break;
@@ -345,37 +298,57 @@ Tiro *Personagem::Atirar(GLfloat VelocidadeTiro)
         case DIR_DIR:    malhaAtiva = animAndandoDir.getCurrentMesh();    break;
         default:         malhaAtiva = animParado.getCurrentMesh();        break;
     }
-    if (!malhaAtiva || malhaAtiva->vertsPos.size() < 196) {
+    if (!malhaAtiva || malhaAtiva->vertsPos.size() < 196)
         return new Tiro(gX, gY, zFallback, 0, 1, 0, VelocidadeTiro);
+
+    const pos &mao = malhaAtiva->vertsPos[196 - 1];  // só para a cadeia
+
+    // ===== MESMA cadeia de DesenhaArma, lida no final =====
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    glTranslatef(gX, gY, 0.0f);
+    glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+    glRotatef(theta + 180.0f, 0.0f, 1.0f, 0.0f);
+    glScalef(malhaEscala, malhaEscala, malhaEscala);
+    glTranslatef(0.0f, -malhaMinY, 0.0f);
+
+    // ---- pivô da ARMA (não do tiro) ----
+    glTranslatef(mao.x, mao.y, mao.z);
+
+    glRotatef(thetaArma,      0.0f, 0.0f, 1.0f);
+    glRotatef(thetaArmaPitch, 1.0f, 0.0f, 0.0f);
+
+    // se quiser colocar o pivô da arma no minY do OBJ da arma:
+    // glTranslatef(0.0f, -armaMinY, 0.0f);
+
+    glScalef(escalaArma, escalaArma, escalaArma);
+    glTranslatef(0.0f, 0.0, 1.2f);  // ajusta o tamanho da arma
+
+    GLfloat mv[16];
+    glGetFloatv(GL_MODELVIEW_MATRIX, mv);
+    glPopMatrix();
+
+    // origem = pivô da arma no mundo
+    float sX = mv[12], sY = mv[13], sZ = mv[14];
+
+    // // direção = eixo do cano da arma (coluna Y da MODELVIEW)
+    // float dx = mv[4], dy = mv[5], dz = mv[6];
+
+        // direção = eixo do cano da arma (coluna Z da MODELVIEW, pois o OBJ aponta em +Z)
+    float dx = mv[8], dy = mv[9], dz = mv[10];
+    {
+        float len = sqrtf(dx*dx + dy*dy + dz*dz);
+        if (len < 1e-6f) { dx = 0; dy = 1; dz = 0; len = 1.0f; }
+        dx /= len; dy /= len; dz /= len;
     }
 
-    const pos &mao   = malhaAtiva->vertsPos[196 - 1]; // âncora (ombro)
-    const pos &ponta = malhaArma.vertsPos[85 - 1];    // ponta do cano
 
-    mat4 M;
-    constroiMatrizArma(gX, gY, theta,
-                       thetaArma, thetaArmaPitch,
-                       malhaEscala, malhaMinY,
-                       mao.x, mao.y, mao.z,   // ← âncora correta
-                       0.0f, escalaArma, M);
-
-    // Scope (âncora) no mundo = M * (0,0,0)
-    float sX, sY, sZ;
-    mat4_transformPoint(M, 0, 0, 0, sX, sY, sZ);
-
-    // Ponta no mundo
-    float pX, pY, pZ;
-    mat4_transformPoint(M, ponta.x, ponta.y, ponta.z, pX, pY, pZ);
-
-    // Direção real
-    float dx = pX - sX, dy = pY - sY, dz = pZ - sZ;
-
-    // debug
     m_debugTiroSX = sX; m_debugTiroSY = sY; m_debugTiroSZ = sZ;
     m_debugTiroDX = dx; m_debugTiroDY = dy; m_debugTiroDZ = dz;
-    m_debugTiroPX = pX; m_debugTiroPY = pY; m_debugTiroPZ = pZ;
+    m_debugTiroPX = sX + dx; m_debugTiroPY = sY + dy; m_debugTiroPZ = sZ + dz;
     m_debugTiroValido = true;
-
 
     return new Tiro(sX, sY, sZ, dx, dy, dz, VelocidadeTiro);
 }
@@ -434,4 +407,95 @@ void Personagem::Desenha()
     DesenhaPersonagem(gX, gY);
     DesenhaArma();
     DesenhaDebug();
+    desenhaDebugTiro();
+}
+
+void Personagem::desenhaDebugTiro()
+{
+    if (!debugMode)
+        return;
+
+    float SX, SY, SZ, DX, DY, DZ, PX, PY, PZ;
+    getdebugTiro(SX, SY, SZ, DX, DY, DZ, PX, PY, PZ);
+
+    norm3(DX, DY, DZ);
+
+    // base ortonormal perpendicular a D
+    float UX, UY, UZ, VX, VY, VZ;
+    basePerp(DX, DY, DZ, UX, UY, UZ, VX, VY, VZ);
+
+    const float halfGraus = 30.0f;               // 60° totais
+    const float halfRad   = halfGraus * (float)M_PI / 180.0f;
+    const float tanHalf   = tanf(halfRad);
+
+    glDisable(GL_LIGHTING);
+    glDisable(GL_DEPTH_TEST);
+    glLineWidth(2.0f);
+
+    // ---- eixo do cone (linha amarela) ----
+    glColor3f(1, 1, 0);
+    glBegin(GL_LINES);
+        glVertex3f(SX, SY, SZ);
+        glVertex3f(SX + DX * 200, SY + DY * 200, SZ + DZ * 200);
+    glEnd();
+
+    // ---- três "fatias" de cone em comprimentos crescentes ----
+    // desenha círculo base + geratrizes em cada fatia
+    const int SEG   = 32;
+    const int FATIAS = 3;
+    for (int f = 1; f <= FATIAS; ++f)
+    {
+        float L    = 60.0f * f;          // distância ao longo do eixo D
+        float raio = L * tanHalf;        // raio do círculo nessa fatia
+
+        // centro da fatia
+        float CX = SX + DX * L;
+        float CY = SY + DY * L;
+        float CZ = SZ + DZ * L;
+
+        // ---- círculo ----
+        glColor3f(1.0f, 0.6f, 0.0f);     // laranja
+        glBegin(GL_LINE_LOOP);
+        for (int i = 0; i < SEG; ++i)
+        {
+            float a = (float)i / SEG * 2.0f * (float)M_PI;
+            float ca = cosf(a), sa = sinf(a);
+            float x = CX + raio * (ca * UX + sa * VX);
+            float y = CY + raio * (ca * UY + sa * VY);
+            float z = CZ + raio * (ca * UZ + sa * VZ);
+            glVertex3f(x, y, z);
+        }
+        glEnd();
+
+        // ---- geratrizes (a cada 90° => 4 linhas saindo do ápice) ----
+        glColor3f(0.6f, 0.6f, 0.0f);     // amarelo escuro
+        glBegin(GL_LINES);
+        for (int k = 0; k < 4; ++k)
+        {
+            float a = k * (float)M_PI / 2.0f;
+            float ca = cosf(a), sa = sinf(a);
+            float x = CX + raio * (ca * UX + sa * VX);
+            float y = CY + raio * (ca * UY + sa * VY);
+            float z = CZ + raio * (ca * UZ + sa * VZ);
+            glVertex3f(SX, SY, SZ);
+            glVertex3f(x, y, z);
+        }
+        glEnd();
+    }
+
+    // ---- ponto de origem (vermelho) ----
+    glPointSize(10);
+    glColor3f(1, 0, 0);
+    glBegin(GL_POINTS);
+        glVertex3f(SX, SY, SZ);
+    glEnd();
+
+    // ---- ponta calculada / direção real (azul) ----
+    glColor3f(0.2f, 0.5f, 1.0f);
+    glBegin(GL_POINTS);
+        glVertex3f(PX, PY, PZ);
+    glEnd();
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_LIGHTING);
 }

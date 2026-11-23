@@ -62,6 +62,7 @@ class Personagem : public ColidivelCilindro
     bool  m_debugTiroValido = false;
 
 private:
+    void desenhaDebugTiro();
     void DesenhaPersonagem(GLfloat x, GLfloat y);
     GLfloat CalculaBalancoPasso(GLfloat amplitude) const;
     void AtualizaAnimacao(GLfloat dt);
@@ -189,7 +190,7 @@ public:
             thetaArma += 360.0f;
     }
     bool debugTiroValido(){return m_debugTiroValido;}
-    void debugTiro(float &sx, float &sy, float &sz,
+    void getdebugTiro(float &sx, float &sy, float &sz,
                    float &dx, float &dy, float &dz,
                    float &px, float &py, float &pz) const {
         sx = m_debugTiroSX; sy = m_debugTiroSY; sz = m_debugTiroSZ;
