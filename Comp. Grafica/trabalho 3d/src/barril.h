@@ -9,7 +9,6 @@
 
 class Barril : public ColidivelCilindro {
 private:
-    GLfloat x, y, z;
     GLfloat velocidade;
     GLfloat anguloRotacao; // NOVO: para fazer o barril girar
     int vida;
@@ -26,8 +25,8 @@ private:
 
 public:
     Barril(GLfloat _x, GLfloat _y, int _tipo) : ColidivelCilindro(_x, _y,0, 50.0f, 140.0f){
-    x = _x; y = _y; 
-    z = 45.0;
+    cx = _x; cy = _y; 
+    cz = 45.0;
     tipo = _tipo;
     vida = 3;
     velocidade = 1.0f;
@@ -44,19 +43,12 @@ public:
     Tiro* Atirar(GLfloat tempo, GLfloat velocidadeTiro);
     
     virtual void GetColider(GLfloat &x, GLfloat &y, GLfloat &w, GLfloat &h) const override {
-        x = this->x - 20.0f; 
-        y = this->y - 20.0f;
-        w = this->x + 20.0f;
-        h = this->y + 20.0f;
+        x = this->cx - 20.0f; 
+        y = this->cy - 20.0f;
+        w = this->cx + 20.0f;
+        h = this->cy + 20.0f;
     }
-    void GetPosition(GLfloat &outX, GLfloat &outY, GLfloat &outZ){
-    
-        outX = x;
-        outY = y;
-        outZ = z;
-
-        printf("x %f , y %f , z %f \n",x,y,z);
-    }
+    void GetPosition(GLfloat &outX, GLfloat &outY, GLfloat &outZ){ outX = cx; outY = cy; outZ = cz; }
 };
 
 #endif

@@ -23,7 +23,6 @@ void Camera::init()
     baseHeight = 100.0f;
     pitch = 0.0f;
     personagemAngulo = 0.0f;
-    useExplicitPose = false;
 }
 
 void Camera::setPitch(float graus)
@@ -54,8 +53,6 @@ void Camera::setMode(CameraMode m)
 {
     if (m == mode) return;
     mode = m;
-    // ao trocar de modo, volta a usar o cálculo interno
-    useExplicitPose = false;
 }
 
 void Camera::cycleMode()
@@ -90,13 +87,6 @@ Vec3 Camera::computeLookAt() const { Vec3 e, l, u; computePose(e, l, u); return 
 // position/target/up diretamente (controle manual).
 void Camera::computePose(Vec3 &eye, Vec3 &look, Vec3 &upv) const
 {
-    if (useExplicitPose)
-    {
-        eye  = position;
-        look = target;
-        upv  = up;
-        return;
-    }
 
     const float axz = angleXZ * (float)M_PI / 180.0f;
     const float axy = angleXY * (float)M_PI / 180.0f;
@@ -151,9 +141,9 @@ void Camera::computePose(Vec3 &eye, Vec3 &look, Vec3 &upv) const
     }
 
     case CAM_ENEMY_VIEW:
-        eye  = { target.x, 250.0f, 150.0f };
-        look = { target.x, 0.0f,   0.0f };
-        upv  = { 0, 0, 1 };
+        eye  = position;
+        look = target;
+        upv  = up;
         break;
 
     case CAM_ARENA_BASE:
@@ -231,4 +221,3 @@ void camera_set_pitch(float a)      { g_camera.setPitch(a); }
 void set_near_plane(float np)       { g_camera.setNearPlane(np); }
 
 void camera_set_position(float x, float y, float z) { g_camera.setPosition(x, y, z); }
-void camera_use_explicit_pose(bool on)              { g_camera.useExplicitPose = on; }

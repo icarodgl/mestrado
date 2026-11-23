@@ -48,19 +48,12 @@ void Barril::Mirar(GLfloat px, GLfloat py) {
 }
 
 void Barril::Move(GLfloat dt) {
-    // O barril desce em direção ao jogador (Y negativo)
-    y -= velocidade * dt;
-    
-    // Gira o barril continuamente (velocidade do giro em graus/segundo)
+    if (!isfinite(dt) || dt <= 0.0f) dt = 1;
+    cy -= velocidade * dt;
     anguloRotacao += 150.0f * dt; 
     if (anguloRotacao > 360.0f) anguloRotacao -= 360.0f;
-    
-    SetPosColisor(x-140.0, y, z); // Atualiza colisor
-    SetRotateColisorY(90);
-        // Atualiza a rotação do colisor
-    // O barril "deitado" gira no eixo Z do mundo (que equivale a rolar no eixo Y do modelo)
-    // Como o barril é simétrico, a rotação dele no plano XY faz ele parecer maior ou menor na tela.
-    SetRotateColisorZ(anguloRotacao); 
+    SetRotateColisorY(-90);
+    SetRotateColisorZ(-anguloRotacao); 
 }
 
 void Barril::Desenha() {
@@ -69,7 +62,7 @@ void Barril::Desenha() {
     glPushMatrix();
 
     // 1) Posição na arena
-    glTranslatef(x, y, z);
+    glTranslatef(cx, cy, cz);
 
     // 2) O Blender exporta Y-up. Deitamos o modelo no plano XY do jogo (-90 em X).
     glRotatef(90.0f, 0.0f, 0.0f, 1.0f);
@@ -93,7 +86,7 @@ void Barril::Desenha() {
 
 bool Barril::Valido() {
     // Se sair da tela ou a vida acabar, ele deixa de ser válido
-    return (vida > 0 && y > -(maxDistBarril)/2);
+    return (vida > 0 && cy > -(maxDistBarril)/2);
 }
 
 void Barril::Atingido() {

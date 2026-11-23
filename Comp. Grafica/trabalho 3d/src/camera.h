@@ -31,9 +31,6 @@ public:
     Vec3 target;
     Vec3 up = {0.0f, 0.0f, 1.0f};
 
-    // quando true, apply() usa position/target/up direto (sem lógica de modo)
-    bool useExplicitPose = false;
-
     // ---- parâmetros de órbita/zoom ----
     float distance = 1200.0f;
     float angleXZ  = 90.0f;
@@ -66,8 +63,8 @@ public:
     void setTarget(const Vec3 &t) { target = t; }
     Vec3 getTarget() const { return target; }
 
-    void setPosition(float x, float y, float z) { position = {x, y, z}; useExplicitPose = true; }
-    void setPosition(const Vec3 &p) { position = p; useExplicitPose = true; }
+    void setPosition(float x, float y, float z) { position = {x, y, z}; }
+    void setPosition(const Vec3 &p) { position = p; }
     Vec3 getPosition() const { return position; }
 
     void setDirection(float anguloGraus) { personagemAngulo = anguloGraus; }
@@ -113,6 +110,5 @@ void set_near_plane(float np);
 // novas (opcionais) — via classe
 Camera &camera_instance();
 void camera_set_position(float x, float y, float z);
-void camera_use_explicit_pose(bool on);
 
 #endif

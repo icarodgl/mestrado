@@ -206,7 +206,8 @@ static void desenhaTiros()
 static int barrilAlvoIdx()
 {
     for (int i = 0; i < qtBarril; ++i)
-        if (barris[i] != nullptr) return i;
+        if (barris[i] != nullptr)
+            return i;
     return -1;
 }
 static void controlaBarris(GLfloat dt)
@@ -237,7 +238,6 @@ static void controlaBarris(GLfloat dt)
     {
         if (!barris[i])
             continue;
-
 
         barris[i]->setDebug(debugColisor);
         barris[i]->Mirar(px, py);
@@ -536,21 +536,26 @@ void idle(void)
     personagem.SetDirecaoMovimento(dx, dy);
     personagem.AtualizaAnimacaoAnim(dt);
     InimigoCamera = barrilAlvoIdx();
-    GLfloat px, py, pz;
+    GLfloat px, py;
     switch (camera_get_mode())
     {
     case CAM_ENEMY_VIEW:
-        if (InimigoCamera >= 0)
+        if (InimigoCamera >= 0 && barris[InimigoCamera])
         {
-           barris[InimigoCamera]->GetPosition(px, py, pz);
-            camera_instance().setPosition( px, py, 200.0);
-            personagem.getPos(px, py);
-            camera_instance().setTarget(0.0, -1000.0, 10.0f);
+            float bx, by, bz;
+            barris[InimigoCamera]->GetPosition(bx, by, bz);
+            camera_instance().setPosition(bx, by, bz+100);
+            float pxp, pyp;
+            personagem.getPos(pxp, pyp);
+            camera_instance().setTarget(pxp,pyp,100);
         }
         else
         {
+            
+            // fallback: olha pro personagem com a câmera de cima
             personagem.getPos(px, py);
-            camera_set_target(px, py, 0.0f);
+            camera_instance().setPosition(px, py - 300.0f, 250.0f);
+            camera_instance().setTarget(px, py, 0.0f);
         }
         break;
 
@@ -564,7 +569,6 @@ void idle(void)
     default:
         personagem.getPos(px, py);
         camera_set_target(px, py, 5.0f);
-        camera_use_explicit_pose(false);
         // camera_set_direcao(personagem.getAngulo());
         break;
     }
