@@ -36,6 +36,14 @@ void Arena::Configurar(const Configuracao &conf)
 
 void Arena::CarregarTexturas()
 {
+    if (!texturaArvore)
+    {
+        texturaArvore = loadBMP("src/assets/arvore.bmp");
+        if (texturaArvore == 0)
+            fprintf(stderr, "Arena: FALHA ao carregar textura da arvore\n");
+        else
+            printf("Arena: arvore OK texId=%u\n", texturaArvore);
+    }
     if (!texturaChao)
     {
         texturaChao = loadBMP("src/assets/piso2.bmp");
@@ -86,7 +94,7 @@ void Arena::DesenhaSkybox() const
     int rotFace[6] = {
         270, // +X (right)
         90,  // -X (left)
-        0,   // +Y (top)
+        270, // +Y (top)
         0,   // -Y (baixo)
         0,   // +Z (front)
         180  // -Z (trás)
@@ -214,7 +222,6 @@ void Arena::GaranteMalhas()
         float altura = mx[1] - mn[1];
         float maior = fmaxf(altura, fmaxf(mx[0] - mn[0], mx[2] - mn[2]));
     }
-
     malhasCarregadas = true;
 }
 void Arena::DesenhaCone(float x, float y)
@@ -273,10 +280,18 @@ void Arena::DesenhaArvore(float x, float y, float angulo)
     glScalef(escalaArvore, escalaArvore, escalaArvore);
     glTranslatef(0.0f, -minYMalhaArvore, 0.0f);
 
-    GLfloat matArvore[] = {0.25f, 0.6f, 0.15f, 1.0f}; // verde
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, matArvore);
+    bool usaTextura = (texturaArvore != 0);
+    if (usaTextura)
+    {
+        texture_enable();
+        glBindTexture(GL_TEXTURE_2D, texturaArvore);
+    }
 
-    malhaArvore.draw();
+    malhaArvore.draw(usaTextura);
+
+    if (usaTextura)
+        texture_disable();
+
     glPopMatrix();
 }
 void Arena::DesenhaArvoresParedes() const
@@ -290,9 +305,9 @@ void Arena::DesenhaArvoresParedes() const
     Arena *self = const_cast<Arena *>(this);
 
     // Parede Sul (y = -d) e Norte (y = +d), ao longo de X
-    for (int i = 0; i < numArvores/2; ++i)
+    for (int i = 0; i < numArvores / 2; ++i)
     {
-        float t = (i + 0.5f) / (numArvores/2); // 0..1
+        float t = (i + 0.5f) / (numArvores / 2); // 0..1
         float x = -w + t * largura;
         self->DesenhaArvore(x, -d, 90.0);
         self->DesenhaArvore(x, d, 90.0);

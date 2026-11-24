@@ -176,6 +176,8 @@ public:
     void AlternarLanterna() { lanternaAcesa = !lanternaAcesa; }
     bool LanternaAcesa() const { return lanternaAcesa; }
     void AtualizaLanterna();
+    bool GetPoseCano(float &px, float &py, float &pz,
+                 float &dx, float &dy, float &dz) const;
 };
 
 #endif

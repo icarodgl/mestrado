@@ -569,7 +569,44 @@ void idle(void)
         camera_set_target(px, py, 5.0f);
         camera_set_direcao(personagem.getAngulo());
         break;
+    case CAM_GUN:
+    {
+        float cx, cy, cz, dx, dy, dz;
+        if (personagem.GetPoseCano(cx, cy, cz, dx, dy, dz))
+        {
+            // offset opcional: puxa a câmera um pouco pra trás do cano
+            // (para o viewmodel não cobrir a tela inteira)
+            const float back = 4.0f;
+            const float right = 0.0f;
+            const float up = 0.0f;
 
+            // "right" = perpendicular horizontal a (dx,dy)
+            float rx = dy, ry = -dx; // perpendicular no plano XY (Z-up)
+            // normaliza right
+            float rl = sqrtf(rx * rx + ry * ry);
+            if (rl > 1e-6f)
+            {
+                rx /= rl;
+                ry /= rl;
+            }
+
+            float ex = cx - dx * back + rx * right;
+            float ey = cy - dy * back + ry * right;
+            float ez = cz - dz * back + up;
+
+            camera_instance().setPosition(ex, ey, ez);
+            camera_instance().setTarget(cx, cy, cz); // mira exatamente na boca do cano
+            // ou: setTarget(ex + dx, ey + dy, ez + dz) para olhar na direção do tiro
+        }
+        else
+        {
+            // fallback: 1ª pessoa
+            personagem.getPos(px, py);
+            camera_set_target(px, py, 60.0f);
+            camera_set_direcao(personagem.getAngulo());
+        }
+        break;
+    }
     default:
         personagem.getPos(px, py);
         camera_set_target(px, py, 5.0f);

@@ -410,7 +410,7 @@ Tiro *Personagem::Atirar(GLfloat VelocidadeTiro)
     // glTranslatef(0.0f, -armaMinY, 0.0f);
 
     glScalef(escalaArma, escalaArma, escalaArma);
-    glTranslatef(0.0f, 0.0, 1.2f);  // ajusta o tamanho da arma
+    glTranslatef(0.0f, 0.05f, 1.1f);
 
     GLfloat mv[16];
     glGetFloatv(GL_MODELVIEW_MATRIX, mv);
@@ -585,4 +585,54 @@ void Personagem::desenhaDebugTiro()
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LIGHTING);
+}
+// personagem.cpp
+bool Personagem::GetPoseCano(float &px, float &py, float &pz,
+                             float &dx, float &dy, float &dz) const
+{
+    if (malhaArma.vertsPos.empty())
+        return false;
+
+    const mesh *malhaAtiva = nullptr;
+    switch (direcaoAtual) {
+        case DIR_FRENTE: malhaAtiva = animAndandoFrente.getCurrentMesh(); break;
+        case DIR_TRAS:   malhaAtiva = animAndandoTras.getCurrentMesh();   break;
+        case DIR_ESQ:    malhaAtiva = animAndandoEsq.getCurrentMesh();    break;
+        case DIR_DIR:    malhaAtiva = animAndandoDir.getCurrentMesh();    break;
+        default:         malhaAtiva = animParado.getCurrentMesh();        break;
+    }
+    if (!malhaAtiva || malhaAtiva->vertsPos.size() < 196)
+        return false;
+
+    const pos &mao = malhaAtiva->vertsPos[196 - 1];
+
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+
+    glTranslatef(gX, gY, 0.0f);
+    glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+    glRotatef(theta + 180.0f, 0.0f, 1.0f, 0.0f);
+    glScalef(malhaEscala, malhaEscala, malhaEscala);
+    glTranslatef(0.0f, -malhaMinY, 0.0f);
+
+    glTranslatef(mao.x, mao.y, mao.z);
+
+    glRotatef(thetaArma,      0.0f, 1.0f, 0.0f);
+    glRotatef(thetaArmaPitch, 1.0f, 0.0f, 0.0f);
+
+    glScalef(escalaArma, escalaArma, escalaArma);
+    glTranslatef(0.0f, 0.2f, 0.8f);
+
+    GLfloat mv[16];
+    glGetFloatv(GL_MODELVIEW_MATRIX, mv);
+    glPopMatrix();
+
+    px = mv[12]; py = mv[13]; pz = mv[14];
+    dx = mv[8];  dy = mv[9];  dz = mv[10];
+
+    float len = sqrtf(dx*dx + dy*dy + dz*dz);
+    if (len < 1e-6f) { dx = 0; dy = 1; dz = 0; }
+    else { dx /= len; dy /= len; dz /= len; }
+    return true;
 }

@@ -7,6 +7,7 @@ enum CameraMode {
     CAM_TOP_DOWN,
     CAM_FIRST_PERSON,
     CAM_THERD_PERSON,
+    CAM_GUN,
     CAM_ENEMY_VIEW,
     CAM_ARENA_BASE,
     CAM_ORBIT,
