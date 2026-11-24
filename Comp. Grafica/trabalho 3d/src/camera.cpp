@@ -121,9 +121,8 @@ void Camera::computePose(Vec3 &eye, Vec3 &look, Vec3 &upv) const
 
     case CAM_FIRST_PERSON:
     {
-        float acertadinha = 5.0;
-        float px = target.x + acertadinha;
-        float py = target.y + firstPersonEyeY ;
+        float px = target.x + firstPersonEyeY;
+        float py = target.y ;//+ firstPersonEyeY ;
         float pz = target.z + firstPersonEyeZ;
 
         eye = { px + dirX * firstPersonAdvance,

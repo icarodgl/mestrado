@@ -44,7 +44,7 @@ public:
     float thirdPersonHeight = 60.0f;
     float firstPersonEyeZ   = 60.0f;
     float firstPersonAdvance = 15.0f;
-    float firstPersonEyeY   = -6.0f;
+    float firstPersonEyeY   = 6.0f;
 
     // ---- near/far por modo ----
     GLdouble nearPlane = 1.0;

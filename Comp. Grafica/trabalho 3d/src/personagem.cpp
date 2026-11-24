@@ -54,8 +54,8 @@ void Personagem::AtualizaLanterna()
 
     glTranslatef(mao.x, mao.y, mao.z);
 
-    glRotatef(thetaArma,      0.0f, 0.0f, 1.0f);
-    glRotatef(thetaArmaPitch, 1.0f, 0.0f, 0.0f);
+    glRotatef(thetaArma, 0.0f, 1.0f, 0.0f);      // yaw
+    glRotatef(thetaArmaPitch, 1.0f, 0.0f, 0.0f); // pitch
 
     glScalef(escalaArma, escalaArma, escalaArma);
     glTranslatef(0.0f, 0.0f, 1.2f);
