@@ -45,8 +45,8 @@ class Personagem : public ColidivelCilindro
     // limites do pitch
     GLfloat thetaArma = 0;
     GLfloat thetaArmaPitch = 0.0f; // pitch da arma (graus, -90..+90)
-    GLfloat pitchMin = -45.0f;
-    GLfloat pitchMax = 60.0f;
+    GLfloat pitchMin = -30.0f;
+    GLfloat pitchMax = 30.0f;
     static const int PONTO_MAO = 1234;
     static const int PONTO_APONTA = 5678;
 
@@ -135,39 +135,6 @@ public:
         w = gX + raioCabeca;
         h = gY + raioCabeca;
     };
-    void GirarArmaPitch(GLfloat dir)
-    {
-        thetaArmaPitch += dir;
-        if (thetaArmaPitch > 60.0f)
-            thetaArmaPitch = 60.0f;
-        if (thetaArmaPitch < -45.0f)
-            thetaArmaPitch = -45.0f;
-    }
-    // Define a mira 3D absoluta (usado em 1ª pessoa com unproject)
-    void SetMira3D(float yawGraus, float pitchGraus)
-    {
-        theta = yawGraus;
-        thetaArmaPitch = pitchGraus;
-        SetRotateColisorZ(theta);
-    }
-
-    // Mira 2D: só yaw, zera pitch
-    void SetMira3D(float alvoX, float alvoY, float /*ignorar*/)
-    {
-        float dx = alvoX - gX;
-        float dy = alvoY - gY;
-        float yaw = atan2f(dy, dx) * 180.0f / M_PI; // yaw "matemático" (0 => +X)
-        // converte para o sistema do personagem (0 => +Y, frente)
-        yaw -= 90.0f;
-        while (yaw > 180.0f)
-            yaw -= 360.0f;
-        while (yaw < -180.0f)
-            yaw += 360.0f;
-
-        theta = yaw;
-        thetaArmaPitch = 0.0f;
-        SetRotateColisorZ(theta);
-    }
 
     float getPitchArma() const { return thetaArmaPitch; }
     float getYawArma() const { return thetaArma; }
@@ -178,18 +145,18 @@ public:
     }
     void GirarArmaComMouse(float dxPixels, float dyPixels)
     {
-        thetaArma += dxPixels * sensibilidadeMouseYaw;
-        thetaArmaPitch -= dyPixels * sensibilidadeMousePitch;
+        thetaArma += dxPixels * -sensibilidadeMouseYaw;
+        thetaArmaPitch -= dyPixels * -sensibilidadeMousePitch;
 
         if (thetaArmaPitch > pitchMax)
             thetaArmaPitch = pitchMax;
         if (thetaArmaPitch < pitchMin)
             thetaArmaPitch = pitchMin;
 
-        while (thetaArma > 180.0f)
-            thetaArma -= 360.0f;
-        while (thetaArma < -180.0f)
-            thetaArma += 360.0f;
+        if (thetaArma > pitchMax)
+            thetaArma = pitchMax;
+        if (thetaArma < pitchMin)
+            thetaArma = pitchMin;
     }
     bool debugTiroValido() { return m_debugTiroValido; }
     void getdebugTiro(float &sx, float &sy, float &sz,

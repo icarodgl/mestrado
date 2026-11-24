@@ -12,8 +12,10 @@ Arena::Arena() {
 }
 
 Arena::~Arena() {
-    if (texturaParede) glDeleteTextures(1, &texturaParede);
+    if (texturaArvore) glDeleteTextures(1, &texturaArvore);
     if (texturaChao)   glDeleteTextures(1, &texturaChao);
+    for (int i = 0; i < 6; ++i)
+        if (texturasSkybox[i]) glDeleteTextures(1, &texturasSkybox[i]);
 }
 
 void Arena::Configurar(const Configuracao& conf) {
@@ -23,17 +25,9 @@ void Arena::Configurar(const Configuracao& conf) {
         alturaParede = (float)conf.jogador.raioCabeca;
     else
         alturaParede = 30.0f;
-    raioAreaCentral = largura * 0.20f; 
 }
 
 void Arena::CarregarTexturas() {
-    if (!texturaParede) {
-        texturaParede = loadBMP("src/assets/parede1.bmp");
-        if (texturaParede == 0)
-            fprintf(stderr, "Arena: FALHA ao carregar textura da parede\n");
-        else
-            printf("Arena: parede OK texId=%u\n", texturaParede);
-    }
     if (!texturaChao) {
         texturaChao = loadBMP("src/assets/piso2.bmp");
         if (texturaChao == 0)
@@ -41,17 +35,115 @@ void Arena::CarregarTexturas() {
         else
             printf("Arena: chao OK texId=%u\n", texturaChao);
     }
-    GaranteMalhaCone();
+    CarregarSkybox();
+    GaranteMalhas();
 }
+void Arena::CarregarSkybox() {
+    if (skyboxCarregado) return;
 
-void Arena::GaranteMalhaCone() {
-    if (coneCarregado) return;
+    const char* nomes[6] = {
+        "src/assets/skybox/right.bmp",
+        "src/assets/skybox/left.bmp",
+        "src/assets/skybox/top.bmp",
+        "src/assets/skybox/bottom.bmp",
+        "src/assets/skybox/front.bmp",
+        "src/assets/skybox/back.bmp"
+    };
 
-    // Ajuste o caminho para o local real do seu cone.obj
-    if (!malhaCone.loadMesh("src/assets/cone.obj")) {
-        fprintf(stderr, "Arena: falha ao carregar cone.obj\n");
+    for (int i = 0; i < 6; ++i) {
+        texturasSkybox[i] = loadBMP(nomes[i]);
+        if (texturasSkybox[i] == 0)
+            fprintf(stderr, "Arena: falha ao carregar skybox face %d (%s)\n", i, nomes[i]);
+    }
+    skyboxCarregado = true;
+}
+void Arena::DesenhaSkybox() const {
+    if (!skyboxCarregado) return;
+
+    float s = 1200.0f;
+
+    GLboolean ilum = glIsEnabled(GL_LIGHTING);
+    if (ilum) glDisable(GL_LIGHTING);
+
+    glDepthMask(GL_FALSE);
+    texture_enable();
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+    int rotFace[6] = {
+        270,   // +X (right)
+        90,   // -X (left)
+        0,   // +Y (top)
+        0,   // -Y (baixo)   <- ajuste aqui se o chão do céu estiver girado
+        0,   // +Z (front)
+        180    // -Z (trás)    <- ajuste aqui se o fundo estiver girado
+    };
+
+    // Mapeia (u,v) para a textura rotacionada em rotFace[f]
+    // Rotaciona em torno do centro (0.5, 0.5) e volta.
+    auto texUV = [&](int f, float u, float v) {
+        float du = u - 0.5f;
+        float dv = v - 0.5f;
+        float su = du, sv = dv;
+        switch (rotFace[f]) {
+            case 90:  su = -dv; sv =  du; break;
+            case 180: su = -du; sv = -dv; break;
+            case 270: su =  dv; sv = -du; break;
+            default:  break;                 // 0°
+        }
+        glTexCoord2f(su + 0.5f, sv + 0.5f);
+    };
+
+    // Faces: tex, normal, 4 vértices (na ordem dos texcoords abaixo)
+    struct { int tex; float n[3]; float v[4][3]; } faces[6] = {
+        // +X (right)
+        {0, { -1,0,0}, {{ s,-s,-s},{ s,-s, s},{ s, s, s},{ s, s,-s}}},
+        // -X (left)
+        {1, {  1,0,0}, {{-s,-s, s},{-s,-s,-s},{-s, s,-s},{-s, s, s}}},
+        // +Y (front)
+        {2, {  0,0,-1},{{-s,-s, s},{ s,-s, s},{ s, s, s},{-s, s, s}}},
+        // -Y (trás)
+        {3, {  0,0, 1},{{ s,-s,-s},{-s,-s,-s},{-s, s,-s},{ s, s,-s}}},
+        // +Z (top)
+        {4, {  0,-1,0},{{-s, s,-s},{ s, s,-s},{ s, s, s},{-s, s, s}}},
+        // -Z (baixo)
+        {5, {  0, 1,0},{{-s,-s, s},{ s,-s, s},{ s,-s,-s},{-s,-s,-s}}},
+    };
+
+    // Coordenadas UV base para os 4 vértices de cada face (ordem dos vértices acima)
+    const float uvBase[4][2] = {
+        {0.0f, 1.0f},
+        {1.0f, 1.0f},
+        {1.0f, 0.0f},
+        {0.0f, 0.0f}
+    };
+
+    for (int f = 0; f < 6; ++f) {
+        if (texturasSkybox[faces[f].tex] == 0) continue;
+
+        glBindTexture(GL_TEXTURE_2D, texturasSkybox[faces[f].tex]);
+        glBegin(GL_QUADS);
+        glNormal3f(faces[f].n[0], faces[f].n[1], faces[f].n[2]);
+        for (int k = 0; k < 4; ++k) {
+            texUV(f, uvBase[k][0], uvBase[k][1]);
+            glVertex3fv(faces[f].v[k]);
+        }
+        glEnd();
     }
 
+    texture_disable();
+    glDepthMask(GL_TRUE);
+    if (ilum) glEnable(GL_LIGHTING);
+}
+void Arena::GaranteMalhas() {
+    if (malhasCarregadas) return;
+
+    if (!malhaCone.loadMesh("src/assets/cone.obj"))
+        fprintf(stderr, "Arena: falha ao carregar cone.obj\n");
+
+    if (!malhaArvore.loadMesh("src/assets/arvore.obj"))
+        fprintf(stderr, "Arena: falha ao carregar arvore.obj\n");
+
+    // ---- Cone ----
     if (!malhaCone.vertsPos.empty()) {
         float mn[3] = { 1e30f, 1e30f, 1e30f};
         float mx[3] = {-1e30f,-1e30f,-1e30f};
@@ -60,13 +152,26 @@ void Arena::GaranteMalhaCone() {
             mx[0]=fmaxf(mx[0],v.x); mx[1]=fmaxf(mx[1],v.y); mx[2]=fmaxf(mx[2],v.z);
         }
         minYMalhaCone = mn[1];
-
-        // Define a escala para o cone ter uns 25 unidades de altura
         float altura = mx[1] - mn[1];
-        float maior = fmaxf(altura, fmaxf(mx[0]-mn[0], mx[2]-mn[2]));
-        escalaCone = (maior > 1e-4f) ? (25.0f / maior) : 1.0f;
+        float maior  = fmaxf(altura, fmaxf(mx[0]-mn[0], mx[2]-mn[2]));
+        escalaCone   = (maior > 1e-4f) ? (25.0f / maior) : 1.0f;
     }
-    coneCarregado = true;
+
+    // ---- Árvore ----
+    if (!malhaArvore.vertsPos.empty()) {
+        float mn[3] = { 1e30f, 1e30f, 1e30f};
+        float mx[3] = {-1e30f,-1e30f,-1e30f};
+        for (auto& v : malhaArvore.vertsPos) {
+            mn[0]=fminf(mn[0],v.x); mn[1]=fminf(mn[1],v.y); mn[2]=fminf(mn[2],v.z);
+            mx[0]=fmaxf(mx[0],v.x); mx[1]=fmaxf(mx[1],v.y); mx[2]=fmaxf(mx[2],v.z);
+        }
+        minYMalhaArvore = mn[1];
+        float altura = mx[1] - mn[1];
+        float maior  = fmaxf(altura, fmaxf(mx[0]-mn[0], mx[2]-mn[2]));
+
+    }
+
+    malhasCarregadas = true;
 }
 void Arena::DesenhaCone(float x, float y) {
     if (malhaCone.vertsPos.empty()) return;
@@ -103,28 +208,75 @@ if (!malhaCone.vertsPos.empty()) {
         }
     }
 }
+void Arena::DesenhaArvore(float x, float y, float angulo) {
+    
+    if (malhaArvore.vertsPos.empty()) return;
+
+    glPushMatrix();
+    glTranslatef(x, y, 0.0f);
+
+    // Modelo Y-up do Blender -> deitar para o plano XY do jogo
+    glRotatef(angulo, 0.0f, 0.0f, 1.0f);
+    glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+
+    glScalef(escalaArvore, escalaArvore, escalaArvore);
+    glTranslatef(0.0f, -minYMalhaArvore, 0.0f);
+
+    GLfloat matArvore[] = { 0.25f, 0.6f, 0.15f, 1.0f }; // verde
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, matArvore);
+
+    malhaArvore.draw();
+    glPopMatrix();
+}
+void Arena::DesenhaArvoresParedes() const {
+    if (malhaArvore.vertsPos.empty()) return;
+
+    GLfloat angulo = 0.0;
+    float w = largura / 2.0f;
+    float d = profundidade / 2.0f;
+
+    Arena* self = const_cast<Arena*>(this);
+
+    // Parede Sul (y = -d) e Norte (y = +d), ao longo de X
+    for (int i = 0; i < numArvores; ++i) {
+        angulo += i*10;
+        float t = (i + 0.5f) / numArvores;         // 0..1
+        float x = -w + t * largura;
+        self->DesenhaArvore(x, -d, angulo);
+        self->DesenhaArvore(x,  d, -angulo);
+    }
+
+    // Parede Oeste (x = -w) e Leste (x = +w), ao longo de Y
+    for (int i = 0; i < numArvores; ++i) {
+        float t = (i + 0.5f) / numArvores;
+        float y = -d + t * profundidade;
+        self->DesenhaArvore(-w, y,angulo);
+        self->DesenhaArvore( w, y,-angulo);
+    }
+}
 void Arena::Desenha() const {
     float w = largura / 2.0f;
     float d = profundidade / 2.0f;
-    float h = 256.0;
 
+    // ---- Skybox primeiro (fundo) ----
+    DesenhaSkybox();
+
+    // ---- Cones na linha central ----
     DesenhaLinhaDeConesArena();
-    // ---- Chão ----
+
+    // ---- Chão (mesmo piso da arena) ----
     GLfloat matChao[] = { 0.2f, 0.6f, 0.0f, 1.0f };
     glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, matChao);
 
     if (texturaChao) {
         texture_enable();
         glBindTexture(GL_TEXTURE_2D, texturaChao);
-        // repete a textura proporcionalmente ao tamanho do chão
-        float repX = 5.0;//largura  / 100.0f; // 100 = tamanho de 1 tile
-        float repY = 5.0;//profundidade / 100.0f;
         glBegin(GL_QUADS);
             glNormal3f(0, 0, 1);
-            glTexCoord2f(0.0f,   0.0f);   glVertex3f(-w, -d, 0);
-            glTexCoord2f(repX,   0.0f);   glVertex3f( w, -d, 0);
-            glTexCoord2f(repX,   repY);   glVertex3f( w,  d, 0);
-            glTexCoord2f(0.0f,   repY);   glVertex3f(-w,  d, 0);
+            glTexCoord2f(0.0f, 0.0f); glVertex3f(-w, -d, 0);
+            glTexCoord2f(5.0f, 0.0f); glVertex3f( w, -d, 0);
+            glTexCoord2f(5.0f, 5.0f); glVertex3f( w,  d, 0);
+            glTexCoord2f(0.0f, 5.0f); glVertex3f(-w,  d, 0);
         glEnd();
         texture_disable();
     } else {
@@ -137,70 +289,5 @@ void Arena::Desenha() const {
         glEnd();
     }
 
-    // ---- Paredes ----
-    GLfloat matParede[] = { 1.0f, 1.0f, 1.0f, 1.1f };
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, matParede);
-
-   
-
-
-    bool usaTextura = (texturaParede != 0);
-    if (usaTextura) {
-        texture_enable();
-        glBindTexture(GL_TEXTURE_2D, texturaParede);
-        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-    }
-
-    // Repetições horizontais/verticais por parede
-    // (dimensão real / tamanho do tile em unidades)
-    float tileSize = 256.0f;
-    float repH = h       / tileSize;   // repetição vertical
-    float repS = largura / tileSize;   // parede Sul/Norte (largura)
-    float repE = profundidade / tileSize; // parede Leste/Oeste (profundidade)
-    float ZERO = 0.0;
-
-    glBegin(GL_QUADS);
-
-    // ---- Parede Sul (Y = -d) ----
-    glNormal3f(0, 1, 0);
-    glTexCoord2f(ZERO,    repH);   glVertex3f(-w, -d, 0);
-    glTexCoord2f(repS,    repH);   glVertex3f( w, -d, 0);
-    glTexCoord2f(repS,    ZERO);   glVertex3f( w, -d, h);
-    glTexCoord2f(ZERO,    ZERO);   glVertex3f(-w, -d, h);
-
-    // =================================================================
-    // PAREDE NORTE (Fundo da arena, Y = d)
-    // =================================================================
-    glNormal3f(0, -1, 0);
-    // Base esquerda (U=0, V=0) -> Subindo para o topo esquerdo (U=0, V=repH)
-    // Topo direito (U=repS, V=repH) -> Descendo para a base direita (U=repS, V=0)
-    glTexCoord2f(repS,    repH);   glVertex3f(-w, d, 0); // Base Esquerda
-    glTexCoord2f(repS,    ZERO);   glVertex3f(-w, d, h); // Topo Esquerdo
-    glTexCoord2f(ZERO,    ZERO);   glVertex3f( w, d, h); // Topo Direito
-    glTexCoord2f(ZERO,    repH);   glVertex3f( w, d, 0); // Base Direita
-
-    // =================================================================
-    // PAREDE OESTE (Lado esquerdo, X = -w)
-    // =================================================================
-    glNormal3f(1, 0, 0);
-    // Base frente (U=0, V=0) -> Sobe -> Desce pela base de trás (U=repE, V=0)
-    // Nota: O eixo U aqui corre ao longo do eixo Y do mundo (profundidade)
-    glTexCoord2f(repE,    repH);   glVertex3f(-w, -d, 0); // Base Frente
-    glTexCoord2f(repE,    ZERO);   glVertex3f(-w, -d, h); // Topo Frente
-    glTexCoord2f(ZERO,    ZERO);   glVertex3f(-w,  d, h); // Topo Fundo
-    glTexCoord2f(ZERO,    repH);   glVertex3f(-w,  d, 0); // Base Fundo
-
-    // =================================================================
-    // PAREDE LESTE (Lado direito, X = w)
-    // =================================================================
-    glNormal3f(-1, 0, 0);
-    // Base de trás (U=0, V=0) -> Sobe -> Desce pela base da frente (U=repE, V=0)
-    glTexCoord2f(repE,    repH);   glVertex3f(w, d, 0);   // Base Fundo
-    glTexCoord2f(repE,    ZERO);   glVertex3f(w, d, h);   // Topo Fundo
-    glTexCoord2f(ZERO,    ZERO);   glVertex3f(w, -d, h);  // Topo Frente
-    glTexCoord2f(ZERO,    repH);   glVertex3f(w, -d, 0);  // Base Frente
-
-    glEnd();
-
-    if (usaTextura) texture_disable();
+    DesenhaArvoresParedes();
 }

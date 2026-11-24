@@ -179,7 +179,7 @@ void Personagem::DesenhaArma()
     glTranslatef(mao.x, mao.y, mao.z);
 
     // ---- Mira do mouse ----
-    glRotatef(thetaArma, 0.0f, 0.0f, 1.0f);      // yaw
+    glRotatef(thetaArma, 0.0f, 1.0f, 0.0f);      // yaw
     glRotatef(thetaArmaPitch, 1.0f, 0.0f, 0.0f); // pitch
 
     // ---- Corrige pivô da arma + escala ----
@@ -403,8 +403,8 @@ Tiro *Personagem::Atirar(GLfloat VelocidadeTiro)
     // ---- pivô da ARMA (não do tiro) ----
     glTranslatef(mao.x, mao.y, mao.z);
 
-    glRotatef(thetaArma,      0.0f, 0.0f, 1.0f);
-    glRotatef(thetaArmaPitch, 1.0f, 0.0f, 0.0f);
+    glRotatef(thetaArma, 0.0f, 1.0f, 0.0f);      // yaw
+    glRotatef(thetaArmaPitch, 1.0f, 0.0f, 0.0f); // pitch
 
     // se quiser colocar o pivô da arma no minY do OBJ da arma:
     // glTranslatef(0.0f, -armaMinY, 0.0f);

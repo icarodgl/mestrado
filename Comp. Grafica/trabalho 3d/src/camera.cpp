@@ -96,12 +96,14 @@ void Camera::computePose(Vec3 &eye, Vec3 &look, Vec3 &upv) const
 
     switch (mode)
     {
-    case CAM_TOP_DOWN:
-        eye  = {0, 0, distance};
+    case CAM_TOP_DOWN:{
+        float px = target.x;
+        float py = target.y;
+        eye  = {px , py - distance, distance};
         look = {0, 0, 0};
         upv  = {0, 1, 0};
         break;
-
+}
     case CAM_THERD_PERSON:
     {
         float px = target.x;
@@ -119,8 +121,9 @@ void Camera::computePose(Vec3 &eye, Vec3 &look, Vec3 &upv) const
 
     case CAM_FIRST_PERSON:
     {
-        float px = target.x;
-        float py = target.y + firstPersonEyeY;
+        float acertadinha = 5.0;
+        float px = target.x + acertadinha;
+        float py = target.y + firstPersonEyeY ;
         float pz = target.z + firstPersonEyeZ;
 
         eye = { px + dirX * firstPersonAdvance,
@@ -147,17 +150,17 @@ void Camera::computePose(Vec3 &eye, Vec3 &look, Vec3 &upv) const
         break;
 
     case CAM_ARENA_BASE:
-        eye  = { target.x, 800.0f, baseHeight + 50.0f };
+        eye  = { target.x, -900, baseHeight + 100.0f };
         look = { target.x, 300.0f, baseHeight };
         upv  = { 0, 0, 1 };
         break;
 
     case CAM_ORBIT:
     default:
-        eye  = { target.x + distance * sinf(axz) * cosf(axy),
-                 target.y + distance * sinf(axy),
-                 target.z + distance * cosf(axz) * cosf(axy) };
-        look = { target.x, target.y, target.z };
+        eye  = { target.x ,
+                target.y+300 ,
+                 target.z +1000};
+        look = { target.x, target.y+300, target.z };
         upv  = { 0, 1, 0 };
         break;
     }
