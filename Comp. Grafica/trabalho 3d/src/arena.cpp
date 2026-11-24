@@ -222,6 +222,7 @@ void Arena::GaranteMalhas()
         float altura = mx[1] - mn[1];
         float maior = fmaxf(altura, fmaxf(mx[0] - mn[0], mx[2] - mn[2]));
     }
+
     malhasCarregadas = true;
 }
 void Arena::DesenhaCone(float x, float y)

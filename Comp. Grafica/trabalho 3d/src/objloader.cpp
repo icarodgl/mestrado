@@ -86,6 +86,7 @@ bool mesh::loadMesh(string path){
 void mesh::draw(bool comTextura) const
 {
     glColor3f(1.0f, 1.0f, 1.0f);
+    
 
     if (comTextura) {
         // Material neutro: textura aparece pura
@@ -106,8 +107,13 @@ void mesh::draw(bool comTextura) const
     glBegin(GL_TRIANGLES);
     for (unsigned int i = 0; i + 2 < vertsS.size(); i += 3) {
         for (int j = 0; j < 3; ++j) {
+
+            // inverter textura
+            float v = inverterV ? (1.0f - vertsS[i+j].vTex.v) : vertsS[i+j].vTex.v;
+            glTexCoord2f(vertsS[i+j].vTex.u, v);
+            // glTexCoord2f(vertsS[i+j].vTex.u, vertsS[i+j].vTex.v);
+
             glNormal3f(vertsS[i+j].vNorm.x, vertsS[i+j].vNorm.y, vertsS[i+j].vNorm.z);
-            glTexCoord2f(vertsS[i+j].vTex.u, vertsS[i+j].vTex.v);
             glVertex3f(vertsS[i+j].vPos.x,  vertsS[i+j].vPos.y,  vertsS[i+j].vPos.z);
         }
     }

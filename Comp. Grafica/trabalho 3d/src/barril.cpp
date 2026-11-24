@@ -2,13 +2,28 @@
 #include "tiro.h"
 #include <math.h>
 #include <stdio.h>
+#include "texture.h"   
 
 // Inicialização das variáveis estáticas
 mesh Barril::malhaBarril;
 bool Barril::malhaCarregada = false;
 float Barril::escalaMalha = 0.6f;
 float Barril::minYMalha = 0.0f;
+GLuint Barril::texturaBarril   = 0;       
+bool   Barril::texturaCarregada = false;  
 
+
+void Barril::garanteTextura() {
+    if (texturaCarregada) return;
+
+    texturaBarril = loadBMP("src/assets/barril.bmp");
+    if (texturaBarril == 0)
+        fprintf(stderr, "Barril: FALHA ao carregar barril.bmp\n");
+    else
+        printf("Barril: textura OK texId=%u\n", texturaBarril);
+
+    texturaCarregada = true;
+}
 void Barril::garanteMalha() {
     if (malhaCarregada) return;
 
@@ -64,23 +79,30 @@ void Barril::Desenha() {
     // 1) Posição na arena
     glTranslatef(cx, cy, cz);
 
-    // 2) O Blender exporta Y-up. Deitamos o modelo no plano XY do jogo (-90 em X).
+    // 2) Deitar o modelo Y-up no plano XY do jogo
     glRotatef(90.0f, 0.0f, 0.0f, 1.0f);
 
-    // 3) Aplicar a rotação contínua do barril (agora no eixo Y, pois o modelo foi deitado)
-    // Se você quiser que ele gire de forma "sambada" (inclinando), pode adicionar rotação em X ou Z aqui.
-    glRotatef(-anguloRotacao, 0.0f, 1.0f, 0.0f); 
+    // 3) Rotação contínua do barril
+    glRotatef(-anguloRotacao, 0.0f, 1.0f, 0.0f);
 
     // 4) Escala e apoio no chão
     glScalef(escalaMalha, escalaMalha, escalaMalha);
     glTranslatef(0.0f, -minYMalha, 0.0f);
 
-    // 5) Desenha
-    malhaBarril.draw();
+    // 5) Textura (se carregada)
+    bool usaTextura = (texturaBarril != 0);
+    if (usaTextura) {
+        texture_enable();                              // GL_TEXTURE_2D + GL_MODULATE
+        glBindTexture(GL_TEXTURE_2D, texturaBarril);
+    }
+
+    // 6) Desenha a malha (material neutro quando texturizada)
+    malhaBarril.draw(usaTextura);
+
+    if (usaTextura) texture_disable();
 
     glPopMatrix();
-    // Desenho do colisor (debug)
-    // SetPosColisor(x, y);
+
     DesenhaDebug();
 }
 
