@@ -68,9 +68,7 @@ void Tiro::Desenha()
     glScalef(escalaMalha, escalaMalha, escalaMalha);
     glTranslatef(0.0f, -minYMalha, 0.0f);
 
-    GLfloat matBala[] = { 1.0f, 0.8f, 0.2f, 1.0f };
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, matBala);
-    malhaBala.draw();
+    malhaBala.draw(0);
     glPopMatrix();
 
     DesenhaDebug();

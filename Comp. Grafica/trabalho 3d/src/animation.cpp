@@ -56,8 +56,8 @@ void Animation::update(float dt)
     rebuildCurrent();
 }
 
-void Animation::draw() const
+void Animation::draw(GLfloat texture) const
 {
     if (m_frames.empty()) return;
-    m_frames[m_current].draw();
+    m_frames[m_current].draw(texture);
 }

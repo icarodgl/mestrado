@@ -184,45 +184,7 @@ void Arena::GaranteMalhas()
     if (!malhaArvore.loadMesh("src/assets/arvore2.obj"))
         fprintf(stderr, "Arena: falha ao carregar arvore.obj\n");
 
-    // ---- Cone ----
-    if (!malhaCone.vertsPos.empty())
-    {
-        float mn[3] = {1e30f, 1e30f, 1e30f};
-        float mx[3] = {-1e30f, -1e30f, -1e30f};
-        for (auto &v : malhaCone.vertsPos)
-        {
-            mn[0] = fminf(mn[0], v.x);
-            mn[1] = fminf(mn[1], v.y);
-            mn[2] = fminf(mn[2], v.z);
-            mx[0] = fmaxf(mx[0], v.x);
-            mx[1] = fmaxf(mx[1], v.y);
-            mx[2] = fmaxf(mx[2], v.z);
-        }
-        minYMalhaCone = mn[1];
-        float altura = mx[1] - mn[1];
-        float maior = fmaxf(altura, fmaxf(mx[0] - mn[0], mx[2] - mn[2]));
-        escalaCone = (maior > 1e-4f) ? (25.0f / maior) : 1.0f;
-    }
-
-    // ---- Árvore ----
-    if (!malhaArvore.vertsPos.empty())
-    {
-        float mn[3] = {1e30f, 1e30f, 1e30f};
-        float mx[3] = {-1e30f, -1e30f, -1e30f};
-        for (auto &v : malhaArvore.vertsPos)
-        {
-            mn[0] = fminf(mn[0], v.x);
-            mn[1] = fminf(mn[1], v.y);
-            mn[2] = fminf(mn[2], v.z);
-            mx[0] = fmaxf(mx[0], v.x);
-            mx[1] = fmaxf(mx[1], v.y);
-            mx[2] = fmaxf(mx[2], v.z);
-        }
-        minYMalhaArvore = mn[1];
-        float altura = mx[1] - mn[1];
-        float maior = fmaxf(altura, fmaxf(mx[0] - mn[0], mx[2] - mn[2]));
-    }
-
+    malhaArvore.inverterTextura();
     malhasCarregadas = true;
 }
 void Arena::DesenhaCone(float x, float y)
@@ -242,12 +204,9 @@ void Arena::DesenhaCone(float x, float y)
     glScalef(escalaCone, escalaCone, escalaCone);
     glTranslatef(0.0f, -minYMalhaCone, 0.0f);
 
-    // 4) Cor (caso não tenha textura)
-    GLfloat matCone[] = {1.0f, 0.5f, 0.0f, 1.0f}; // Laranja
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, matCone);
 
-    // 5) Desenha
-    malhaCone.draw();
+    
+    malhaCone.draw(0);
 
     glPopMatrix();
 }
@@ -281,17 +240,7 @@ void Arena::DesenhaArvore(float x, float y, float angulo)
     glScalef(escalaArvore, escalaArvore, escalaArvore);
     glTranslatef(0.0f, -minYMalhaArvore, 0.0f);
 
-    bool usaTextura = (texturaArvore != 0);
-    if (usaTextura)
-    {
-        texture_enable();
-        glBindTexture(GL_TEXTURE_2D, texturaArvore);
-    }
-
-    malhaArvore.draw(usaTextura);
-
-    if (usaTextura)
-        texture_disable();
+    malhaArvore.draw(texturaArvore);
 
     glPopMatrix();
 }

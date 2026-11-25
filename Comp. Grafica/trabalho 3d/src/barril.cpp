@@ -7,7 +7,7 @@
 // Inicialização das variáveis estáticas
 mesh Barril::malhaBarril;
 bool Barril::malhaCarregada = false;
-float Barril::escalaMalha = 0.6f;
+float Barril::escalaMalha = 48.0f;
 float Barril::minYMalha = 0.0f;
 GLuint Barril::texturaBarril   = 0;       
 bool   Barril::texturaCarregada = false;  
@@ -31,22 +31,7 @@ void Barril::garanteMalha() {
     if (!malhaBarril.loadMesh("src/assets/barril.obj")) {
         fprintf(stderr, "Falha ao carregar barril.obj\n");
     }
-
-    if (!malhaBarril.vertsPos.empty()) {
-        // Calcula bounding box para escala e para apoiar no chão
-        float mn[3] = { 1e30f, 1e30f, 1e30f};
-        float mx[3] = {-1e30f,-1e30f,-1e30f};
-        for (auto& v : malhaBarril.vertsPos) {
-            mn[0]=fminf(mn[0],v.x); mn[1]=fminf(mn[1],v.y); mn[2]=fminf(mn[2],v.z);
-            mx[0]=fmaxf(mx[0],v.x); mx[1]=fmaxf(mx[1],v.y); mx[2]=fmaxf(mx[2],v.z);
-        }
-        minYMalha = mn[1];
-
-        // Escala: Queremos um barril com cerca de 40 unidades de altura
-        float altura = mx[1] - mn[1];
-        float maior = fmaxf(altura, fmaxf(mx[0]-mn[0], mx[2]-mn[2]));
-        escalaMalha = (maior > 1e-4f) ? (140.0f / maior) : 1.0f;
-    }
+    malhaBarril.inverterTextura();
     malhaCarregada = true;
 }
 
@@ -75,34 +60,18 @@ void Barril::Desenha() {
     if (malhaBarril.vertsPos.empty()) return;
 
     glPushMatrix();
-
     // 1) Posição na arena
     glTranslatef(cx, cy, cz);
-
     // 2) Deitar o modelo Y-up no plano XY do jogo
     glRotatef(90.0f, 0.0f, 0.0f, 1.0f);
-
     // 3) Rotação contínua do barril
     glRotatef(-anguloRotacao, 0.0f, 1.0f, 0.0f);
 
     // 4) Escala e apoio no chão
     glScalef(escalaMalha, escalaMalha, escalaMalha);
     glTranslatef(0.0f, -minYMalha, 0.0f);
-
-    // 5) Textura (se carregada)
-    bool usaTextura = (texturaBarril != 0);
-    if (usaTextura) {
-        texture_enable();                              // GL_TEXTURE_2D + GL_MODULATE
-        glBindTexture(GL_TEXTURE_2D, texturaBarril);
-    }
-
-    // 6) Desenha a malha (material neutro quando texturizada)
-    malhaBarril.draw(usaTextura);
-
-    if (usaTextura) texture_disable();
-
+    malhaBarril.draw(texturaBarril);
     glPopMatrix();
-
     DesenhaDebug();
 }
 

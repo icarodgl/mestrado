@@ -190,7 +190,7 @@ void Personagem::DesenhaArma()
     GLfloat matArma[] = {0.25f, 0.25f, 0.28f, 1.0f};
     glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, matArma);
 
-    malhaArma.draw();
+    malhaArma.draw(0);
     glPopMatrix();
 }
 static void garanteMalhaPersonagem()
@@ -309,20 +309,20 @@ void Personagem::DesenhaPersonagem(GLfloat x, GLfloat y)
     switch (direcaoAtual)
     {
     case DIR_FRENTE:
-        animAndandoFrente.draw();
+        animAndandoFrente.draw(0);
         break;
     case DIR_TRAS:
-        animAndandoTras.draw();
+        animAndandoTras.draw(0);
         break;
     case DIR_ESQ:
-        animAndandoEsq.draw();
+        animAndandoEsq.draw(0);
         break;
     case DIR_DIR:
-        animAndandoDir.draw();
+        animAndandoDir.draw(0);
         break;
     case DIR_NENHUMA:
     default:
-        animParado.draw();
+        animParado.draw(0);
         break;
     }
 

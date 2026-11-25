@@ -40,6 +40,7 @@ class mesh{
     bool inverterV = false;
     mesh(){};
     bool loadMesh(string path);//Path é o caminho para o arquivo .obj e deve conter o nome do arquivo.obj
-    void draw(bool comTextura = false) const;
+    void draw(GLfloat Textura) const;
+    void inverterTextura(){inverterV = true;};
 };
 #endif

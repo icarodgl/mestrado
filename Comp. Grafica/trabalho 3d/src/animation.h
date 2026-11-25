@@ -1,4 +1,3 @@
-
 #ifndef ANIMATION_H
 #define ANIMATION_H
 
@@ -8,18 +7,13 @@
 
 class Animation {
 public:
-    // Carrega frames com path tipo "assets/andando/passo%d.obj"
-    // de firstIdx ate lastIdx (inclusive). Ex: load(".../passo%d.obj", 1, 10)
+
     bool load(const char* pathPattern, int firstIdx, int lastIdx);
 
-    // Avanca o tempo em dt segundos. Se loop=true, cicla; senao, para no ultimo.
     void update(float dt);
 
-    // Desenha o frame atual com as transformacoes JA APLICADAS pelo chamador
-    // (a Animation nao mexe na matrix; soh escolhe o mesh e chama draw()).
-    void draw() const;
+    void draw(GLfloat texture) const;
 
-    // Reset para o frame 0
     void reset() { m_time = 0.0f; }
 
     // Controle
