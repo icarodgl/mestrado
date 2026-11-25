@@ -8,7 +8,7 @@
 #include <GL/gl.h>
 #include <GL/glut.h>
 #include "animation.h"
-
+#include "texture.h"
 using namespace std;
 
 static mesh malhaPersonagem;
@@ -18,7 +18,9 @@ static float malhaOffsetY = 0.0f; // para apoiar a base em y=0 do modelo
 static float malhaMinY = 0.0f;
 // arma
 static mesh malhaArma;
+static GLfloat texturaArma;
 static bool malhaArmaCarregada = false;
+static bool texturaCarregada = false;
 static float escalaArma = 1.0;
 
 void Personagem::AtualizaLanterna()
@@ -29,12 +31,23 @@ void Personagem::AtualizaLanterna()
 
     // ---------- 1) Descobre a malha ativa (igual ao Atirar/DesenhaArma) ----------
     const mesh *malhaAtiva = nullptr;
-    switch (direcaoAtual) {
-        case DIR_FRENTE: malhaAtiva = animAndandoFrente.getCurrentMesh(); break;
-        case DIR_TRAS:   malhaAtiva = animAndandoTras.getCurrentMesh();   break;
-        case DIR_ESQ:    malhaAtiva = animAndandoEsq.getCurrentMesh();    break;
-        case DIR_DIR:    malhaAtiva = animAndandoDir.getCurrentMesh();    break;
-        default:         malhaAtiva = animParado.getCurrentMesh();        break;
+    switch (direcaoAtual)
+    {
+    case DIR_FRENTE:
+        malhaAtiva = animAndandoFrente.getCurrentMesh();
+        break;
+    case DIR_TRAS:
+        malhaAtiva = animAndandoTras.getCurrentMesh();
+        break;
+    case DIR_ESQ:
+        malhaAtiva = animAndandoEsq.getCurrentMesh();
+        break;
+    case DIR_DIR:
+        malhaAtiva = animAndandoDir.getCurrentMesh();
+        break;
+    default:
+        malhaAtiva = animParado.getCurrentMesh();
+        break;
     }
     if (!malhaAtiva || malhaAtiva->vertsPos.size() < 196)
         return;
@@ -68,48 +81,72 @@ void Personagem::AtualizaLanterna()
     GLfloat posX = mv[12], posY = mv[13], posZ = mv[14];
 
     GLfloat dirX = mv[8], dirY = mv[9], dirZ = mv[10];
-    float len = sqrtf(dirX*dirX + dirY*dirY + dirZ*dirZ);
-    if (len > 1e-6f) { dirX /= len; dirY /= len; dirZ /= len; }
-    else             { dirX = 0; dirY = 1; dirZ = 0; }
+    float len = sqrtf(dirX * dirX + dirY * dirY + dirZ * dirZ);
+    if (len > 1e-6f)
+    {
+        dirX /= len;
+        dirY /= len;
+        dirZ /= len;
+    }
+    else
+    {
+        dirX = 0;
+        dirY = 1;
+        dirZ = 0;
+    }
 
     // ---------- 4) Configura GL_LIGHT7 como spot do cano ----------
     const GLenum L = GL_LIGHT7;
 
-    GLfloat pos[4]      = { posX, posY, posZ, 1.0f }; // w=1 => spot/point
-    GLfloat spotDir[3]  = { dirX, dirY, dirZ };
-    GLfloat spotCutoff  = 22.0f;   // abertura do facho (graus)
-    GLfloat spotExp     = 12.0f;   // concentração do facho
+    GLfloat pos[4] = {posX, posY, posZ, 1.0f}; // w=1 => spot/point
+    GLfloat spotDir[3] = {dirX, dirY, dirZ};
+    GLfloat spotCutoff = 22.0f; // abertura do facho (graus)
+    GLfloat spotExp = 12.0f;    // concentração do facho
 
-    GLfloat ambient[4]  = { 0.00f, 0.00f, 0.00f, 1.0f };
-    GLfloat diffuse[4]  = { 1.00f, 0.97f, 0.82f, 1.0f }; // tom levemente amarelado
-    GLfloat specular[4] = { 1.00f, 1.00f, 1.00f, 1.0f };
+    GLfloat ambient[4] = {0.00f, 0.00f, 0.00f, 1.0f};
+    GLfloat diffuse[4] = {1.00f, 0.97f, 0.82f, 1.0f}; // tom levemente amarelado
+    GLfloat specular[4] = {1.00f, 1.00f, 1.00f, 1.0f};
 
     if (lanternaAcesa)
     {
         glEnable(L);
 
         glLightfv(L, GL_POSITION, pos);
-        glLightfv(L, GL_AMBIENT,  ambient);
-        glLightfv(L, GL_DIFFUSE,  diffuse);
+        glLightfv(L, GL_AMBIENT, ambient);
+        glLightfv(L, GL_DIFFUSE, diffuse);
         glLightfv(L, GL_SPECULAR, specular);
 
         // atenuação: alcance moderado (ajuste ao seu mundo)
-        glLightf(L, GL_CONSTANT_ATTENUATION,  1.0f);
-        glLightf(L, GL_LINEAR_ATTENUATION,    0.0025f);
+        glLightf(L, GL_CONSTANT_ATTENUATION, 1.0f);
+        glLightf(L, GL_LINEAR_ATTENUATION, 0.0025f);
         glLightf(L, GL_QUADRATIC_ATTENUATION, 0.0f);
 
         // forma de spot
         glLightfv(L, GL_SPOT_DIRECTION, spotDir);
-        glLightf (L, GL_SPOT_CUTOFF,    spotCutoff);
-        glLightf (L, GL_SPOT_EXPONENT,  spotExp);
+        glLightf(L, GL_SPOT_CUTOFF, spotCutoff);
+        glLightf(L, GL_SPOT_EXPONENT, spotExp);
     }
     else
     {
         glDisable(L);
     }
 }
+static void garanteTextura()
+{
+    if (texturaCarregada)
+        return;
+
+    texturaArma = loadBMP("src/assets/arma.bmp");
+    if (texturaArma == 0)
+        fprintf(stderr, "Barril: FALHA ao carregar barril.bmp\n");
+    else
+        printf("Barril: textura OK texId=%u\n", texturaArma);
+
+    texturaCarregada = true;
+}
 static void garanteMalhaArma()
 {
+
     if (malhaArmaCarregada)
         return;
 
@@ -130,6 +167,8 @@ static void garanteMalhaArma()
             mx[2] = fmaxf(mx[2], v.z);
         }
     }
+    garanteTextura();
+    malhaArma.inverterTextura();
     malhaArmaCarregada = true;
 }
 void Personagem::DesenhaArma()
@@ -186,11 +225,8 @@ void Personagem::DesenhaArma()
     glTranslatef(0.0f, 0.0f, 0.0f); // põe o cabo (minY) na mão
     glScalef(escalaArma, escalaArma, escalaArma);
 
-    // ---- Material ----
-    GLfloat matArma[] = {0.25f, 0.25f, 0.28f, 1.0f};
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, matArma);
 
-    malhaArma.draw(0);
+    malhaArma.draw(texturaArma);
     glPopMatrix();
 }
 static void garanteMalhaPersonagem()
@@ -377,17 +413,28 @@ Tiro *Personagem::Atirar(GLfloat VelocidadeTiro)
 
     // malha ativa (igual ao DesenhaArma)
     const mesh *malhaAtiva = nullptr;
-    switch (direcaoAtual) {
-        case DIR_FRENTE: malhaAtiva = animAndandoFrente.getCurrentMesh(); break;
-        case DIR_TRAS:   malhaAtiva = animAndandoTras.getCurrentMesh();   break;
-        case DIR_ESQ:    malhaAtiva = animAndandoEsq.getCurrentMesh();    break;
-        case DIR_DIR:    malhaAtiva = animAndandoDir.getCurrentMesh();    break;
-        default:         malhaAtiva = animParado.getCurrentMesh();        break;
+    switch (direcaoAtual)
+    {
+    case DIR_FRENTE:
+        malhaAtiva = animAndandoFrente.getCurrentMesh();
+        break;
+    case DIR_TRAS:
+        malhaAtiva = animAndandoTras.getCurrentMesh();
+        break;
+    case DIR_ESQ:
+        malhaAtiva = animAndandoEsq.getCurrentMesh();
+        break;
+    case DIR_DIR:
+        malhaAtiva = animAndandoDir.getCurrentMesh();
+        break;
+    default:
+        malhaAtiva = animParado.getCurrentMesh();
+        break;
     }
     if (!malhaAtiva || malhaAtiva->vertsPos.size() < 196)
         return new Tiro(gX, gY, zFallback, 0, 1, 0, VelocidadeTiro);
 
-    const pos &mao = malhaAtiva->vertsPos[196 - 1];  // só para a cadeia
+    const pos &mao = malhaAtiva->vertsPos[196 - 1]; // só para a cadeia
 
     // ===== MESMA cadeia de DesenhaArma, lida no final =====
     glMatrixMode(GL_MODELVIEW);
@@ -422,18 +469,31 @@ Tiro *Personagem::Atirar(GLfloat VelocidadeTiro)
     // // direção = eixo do cano da arma (coluna Y da MODELVIEW)
     // float dx = mv[4], dy = mv[5], dz = mv[6];
 
-        // direção = eixo do cano da arma (coluna Z da MODELVIEW, pois o OBJ aponta em +Z)
+    // direção = eixo do cano da arma (coluna Z da MODELVIEW, pois o OBJ aponta em +Z)
     float dx = mv[8], dy = mv[9], dz = mv[10];
     {
-        float len = sqrtf(dx*dx + dy*dy + dz*dz);
-        if (len < 1e-6f) { dx = 0; dy = 1; dz = 0; len = 1.0f; }
-        dx /= len; dy /= len; dz /= len;
+        float len = sqrtf(dx * dx + dy * dy + dz * dz);
+        if (len < 1e-6f)
+        {
+            dx = 0;
+            dy = 1;
+            dz = 0;
+            len = 1.0f;
+        }
+        dx /= len;
+        dy /= len;
+        dz /= len;
     }
 
-
-    m_debugTiroSX = sX; m_debugTiroSY = sY; m_debugTiroSZ = sZ;
-    m_debugTiroDX = dx; m_debugTiroDY = dy; m_debugTiroDZ = dz;
-    m_debugTiroPX = sX + dx; m_debugTiroPY = sY + dy; m_debugTiroPZ = sZ + dz;
+    m_debugTiroSX = sX;
+    m_debugTiroSY = sY;
+    m_debugTiroSZ = sZ;
+    m_debugTiroDX = dx;
+    m_debugTiroDY = dy;
+    m_debugTiroDZ = dz;
+    m_debugTiroPX = sX + dx;
+    m_debugTiroPY = sY + dy;
+    m_debugTiroPZ = sZ + dz;
     m_debugTiroValido = true;
 
     return new Tiro(sX, sY, sZ, dx, dy, dz, VelocidadeTiro);
@@ -511,9 +571,9 @@ void Personagem::desenhaDebugTiro()
     float UX, UY, UZ, VX, VY, VZ;
     basePerp(DX, DY, DZ, UX, UY, UZ, VX, VY, VZ);
 
-    const float halfGraus = 30.0f;               // 60° totais
-    const float halfRad   = halfGraus * (float)M_PI / 180.0f;
-    const float tanHalf   = tanf(halfRad);
+    const float halfGraus = 30.0f; // 60° totais
+    const float halfRad = halfGraus * (float)M_PI / 180.0f;
+    const float tanHalf = tanf(halfRad);
 
     glDisable(GL_LIGHTING);
     glDisable(GL_DEPTH_TEST);
@@ -522,18 +582,18 @@ void Personagem::desenhaDebugTiro()
     // ---- eixo do cone (linha amarela) ----
     glColor3f(1, 1, 0);
     glBegin(GL_LINES);
-        glVertex3f(SX, SY, SZ);
-        glVertex3f(SX + DX * 200, SY + DY * 200, SZ + DZ * 200);
+    glVertex3f(SX, SY, SZ);
+    glVertex3f(SX + DX * 200, SY + DY * 200, SZ + DZ * 200);
     glEnd();
 
     // ---- três "fatias" de cone em comprimentos crescentes ----
     // desenha círculo base + geratrizes em cada fatia
-    const int SEG   = 32;
+    const int SEG = 32;
     const int FATIAS = 3;
     for (int f = 1; f <= FATIAS; ++f)
     {
-        float L    = 60.0f * f;          // distância ao longo do eixo D
-        float raio = L * tanHalf;        // raio do círculo nessa fatia
+        float L = 60.0f * f;      // distância ao longo do eixo D
+        float raio = L * tanHalf; // raio do círculo nessa fatia
 
         // centro da fatia
         float CX = SX + DX * L;
@@ -541,7 +601,7 @@ void Personagem::desenhaDebugTiro()
         float CZ = SZ + DZ * L;
 
         // ---- círculo ----
-        glColor3f(1.0f, 0.6f, 0.0f);     // laranja
+        glColor3f(1.0f, 0.6f, 0.0f); // laranja
         glBegin(GL_LINE_LOOP);
         for (int i = 0; i < SEG; ++i)
         {
@@ -555,7 +615,7 @@ void Personagem::desenhaDebugTiro()
         glEnd();
 
         // ---- geratrizes (a cada 90° => 4 linhas saindo do ápice) ----
-        glColor3f(0.6f, 0.6f, 0.0f);     // amarelo escuro
+        glColor3f(0.6f, 0.6f, 0.0f); // amarelo escuro
         glBegin(GL_LINES);
         for (int k = 0; k < 4; ++k)
         {
@@ -574,13 +634,13 @@ void Personagem::desenhaDebugTiro()
     glPointSize(10);
     glColor3f(1, 0, 0);
     glBegin(GL_POINTS);
-        glVertex3f(SX, SY, SZ);
+    glVertex3f(SX, SY, SZ);
     glEnd();
 
     // ---- ponta calculada / direção real (azul) ----
     glColor3f(0.2f, 0.5f, 1.0f);
     glBegin(GL_POINTS);
-        glVertex3f(PX, PY, PZ);
+    glVertex3f(PX, PY, PZ);
     glEnd();
 
     glEnable(GL_DEPTH_TEST);
@@ -594,12 +654,23 @@ bool Personagem::GetPoseCano(float &px, float &py, float &pz,
         return false;
 
     const mesh *malhaAtiva = nullptr;
-    switch (direcaoAtual) {
-        case DIR_FRENTE: malhaAtiva = animAndandoFrente.getCurrentMesh(); break;
-        case DIR_TRAS:   malhaAtiva = animAndandoTras.getCurrentMesh();   break;
-        case DIR_ESQ:    malhaAtiva = animAndandoEsq.getCurrentMesh();    break;
-        case DIR_DIR:    malhaAtiva = animAndandoDir.getCurrentMesh();    break;
-        default:         malhaAtiva = animParado.getCurrentMesh();        break;
+    switch (direcaoAtual)
+    {
+    case DIR_FRENTE:
+        malhaAtiva = animAndandoFrente.getCurrentMesh();
+        break;
+    case DIR_TRAS:
+        malhaAtiva = animAndandoTras.getCurrentMesh();
+        break;
+    case DIR_ESQ:
+        malhaAtiva = animAndandoEsq.getCurrentMesh();
+        break;
+    case DIR_DIR:
+        malhaAtiva = animAndandoDir.getCurrentMesh();
+        break;
+    default:
+        malhaAtiva = animParado.getCurrentMesh();
+        break;
     }
     if (!malhaAtiva || malhaAtiva->vertsPos.size() < 196)
         return false;
@@ -618,7 +689,7 @@ bool Personagem::GetPoseCano(float &px, float &py, float &pz,
 
     glTranslatef(mao.x, mao.y, mao.z);
 
-    glRotatef(thetaArma,      0.0f, 1.0f, 0.0f);
+    glRotatef(thetaArma, 0.0f, 1.0f, 0.0f);
     glRotatef(thetaArmaPitch, 1.0f, 0.0f, 0.0f);
 
     glScalef(escalaArma, escalaArma, escalaArma);
@@ -628,11 +699,25 @@ bool Personagem::GetPoseCano(float &px, float &py, float &pz,
     glGetFloatv(GL_MODELVIEW_MATRIX, mv);
     glPopMatrix();
 
-    px = mv[12]; py = mv[13]; pz = mv[14];
-    dx = mv[8];  dy = mv[9];  dz = mv[10];
+    px = mv[12];
+    py = mv[13];
+    pz = mv[14];
+    dx = mv[8];
+    dy = mv[9];
+    dz = mv[10];
 
-    float len = sqrtf(dx*dx + dy*dy + dz*dz);
-    if (len < 1e-6f) { dx = 0; dy = 1; dz = 0; }
-    else { dx /= len; dy /= len; dz /= len; }
+    float len = sqrtf(dx * dx + dy * dy + dz * dz);
+    if (len < 1e-6f)
+    {
+        dx = 0;
+        dy = 1;
+        dz = 0;
+    }
+    else
+    {
+        dx /= len;
+        dy /= len;
+        dz /= len;
+    }
     return true;
 }
