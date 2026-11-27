@@ -43,17 +43,8 @@ void Inimigo::Desenha() const {
 
     glPushMatrix();
     glTranslatef(cx, cy, cz);
-    glRotatef(90.0f, 1.0f, 0.0f, 0.0f);   // Y-up do Blender → XY do jogo
+    glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
     glScalef(s_escala, s_escala, s_escala);
-
-    if (s_texturaInimigo != 0) {
-        texture_enable();
-        glBindTexture(GL_TEXTURE_2D, s_texturaInimigo);
-    }
     m_anim.draw(s_texturaInimigo);
-    if (s_texturaInimigo != 0) texture_disable();
-
     glPopMatrix();
-
-    // (Se quiser arma: adicione o desenho dela aqui, usando armaAngulo)
 }

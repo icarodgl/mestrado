@@ -150,6 +150,8 @@ void mesh::draw(GLfloat textura) const
         glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, emissao);
         glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, amb);
         glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, dif);
+
+        
         texture_enable();
 
         glBindTexture(GL_TEXTURE_2D, textura);
