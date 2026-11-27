@@ -2,6 +2,7 @@
 #include <GL/glu.h>
 #include <GL/glut.h>
 #include <stdlib.h>
+#include <vector>
 #include <math.h>
 #include <stdio.h>
 #include "ui.h"
@@ -13,7 +14,7 @@
 #include "camera.h"
 #include "lighting.h"
 #include "arena.h"
-
+#include "animation.h"
 Configuracao config;
 int keyStatus[256];
 
@@ -36,6 +37,7 @@ static GLdouble previousTime = glutGet(GLUT_ELAPSED_TIME);
 bool debugColisor = false;
 bool pause = false;
 
+static std::vector<mesh> g_framesInimigo;
 Personagem personagem;
 MyGameUI gameUI;
 Arena arena;
@@ -222,8 +224,8 @@ static void controlaBarris(GLfloat dt)
     {
         tempoCriarBarril = now + FloatAleatorio(1000.0, 5000.0);
         GLfloat y = config.arena.altura / 2.0f;
-        Barril *b = new Barril(ladoBarril, y, IntAleatorio(0, 1));
-        b->Configurar(config);
+        Barril *b = new Barril(ladoBarril, y, 1); // IntAleatorio(0, 1));
+        b->Configurar(config, &g_framesInimigo);
         for (int i = 0; i < qtBarril; ++i)
         {
             if (barris[i] == nullptr)
@@ -240,7 +242,7 @@ static void controlaBarris(GLfloat dt)
             continue;
 
         barris[i]->setDebug(debugColisor);
-        barris[i]->Mirar(px, py);
+        barris[i]->AtualizaInimigo(dt, .0f, .0f, .0f);
         // criaTiros(barris[i]->Atirar(now, VelocidadeTiro), tirosInimigo);
         barris[i]->Move(dt);
 
@@ -639,8 +641,25 @@ void ConfigurarUsandoXML()
         ladoBarril = config.arena.largura / 4;
 
     arena.Configurar(config);
-}
 
+
+}
+static void carregaInimigo(){
+        g_framesInimigo.clear();
+    for (int i = 1; i <= 10; ++i)
+    {
+        char path[512];
+        // snprintf(path, sizeof(path), "src/assets/andando_tras/passo%d.obj", i);
+        snprintf(path, sizeof(path), "src/assets/inimigo/inimigo%d.obj", i);
+        mesh m;
+        if (m.loadMesh(path))
+            g_framesInimigo.push_back(std::move(m));
+        else
+            fprintf(stderr, "Falha inimigo frame %d\n", i);
+    }
+    printf("Inimigo: %zu frames carregadas\n",
+           g_framesInimigo.size());
+}
 // ------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
@@ -651,7 +670,9 @@ int main(int argc, char *argv[])
     glutInitWindowSize(Width, Height);
     glutInitWindowPosition(150, 50);
     glutCreateWindow("Jogo 3D");
+
     arena.CarregarTexturas();
+    carregaInimigo();
 
     glutDisplayFunc(renderScene);
     glutReshapeFunc(camera_reshape);

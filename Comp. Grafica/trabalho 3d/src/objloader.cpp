@@ -53,44 +53,69 @@ bool mesh::loadMesh(string path)
                 fscanf(file, "%f %f %f\n", &vert.x, &vert.y, &vert.z);
                 vertsNorm.push_back(vert);
             }
-            else if (strcmp(lineHeader, "f") == 0)
-            {
-                string v1, v2, v3;
-                unsigned int vertInd[3], uvInd[3], normInd[3];
-                int matches = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &vertInd[0], &uvInd[0], &normInd[0], &vertInd[1], &uvInd[1], &normInd[1], &vertInd[2], &uvInd[2], &normInd[2]);
-                if (matches != 9)
-                {
-                    printf("QUantidade de valores lidos diferente doesperado. Falha ao ler uma linha de face");
-                    return false;
-                }
-                // Cria uma lista com os índices na ordem apropriada para o desenho das faces
-                // Esta é a lista de índices de vértices
-                vertIndex.push_back(vertInd[0]);
-                vertIndex.push_back(vertInd[1]);
-                vertIndex.push_back(vertInd[2]);
-                // Esta é a lista de índices de mapeamento de textura
-                uvIndex.push_back(uvInd[0]);
-                uvIndex.push_back(uvInd[1]);
-                uvIndex.push_back(uvInd[2]);
-                // Esta é a lista de índices de normais
-                normIndex.push_back(normInd[0]);
-                normIndex.push_back(normInd[1]);
-                normIndex.push_back(normInd[2]);
-            }
+else if (strcmp(lineHeader, "f") == 0)
+{
+    // Lê a linha inteira (até \n) e parseia manualmente
+    char linhaFace[1024];
+    fgets(linhaFace, sizeof(linhaFace), file);
+
+    // Extrai até 8 tokens (vértices) da face
+    // Suporta triângulos E quads E ngons (triangula em leque)
+    std::vector<int> vIdx, vtIdx, vnIdx;
+    char* token = strtok(linhaFace, " \t\r\n");
+    while (token) {
+        int v = 0, vt = 0, vn = 0;
+        int n = sscanf(token, "%d/%d/%d", &v, &vt, &vn);
+        if (n == 0) break;            // linha inválida
+        vIdx.push_back(v);
+        vtIdx.push_back(vt);           // 0 se não havia
+        vnIdx.push_back(vn);           // 0 se não havia
+        token = strtok(NULL, " \t\r\n");
+    }
+
+    if (vIdx.size() < 3) {
+        fprintf(stderr, "Face com menos de 3 vertices em %s\n", path.c_str());
+        return false;
+    }
+
+    // Triangula em leque: (0, i, i+1)
+    for (size_t i = 1; i + 1 < vIdx.size(); ++i)
+    {
+        vertIndex.push_back(vIdx[0]);  vertIndex.push_back(vIdx[i]);  vertIndex.push_back(vIdx[i+1]);
+        uvIndex.push_back(vtIdx[0]);   uvIndex.push_back(vtIdx[i]);   uvIndex.push_back(vtIdx[i+1]);
+        normIndex.push_back(vnIdx[0]); normIndex.push_back(vnIdx[i]); normIndex.push_back(vnIdx[i+1]);
+    }
+}
         }
-        for (unsigned int i = 0; i < vertIndex.size(); i++)
-        {
-            verticeStrip vert;
-            vert.vPos.x = vertsPos[vertIndex[i] - 1].x;
-            vert.vPos.y = vertsPos[vertIndex[i] - 1].y;
-            vert.vPos.z = vertsPos[vertIndex[i] - 1].z;
-            vert.vTex.u = vertsTex[uvIndex[i] - 1].u;
-            vert.vTex.v = vertsTex[uvIndex[i] - 1].v;
-            vert.vNorm.x = vertsNorm[normIndex[i] - 1].x;
-            vert.vNorm.y = vertsNorm[normIndex[i] - 1].y;
-            vert.vNorm.z = vertsNorm[normIndex[i] - 1].z;
-            vertsS.push_back(vert);
-        }
+for (unsigned int i = 0; i < vertIndex.size(); i++)
+{
+    verticeStrip vert;
+    vert.vPos.x = vertsPos[vertIndex[i]-1].x;
+    vert.vPos.y = vertsPos[vertIndex[i]-1].y;
+    vert.vPos.z = vertsPos[vertIndex[i]-1].z;
+
+    // UV: se não existir, usa (0,0)
+    if (uvIndex[i] > 0 && (size_t)(uvIndex[i]-1) < vertsTex.size()) {
+        vert.vTex.u = vertsTex[uvIndex[i]-1].u;
+        vert.vTex.v = vertsTex[uvIndex[i]-1].v;
+    } else {
+        vert.vTex.u = 0.0f;
+        vert.vTex.v = 0.0f;
+    }
+
+    // Normal: se não existir, usa (0,0,1) como fallback
+    if (normIndex[i] > 0 && (size_t)(normIndex[i]-1) < vertsNorm.size()) {
+        vert.vNorm.x = vertsNorm[normIndex[i]-1].x;
+        vert.vNorm.y = vertsNorm[normIndex[i]-1].y;
+        vert.vNorm.z = vertsNorm[normIndex[i]-1].z;
+    } else {
+        vert.vNorm.x = 0.0f;
+        vert.vNorm.y = 0.0f;
+        vert.vNorm.z = 1.0f;
+    }
+
+    vertsS.push_back(vert);
+}
     }
     return true;
 }

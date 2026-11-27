@@ -74,7 +74,71 @@ void Arena::CarregarSkybox()
         if (texturasSkybox[i] == 0)
             fprintf(stderr, "Arena: falha ao carregar skybox face %d (%s)\n", i, nomes[i]);
     }
+
+    texturaSkyboxEsfera = loadBMP("src/assets/skybox/skybox.bmp");
+
+    if (texturaSkyboxEsfera == 0)
+        fprintf(stderr, "Arena: falha ao carregar panorama\n");
+    else
+        printf("Arena: panorama OK texId=%u\n", texturaSkyboxEsfera);
+
+
     skyboxCarregado = true;
+}
+
+void Arena::DesenhaSkyboxEsfera() const {
+    if (!skyboxCarregado) return;
+
+    GLboolean ilum = glIsEnabled(GL_LIGHTING);
+    if (ilum) glDisable(GL_LIGHTING);
+
+    glDepthMask(GL_FALSE);
+    texture_enable();
+    glBindTexture(GL_TEXTURE_2D, texturaSkyboxEsfera);
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+    // Raio grande — maior que a arena (500x150). 800 é folgado.
+    const float R = 2000.0f;
+    // Resolução da esfera: 64 meridianos × 32 paralelos já fica suave
+    const int   STACKS = 32;   // linhas (latitude)
+    const int   SLICES = 64;   // colunas (longitude)
+
+    for (int i = 0; i < STACKS; ++i) {
+        float lat0 = M_PI * (-0.5f + (float)i       / STACKS);  // -π/2..π/2
+        float lat1 = M_PI * (-0.5f + (float)(i + 1) / STACKS);
+
+        float y0 = sinf(lat0), yr0 = cosf(lat0);
+        float y1 = sinf(lat1), yr1 = cosf(lat1);
+
+        glBegin(GL_TRIANGLE_STRIP);
+        for (int j = 0; j <= SLICES; ++j) {
+            float lon = 2.0f * M_PI * (float)j / SLICES;
+
+            float x = cosf(lon);
+            float z = sinf(lon);
+
+            // V = latitude (0 no sul, 1 no norte)
+            float v0 = (float)i       / STACKS;
+            float v1 = (float)(i + 1) / STACKS;
+            // U = longitude (0..1 ao redor)
+            float u  = (float)j / SLICES;
+
+            // Normal apontando para dentro (câmera está dentro da esfera)
+            // Se preferir a esfera "normal" com face culling, inverta glCullFace.
+            glNormal3f(-x * yr0, -y0, -z * yr0);
+            glTexCoord2f(u, 1.0f - v0);   // 1.0-v: BMP é bottom-up
+            glVertex3f(R * x * yr0, R * y0, R * z * yr0);
+
+            glNormal3f(-x * yr1, -y1, -z * yr1);
+            glTexCoord2f(u, 1.0f - v1);
+            glVertex3f(R * x * yr1, R * y1, R * z * yr1);
+        }
+        glEnd();
+    }
+
+    texture_disable();
+    glDepthMask(GL_TRUE);
+    if (ilum) glEnable(GL_LIGHTING);
 }
 void Arena::DesenhaSkybox() const
 {
@@ -277,8 +341,9 @@ void Arena::Desenha() const
     float w = largura / 2.0f;
     float d = profundidade / 2.0f;
 
-    // ---- Skybox primeiro (fundo) ----
+
     DesenhaSkybox();
+    // DesenhaSkyboxEsfera();
 
     // ---- Cones na linha central ----
     DesenhaLinhaDeConesArena();

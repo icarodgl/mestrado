@@ -16,6 +16,7 @@ private:
     GLuint texturaChao    = 0;
 
     GLuint texturasSkybox[6] = {0,0,0,0,0,0};
+    GLuint texturaSkyboxEsfera = 0;
     bool   skyboxCarregado   = false;
 
     bool malhasCarregadas = false;
@@ -26,9 +27,12 @@ private:
     int   numArvores      = 12;
 
     mesh  malhaCone;
-    float escalaCone    = 1.0f;
+    float escalaCone    = 20.0f;
     float minYMalhaCone = 0.0f;
     int   numCones      = 12;
+
+    
+
 
     void GaranteMalhas();
     void DesenhaCone(float x, float y);
@@ -36,8 +40,8 @@ private:
     void DesenhaLinhaDeConesArena() const;
     void DesenhaArvoresParedes() const;
     void DesenhaSkybox() const;
+    void DesenhaSkyboxEsfera() const; 
     void CarregarSkybox();
-
 public:
     Arena();
     ~Arena();
