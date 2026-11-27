@@ -64,10 +64,11 @@ void Barril::Desenha() {
         glTranslatef(0.0f, -minYMalha, 0.0f);
         malhaBarril.draw(texturaBarril);
         glPopMatrix();
+        if (temInimigo && inimigo)
+        inimigo->Desenha();
     }
 
-    if (temInimigo && inimigo)
-        inimigo->Desenha();
+
 
     DesenhaDebug();
 }
@@ -80,7 +81,7 @@ void Barril::AtualizaInimigo(float dt, GLfloat lookX, GLfloat lookY, GLfloat loo
     float angulo = atan2f(dy, dx) * 180.0f / M_PI;
 
     inimigo->Atualiza(dt);
-    inimigo->SetPosicao(cx, cy, cz);       // único lugar que seta a posição
+    inimigo->SetPosicao(cx-escalaMalha*1.5, cy, cz+45);
     inimigo->SetArmaLook(angulo);
 }
 
